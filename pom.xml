@@ -22,6 +22,45 @@
 		<!--Freeze this for reproducible builds. -->
 		<project.build.outputTimestamp>2025-02-11T16:47:11Z</project.build.outputTimestamp>
 	</properties>
+	
+		<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>3.7.1</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<mainClass>tokengine.Main</mainClass>
+							<!-- Used to add Maven implementation version  -->
+							<addDefaultImplementationEntries>
+								true
+							</addDefaultImplementationEntries>
+						</manifest>
+					</archive>
+					<descriptorRefs>
+						<descriptorRef>jar-with-dependencies</descriptorRef>
+					</descriptorRefs>
+					<outputDirectory>${project.build.directory}</outputDirectory>
+					
+					<!-- This creates full convex.jar. We don't want it attached, just built -->
+					<attach>false</attach>
+					<appendAssemblyId>false</appendAssemblyId>
+					<finalName>tokengine</finalName>
+				</configuration>
+				<executions>
+					<execution>
+						<id>create-archive</id>
+						<!-- Use install phase so it doesn't go in deployed Maven artifacts'  -->
+						<phase>install</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
 
 	<dependencies>
 		<dependency>
