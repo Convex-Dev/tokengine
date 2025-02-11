@@ -17,6 +17,7 @@
 		<junit.version>5.11.3</junit.version>
 		<slf4j.version>2.0.16</slf4j.version>
 		<hc.version>5.4.1</hc.version>
+		<javalin.version>6.3.0</javalin.version>
 		<convex.version>0.8.0</convex.version>
 		<!--Freeze this for reproducible builds. -->
 		<project.build.outputTimestamp>2025-02-11T16:47:11Z</project.build.outputTimestamp>
@@ -33,12 +34,43 @@
 			<artifactId>convex-peer</artifactId>
 			<version>${convex.version}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>world.convex</groupId>
 			<artifactId>convex-core</artifactId>
 			<version>${convex.version}</version>
 			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>io.javalin</groupId>
+			<artifactId>javalin</artifactId>
+			<version>${javalin.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.javalin.community.openapi</groupId>
+			<artifactId>javalin-openapi-plugin</artifactId>
+			<version>${javalin.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.javalin.community.openapi</groupId>
+			<artifactId>javalin-swagger-plugin</artifactId>
+			<version>${javalin.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.javalin.community.openapi</groupId>
+			<artifactId>javalin-redoc-plugin</artifactId>
+			<version>${javalin.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.javalin.community.ssl</groupId>
+			<artifactId>ssl-plugin</artifactId>
+			<version>${javalin.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-core</artifactId>
+			<version>2.17.2</version>
 		</dependency>
 
 		<dependency>
