@@ -3,7 +3,7 @@
 #
 # Build stage
 #
-FROM maven:3.6.0-jdk-11-slim AS build
+FROM maven:3.9.9-eclipse-temurin-23-alpine AS build
 COPY src /home/app/src
 COPY pom.xml /home/app
 RUN mvn -f /home/app/pom.xml clean package
@@ -24,8 +24,8 @@ EXPOSE 8080
 # HTTPS port. Usable if server has a certificate
 EXPOSE 443
 
-VOLUME ["/etc/ssl/certs"]
-VOLUME ["/etc/convex/keystore"]
+# VOLUME ["/etc/ssl/certs"]
+# VOLUME ["/etc/convex/keystore"]
 
 ENTRYPOINT ["java", "-jar", "/usr/local/lib/tokengine.jar", "start"]
 
