@@ -8,6 +8,8 @@ import static j2html.TagCreator.p;
 
 import io.javalin.Javalin;
 import io.javalin.http.Context;
+import io.javalin.openapi.HttpMethod;
+import io.javalin.openapi.OpenApi;
 import j2html.tags.DomContent;
 
 public class RestAPI extends ATokengineAPI {
@@ -21,6 +23,11 @@ public class RestAPI extends ATokengineAPI {
 
 	}
 	
+	@OpenApi(path = ROUTE + "status", 
+			methods = HttpMethod.GET, 
+			tags = { "Tokengine"},
+			summary = "Get a quicker Tokengine status report", 
+			operationId = "status")	
 	protected void getStatus(Context ctx) { 
 		String type=ctx.header("Accept");
 		if ((type!=null)&&type.contains("html")) {

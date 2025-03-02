@@ -1,14 +1,5 @@
 package tokengine;
 
-import static j2html.TagCreator.a;
-import static j2html.TagCreator.body;
-import static j2html.TagCreator.h1;
-import static j2html.TagCreator.head;
-import static j2html.TagCreator.html;
-import static j2html.TagCreator.link;
-import static j2html.TagCreator.p;
-import static j2html.TagCreator.title;
-
 import java.util.function.Consumer;
 
 import org.eclipse.jetty.server.ServerConnector;
@@ -16,10 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import convex.api.Convex;
-import convex.core.util.Utils;
 import io.javalin.Javalin;
 import io.javalin.config.JavalinConfig;
-import io.javalin.http.Context;
 import io.javalin.http.staticfiles.Location;
 import io.javalin.openapi.JsonSchemaLoader;
 import io.javalin.openapi.JsonSchemaResource;
@@ -28,7 +17,6 @@ import io.javalin.openapi.plugin.DefinitionConfiguration;
 import io.javalin.openapi.plugin.OpenApiPlugin;
 import io.javalin.openapi.plugin.redoc.ReDocPlugin;
 import io.javalin.openapi.plugin.swagger.SwaggerPlugin;
-import j2html.tags.DomContent;
 
 public class APIServer {
 	
@@ -158,7 +146,7 @@ public class APIServer {
             .withDocumentationPath(docsPath)
             .withDefinitionConfiguration((version, definition) -> {
             	DefinitionConfiguration def=definition;
-                def=def.withInfo((Consumer <OpenApiInfo>)
+                def=def.withInfo(
                 		info -> {
 							info.setTitle("TokEngine REST API");
 							info.setVersion("0.1.0");
@@ -169,9 +157,6 @@ public class APIServer {
 		config.registerPlugin(new SwaggerPlugin(swaggerConfiguration->{
 			swaggerConfiguration.setDocumentationPath(docsPath);
 		}));
-		config.registerPlugin(new ReDocPlugin(reDocConfiguration -> {
-	        reDocConfiguration.setDocumentationPath(docsPath);
-	    }));
 		
 		for (JsonSchemaResource generatedJsonSchema : new JsonSchemaLoader().loadGeneratedSchemes()) {
 	        System.out.println(generatedJsonSchema.getName());
