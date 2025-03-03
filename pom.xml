@@ -19,8 +19,6 @@
 		<hc.version>5.4.1</hc.version>
 		<javalin.version>6.3.0</javalin.version>
 		<convex.version>0.8.1-SNAPSHOT</convex.version>
-		<!--Freeze this for reproducible builds. -->
-		<project.build.outputTimestamp>2025-02-11T16:47:11Z</project.build.outputTimestamp>
 	</properties>
 
 	<build>
