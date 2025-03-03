@@ -20,7 +20,7 @@ public class RestAPI extends ATokengineAPI {
 	@OpenApi(path = ROUTE + "status", 
 			methods = HttpMethod.GET, 
 			tags = { "Tokengine"},
-			summary = "Get a quicker Tokengine status report", 
+			summary = "Get a quick Tokengine status report", 
 			operationId = "status")	
 	protected void getStatus(Context ctx) { 
 		ctx.header("Content-type", ContentTypes.JSON);
