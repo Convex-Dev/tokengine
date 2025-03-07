@@ -19,17 +19,18 @@ import tokengine.api.Client;
 @TestInstance(Lifecycle.PER_CLASS)
 public class APITest {
 	
+	public static int PORT=8081;
 	
 	private APIServer venueServer;
 
 	@BeforeAll
 	public void setupServer() {
 		venueServer=APIServer.create(null);
-		venueServer.start(8080);
+		venueServer.start(PORT);
 	}
 	
 	@Test public void testAddAsset() throws InterruptedException, ExecutionException {
-		Client client=Client.create(URI.create("http://localhost:8080"));
+		Client client=Client.create(URI.create("http://localhost:"+PORT));
 		
 		Future<Result> r=client.getStatus();
 		

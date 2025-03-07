@@ -28,9 +28,10 @@ public class WebApp  {
 				body(
 					h1("Tokengine Server"),
 					p("Version: "+Utils.getVersion()),
-					p(a("Explorer").withHref("explorer")),
+					p(a("API Explorer").withHref("swagger")),
+					p(a("Tokengine Docs").withHref("https://docs.convex.world/docs/products/tokengine")),
 
-					p("This is the default web page for a Tokengine running the REST API")
+					p("This is the default web page for a Tokengine running a REST API")
 				)
 			);
 		ctx.result(content.render());
