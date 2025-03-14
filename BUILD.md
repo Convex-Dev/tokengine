@@ -10,6 +10,8 @@ Run in CLI (bash / Powershell) in tokengine root directory.
 mvn clean install
 ```
 
+This uses the build instructions in the `pom.xml`
+
 ## Docker build
 
 To build a Tokengine container using docker in the current directory from the provided `Dockerfile`
@@ -28,3 +30,5 @@ Deploy to docker hub:
 docker login -u "convexlive" docker.io
 docker push convexlive/tokengine
 ```
+
+Replace `convexlive` with own username for custom deployments as needed.
