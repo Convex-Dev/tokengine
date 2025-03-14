@@ -1,5 +1,15 @@
 # Tokengine build Instructions
 
+## Maven Build
+
+Requires relatively Maven recent version e.g. 3.9.4
+
+Run in CLI (bash / Powershell) in tokengine root directory.
+
+```
+mvn clean install
+```
+
 ## Docker build
 
 To build a Tokengine container using docker in the current directory from the provided `Dockerfile`
