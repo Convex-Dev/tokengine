@@ -4,7 +4,6 @@ import org.eclipse.jetty.server.ServerConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import convex.api.Convex;
 import io.javalin.Javalin;
 import io.javalin.config.JavalinConfig;
 import io.javalin.http.staticfiles.Location;
@@ -19,46 +18,51 @@ public class APIServer {
 	protected static final Logger log = LoggerFactory.getLogger(APIServer.class.getName());
 
 	
-	protected Convex convex;
+	protected Engine engine;
 	private Javalin javalin;
 
 
+	// Endpoint sets
 	private WebApp webApp;
-
-
 	private RestAPI api;
 
-	public APIServer(Convex convex) {
-		this.convex=convex;
+	public APIServer(Engine engine) {
+		
+		this.engine=engine;
 		webApp=new WebApp();
-		api=new RestAPI();
+		api=new RestAPI(engine);
 	}
 
 	/**
 	 * Create a RESTServer connected to a Convex Client instance. Defaults to using
 	 * the Peer Controller account.
 	 * 
-	 * @param convex Convex client connection instance
+	 * @param Engine Tokengine instance
 	 * @return New {@link APIServer} instance
 	 */
-	public static APIServer create(Convex convex) {
-		return new APIServer(convex);
+	public static APIServer create(Engine engine) {
+
+		return new APIServer(engine);
 	}
 	
 	/**
 	 * Start app with default port
+	 * @throws Exception 
 	 */
-	public void start() {
+	public void start() throws Exception {
 		start(null);
 	}
 
 	/**
 	 * Start app with specific port
+	 * @throws Exception 
 	 */
-	public synchronized void start(Integer port) {
+	public synchronized void start(Integer port) throws Exception {
 		close();
 		javalin=buildApp();
 		start(javalin,port);
+		
+		engine.start();
 	}
 
 	private void start(Javalin app, Integer port) {
@@ -135,7 +139,7 @@ public class APIServer {
 	}
 	
 	protected void addOpenApiPlugins(JavalinConfig config) {
-		String docsPath="openapi-plugin/openapi-default.json";
+		String docsPath="openapi-plugin/openapi-tokengine.json";
 		
 		config.registerPlugin(new OpenApiPlugin(pluginConfig -> {
             pluginConfig

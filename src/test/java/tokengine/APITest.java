@@ -23,9 +23,13 @@ public class APITest {
 	
 	private APIServer venueServer;
 
+	private Engine engine;
+
 	@BeforeAll
-	public void setupServer() {
-		venueServer=APIServer.create(null);
+	public void setupServer() throws Exception {
+		engine=new Engine();
+		engine.start();
+		venueServer=APIServer.create(engine);
 		venueServer.start(PORT);
 	}
 	
@@ -37,6 +41,8 @@ public class APITest {
 		Result result=r.get();
 		assertFalse(result.isError(),()->"Bad Result: "+result);
 	}
+	
+	
 
 	
 	@AfterAll
