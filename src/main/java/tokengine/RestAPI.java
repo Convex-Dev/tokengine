@@ -5,6 +5,9 @@ import java.util.HashMap;
 
 import convex.api.ContentTypes;
 import convex.core.data.ACell;
+import convex.core.data.AMap;
+import convex.core.data.AString;
+import convex.core.lang.RT;
 import convex.core.util.JSONUtils;
 import convex.java.JSON;
 import io.javalin.Javalin;
@@ -78,16 +81,19 @@ public class RestAPI extends ATokengineAPI {
 													}) })}
 						)		)
 	protected void getBalance(Context ctx) {
-		ACell req=parseRequest(ctx);
+		AMap<AString,ACell> req=parseRequest(ctx);
 		ctx.header("Content-type", ContentTypes.JSON);
 		ctx.result(JSONUtils.toString(req));
 		ctx.status(200);
 	}
 	
-	private ACell parseRequest(Context ctx) {
+	private AMap<AString,ACell> parseRequest(Context ctx) {
 		String json=ctx.body();
 		try {
-			return JSONUtils.parse(json);
+			ACell data=JSONUtils.parse(json);
+			AMap<AString,ACell> m=RT.ensureMap(data);
+			if (m==null) throw new BadRequestResponse("JSON Object expected as request body");
+			return m;
 		} catch (Exception e) {
 			throw new BadRequestResponse("JSON Parsing failed: "+e.getMessage());
 		}
