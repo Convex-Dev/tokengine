@@ -13,7 +13,7 @@ public class CVMAdapter extends AAdapter {
 		this.convex=convex;
 	}
 
-	public CVMAdapter create(Convex convex) {
+	public static CVMAdapter create(Convex convex) {
 		return new CVMAdapter(convex);
 	}
 	

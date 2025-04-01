@@ -52,6 +52,10 @@ public class Engine {
 		
 	}
 	
+	public Convex getConvex() {
+		return convex;
+	}
+	
 	private void startAdapters() {
 		for (Map.Entry<String,AAdapter> me: adapters.entrySet()) {
 			AAdapter adapter=me.getValue();

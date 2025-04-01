@@ -29,9 +29,8 @@ public class RestAPI extends ATokengineAPI {
 	@Override
 	public void addRoutes(Javalin javalin) {
 		javalin.get(ROUTE + "status", this::getStatus);
-		javalin.get(ROUTE + "handlers", this::getHandlers);
+		javalin.get(ROUTE + "adapters", this::getAdapters);
 
-		
 		javalin.post(ROUTE + "balance", this::getBalance);
 
 		javalin.post(ROUTE + "transfer", this::postTransfer);
@@ -47,14 +46,15 @@ public class RestAPI extends ATokengineAPI {
 		ctx.status(200);
 	}
 	
-	@OpenApi(path = ROUTE + "handlers", methods = HttpMethod.GET, tags = {
-			TOKENGINE_TAG }, summary = "Get a lisp of current handlers installed", operationId = "status")
-	protected void getHandlers(Context ctx) {
+	@OpenApi(path = ROUTE + "adapters", methods = HttpMethod.GET, tags = {
+			TOKENGINE_TAG }, summary = "Get a lisp of current adapters installed", operationId = "adapters")
+	protected void getAdapters(Context ctx) {
 		ctx.header("Content-type", ContentTypes.JSON);
 		
 		ArrayList<?> handlers=engine.getHandlers();
 		HashMap<String,Object> data=new HashMap<>();
 		data.put("items",handlers);
+		data.put("count",handlers.size());
 		ctx.result(JSON.toString(data));
 		ctx.status(200);
 	}
