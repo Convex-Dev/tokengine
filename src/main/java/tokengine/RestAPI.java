@@ -12,6 +12,7 @@ import io.javalin.openapi.OpenApi;
 import io.javalin.openapi.OpenApiContent;
 import io.javalin.openapi.OpenApiExampleProperty;
 import io.javalin.openapi.OpenApiRequestBody;
+import tokengine.model.BalanceRequest;
 import tokengine.model.TransferRequest;
 
 public class RestAPI extends ATokengineAPI {
@@ -39,7 +40,7 @@ public class RestAPI extends ATokengineAPI {
 
 	
 	@OpenApi(path = ROUTE + "status", methods = HttpMethod.GET, tags = {
-			TOKENGINE_TAG }, summary = "Get a quick Tokengine status report", operationId = "status")
+			TOKENGINE_TAG }, summary = "Get a quick TokEngine status report", operationId = "status")
 	protected void getStatus(Context ctx) {
 		ctx.header("Content-type", ContentTypes.JSON);
 		ctx.result("{\"status\":\"OK\"}");
@@ -47,7 +48,7 @@ public class RestAPI extends ATokengineAPI {
 	}
 	
 	@OpenApi(path = ROUTE + "adapters", methods = HttpMethod.GET, tags = {
-			TOKENGINE_TAG }, summary = "Get a lisp of current adapters installed", operationId = "adapters")
+			TOKENGINE_TAG }, summary = "Get a list of current DLT adapters installed", operationId = "adapters")
 	protected void getAdapters(Context ctx) {
 		ctx.header("Content-type", ContentTypes.JSON);
 		
@@ -60,7 +61,19 @@ public class RestAPI extends ATokengineAPI {
 	}
 	
 	@OpenApi(path = ROUTE + "balance", methods = HttpMethod.POST, tags = {
-			TOKENGINE_TAG }, summary = "Queries the balance of a token", operationId = "balance")
+			TOKENGINE_TAG }, summary = "Queries the balance of a token", operationId = "balance",
+					requestBody = @OpenApiRequestBody(
+							description = "Balance request, must provide a token and an address", 
+							content = {@OpenApiContent(
+											from = BalanceRequest.class,  
+											type = "application/json", 
+											exampleObjects = {
+													@OpenApiExampleProperty(name = "source", objects= {
+															@OpenApiExampleProperty(name = "account", value="#11"),
+															@OpenApiExampleProperty(name = "network", value="convex:main"),
+															@OpenApiExampleProperty(name = "token", value="CVM")
+													}) })}
+						)		)
 	protected void getBalance(Context ctx) {
 		ctx.header("Content-type", ContentTypes.JSON);
 		ctx.result("{\"status\":\"OK\"}");
@@ -77,12 +90,12 @@ public class RestAPI extends ATokengineAPI {
 											exampleObjects = {
 													@OpenApiExampleProperty(name = "source", objects= {
 															@OpenApiExampleProperty(name = "account", value="#11"),
-															@OpenApiExampleProperty(name = "network", value="convex"),
+															@OpenApiExampleProperty(name = "network", value="convex:main"),
 															@OpenApiExampleProperty(name = "token", value="CVM")
 													}),
 													@OpenApiExampleProperty(name = "destination", objects= {
 															@OpenApiExampleProperty(name = "account", value="#12"),
-															@OpenApiExampleProperty(name = "network", value="convex"),
+															@OpenApiExampleProperty(name = "network", value="convex:main"),
 															@OpenApiExampleProperty(name = "token", value="WCVM")
 													}),
 													@OpenApiExampleProperty(name = "quantity", value = "1000") })}
