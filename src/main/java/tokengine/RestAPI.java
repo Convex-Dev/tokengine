@@ -4,8 +4,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import convex.api.ContentTypes;
+import convex.core.data.ACell;
+import convex.core.util.JSONUtils;
 import convex.java.JSON;
 import io.javalin.Javalin;
+import io.javalin.http.BadRequestResponse;
 import io.javalin.http.Context;
 import io.javalin.openapi.HttpMethod;
 import io.javalin.openapi.OpenApi;
@@ -75,11 +78,22 @@ public class RestAPI extends ATokengineAPI {
 													}) })}
 						)		)
 	protected void getBalance(Context ctx) {
+		ACell req=parseRequest(ctx);
 		ctx.header("Content-type", ContentTypes.JSON);
-		ctx.result("{\"status\":\"OK\"}");
+		ctx.result(JSONUtils.toString(req));
 		ctx.status(200);
 	}
 	
+	private ACell parseRequest(Context ctx) {
+		String json=ctx.body();
+		try {
+			return JSONUtils.parse(json);
+		} catch (Exception e) {
+			throw new BadRequestResponse("JSON Parsing failed: "+e.getMessage());
+		}
+	}
+
+
 	@OpenApi(path = ROUTE + "transfer", methods = HttpMethod.POST, tags = {
 			TOKENGINE_TAG }, summary = "Transfer a quantity of equivalent tokens", operationId = "transfer",
 					requestBody = @OpenApiRequestBody(
