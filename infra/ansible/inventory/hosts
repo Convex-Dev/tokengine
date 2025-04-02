@@ -1,0 +1,6 @@
+# tokengine/inventory/hosts
+#
+tkeng-22     ansible_host=192.168.1.44       ansible_user=ansible
+tkeng-24     ansible_host=192.168.1.45       ansible_user=ansible
+##
+

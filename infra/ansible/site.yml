@@ -1,0 +1,23 @@
+---
+# tokengine site.yml
+#
+# NOTE: this should exist in your ansible.cfg file:
+# [privilege_escalation]
+# become=True
+
+- hosts: tkeng-22
+  roles:
+    #     - { role: prepare, tags: ["prepare"] }
+    - { role: hostname, tags: ["hostname"] }
+    - { role: docker_install, tags: ["docker"] }
+    - { role: caddy, tags: ["caddy"] }
+#      
+- hosts: tkeng-24
+  roles:
+    #     - { role: prepare, tags: ["prepare"] }
+    - { role: hostname, tags: ["hostname"] }
+    - { role: docker_install, tags: ["docker"] }
+    - { role: caddy, tags: ["caddy"] }
+
+##
+

@@ -1,0 +1,34 @@
+---
+# tokengine/infra/roles/caddy/tasks/main.yml
+#
+
+- name: check if caddy installed
+  ansible.builtin.stat:
+    path: "{{ caddy_file }}"
+  register: stat_result
+
+- name: run caddy_install tasks
+  # NOTE: does not generate Caddyfile
+  ansible.builtin.include_tasks: caddy_install.yml
+  when: "stat_result.stat.exists == False"
+
+# --------------------------------------------------------
+
+- name: run caddy_config tasks
+  # this generates Caddyfile and Caddydoc.txt
+  ansible.builtin.include_tasks: caddy_config.yml
+  tags: caddy_config
+
+# --------------------------------------------------------
+
+- name: add caddy to /etc/logrotate.d
+  ansible.builtin.template:
+    src: caddy_logrotate.j2
+    dest: /etc/logrotate.d/caddy
+    owner: root
+    group: root
+    mode: 0644
+
+
+##
+
