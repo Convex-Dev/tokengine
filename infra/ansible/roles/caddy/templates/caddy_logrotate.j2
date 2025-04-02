@@ -1,0 +1,11 @@
+# logrotate file for caddy
+
+/var/log/caddy/*.log {
+  rotate 5
+  weekly
+  compress
+  missingok
+  notifempty
+}
+##
+

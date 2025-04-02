@@ -1,0 +1,40 @@
+---
+# roles/caddy_config/tasks/main.yml
+#
+# --------------------------------------------------------
+# caddy_config
+
+- name: caddy_config
+  block:
+
+  - set_fact:
+      template_dest: "{{ caddy_file }}"
+
+  - name: create {{ caddy_file }}
+    ansible.builtin.template:
+      src: "{{ caddyfile_template }}"
+      dest: "{{ caddy_file }}"
+      owner: root
+      group: root
+      mode: 0644
+
+  - set_fact:
+      template_dest: "{{ caddy_doc }}"
+
+  - name: create {{ caddy_doc }}
+    ansible.builtin.template:
+      src: "{{ caddydoc_template }}"
+      dest: "{{ caddy_doc }}"
+      owner: root
+      group: root
+      mode: 0644
+
+  - name: restart caddy
+    ansible.builtin.service:
+      name: caddy
+      state: restarted
+
+  tags: caddy_config
+
+# --------------------------------------------------------
+

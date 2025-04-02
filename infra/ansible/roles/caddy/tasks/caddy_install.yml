@@ -1,0 +1,103 @@
+---
+# tokengine/infra/roles/caddy/tasks/caddy_install.yml
+#
+- debug:
+    msg: "Detected ansible_architecture: {{ ansible_architecture }}"
+
+- set_fact:
+    system_architecture: 'amd64'
+  when: ansible_architecture == "x86_64"
+
+- debug:
+    msg: "system_architecture set to {{ system_architecture }}"
+
+- name: ensure Downloads directory exists
+  ansible.builtin.file:
+    path: Downloads/caddy
+    state: directory
+      # owner: "{{ ansible_user }}"
+      # group: "{{ ansible_group }}"
+    #  become: false
+
+# NOTE: this egregious hack required because of github redirection
+- name: generate download shell script for caddy
+  ansible.builtin.template:
+    src: caddy-dl.sh.j2
+    dest: caddy-dl.sh
+    mode: 0755
+  become: false
+#
+- name: run download shell script for caddy
+  # (which is just a wget call...)
+  ansible.builtin.shell: ./caddy-dl.sh
+    # become: false
+  args:
+    executable: /bin/bash
+
+- name: extract caddy binary from caddy_{{ caddy_version }}_linux_{{ system_architecture }}.tar.gz
+  ansible.builtin.shell: tar zxvf caddy_{{ caddy_version }}_linux_{{ system_architecture }}.tar.gz
+  args:
+    chdir: Downloads/caddy/
+    # become: false
+ 
+- name: install caddy binary in {{ caddy_target }}
+  ansible.builtin.shell: cp Downloads/caddy/caddy {{ caddy_target }}
+
+- name: set owner/perms
+  ansible.builtin.file:
+    path: "{{ caddy_target }}/caddy"
+    owner: root
+    group: root
+
+- name: create {{ caddy_group }} group
+  ansible.builtin.group:
+    name: "{{ caddy_group }}"
+    state: present
+ 
+- name: create {{ caddy_user }} user
+  ansible.builtin.user:
+    name: "{{ caddy_user }}"
+    group: "{{ caddy_group }}"
+    # create_home: no
+
+- name: create {{ caddy_config }} dir
+  ansible.builtin.file:
+    path: "{{ caddy_config }}"
+    state: directory
+
+- name: create {{ caddy_logdir }}
+  ansible.builtin.file:
+    path: "{{ caddy_logdir }}"
+    state: directory
+    owner: "{{ caddy_user }}"
+    group: "{{ caddy_group }}"
+    mode: 0755
+
+- name: remove Download remains
+  ansible.builtin.file:
+    path: Downloads/caddy
+    state: absent
+
+- set_fact:
+    template_dest: '/etc/systemd/system/caddy.service'
+
+- name: generate systemd script
+  ansible.builtin.template:
+    src: etc_systemd_caddy.j2
+    dest: "{{ template_dest }}"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: reload systemd
+  ansible.builtin.command: systemctl daemon-reload
+
+- name: ensure caddy enabled
+  ansible.builtin.service:
+    name: caddy
+    enabled: yes
+
+# --------------------------------------------------------
+
+##
+

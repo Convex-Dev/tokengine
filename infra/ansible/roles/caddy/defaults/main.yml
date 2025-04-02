@@ -1,0 +1,21 @@
+---
+# tokengine/roles/caddy/defaults/main.yml
+#
+caddy_baseurl: https://github.com/caddyserver/caddy/releases/download
+#
+caddy_version: 2.9.1  # (latest version as of 2025-02-14)
+#
+caddy_target: /usr/local/bin
+caddy_logdir: /var/log/caddy
+caddy_user: caddy
+caddy_group: caddy
+caddy_config: /etc/caddy
+caddy_file: "{{ caddy_config }}/Caddyfile"
+caddy_doc: "{{ caddy_config }}/Caddydoc.txt"
+caddy_www: /var/www
+  # caddyoffline_template: Caddy_offline.j2
+  # caddystatic_template: Caddy_static.j2
+#
+caddyfile_template: Caddyfile.j2
+caddydoc_template: Caddydoc.j2
+##

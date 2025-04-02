@@ -1,0 +1,25 @@
+---
+# tokengine/infra/roles/docker_install/tasks/main.yml
+
+- name: install docker.io and docker-compose direct from Ubuntu repo
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - docker.io
+    - docker-compose
+
+- name: ensure ansible_user in in docker group
+  ansible.builtin.user:
+    name: "{{ ansible_user }}"
+    groups: docker
+    append: yes
+
+- name: Run docker hello-world
+  ansible.builtin.command: sudo docker run hello-world
+  register: hello
+
+- debug:
+    var: hello
+
+##
