@@ -42,6 +42,16 @@ public class APITest {
 		assertFalse(result.isError(),()->"Bad Result: "+result);
 	}
 	
+	@Test public void testBalance() throws InterruptedException, ExecutionException {
+		Client client=Client.create(URI.create("http://localhost:"+PORT));
+		
+		Future<Result> r=client.getStatus();
+		
+		Result result=r.get();
+		assertFalse(result.isError(),()->"Bad Result: "+result);
+	}
+
+	
 	
 
 	

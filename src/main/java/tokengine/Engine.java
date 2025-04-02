@@ -67,6 +67,11 @@ public class Engine {
 		adapters.put(adapter.getChainID(),adapter);
 	}
 	
+	public AAdapter getAdapter(String chainID) {
+		return adapters.get(chainID);
+	}
+
+	
 	public void close() {
 		if (server!=null) server.close();
 		if (convex!=null) convex.close();

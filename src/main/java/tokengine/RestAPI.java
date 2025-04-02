@@ -1,12 +1,19 @@
 package tokengine;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import convex.api.ContentTypes;
+import convex.core.Result;
 import convex.core.data.ACell;
 import convex.core.data.AMap;
 import convex.core.data.AString;
+import convex.core.data.Strings;
+import convex.core.data.prim.AInteger;
 import convex.core.lang.RT;
 import convex.core.util.JSONUtils;
 import convex.java.JSON;
@@ -18,10 +25,14 @@ import io.javalin.openapi.OpenApi;
 import io.javalin.openapi.OpenApiContent;
 import io.javalin.openapi.OpenApiExampleProperty;
 import io.javalin.openapi.OpenApiRequestBody;
+import tokengine.adapter.AAdapter;
 import tokengine.model.BalanceRequest;
 import tokengine.model.TransferRequest;
 
 public class RestAPI extends ATokengineAPI {
+	
+	protected static final Logger log = LoggerFactory.getLogger(RestAPI.class.getName());
+
 	
 	private static final String TOKENGINE_TAG="TokEngine";
 	
@@ -69,7 +80,7 @@ public class RestAPI extends ATokengineAPI {
 	@OpenApi(path = ROUTE + "balance", methods = HttpMethod.POST, tags = {
 			TOKENGINE_TAG }, summary = "Queries the balance of a token", operationId = "balance",
 					requestBody = @OpenApiRequestBody(
-							description = "Balance request, must provide a token and an address", 
+							description = "Balance request, must provide a token (CAIP-19) and an address", 
 							content = {@OpenApiContent(
 											from = BalanceRequest.class,  
 											type = "application/json", 
@@ -82,9 +93,24 @@ public class RestAPI extends ATokengineAPI {
 						)		)
 	protected void getBalance(Context ctx) {
 		AMap<AString,ACell> req=parseRequest(ctx);
-		ctx.header("Content-type", ContentTypes.JSON);
-		ctx.result(JSONUtils.toString(req));
-		ctx.status(200);
+		AMap<AString,ACell> src = RT.ensureMap(req.get(Strings.create("source")));
+		if (src==null) throw new BadRequestResponse("Expected 'source' object specifying token");
+		
+		ACell network=src.get(Strings.create("network"));
+		if (network==null) throw new BadRequestResponse("Expected 'network' property for source");
+		String chainID=RT.str(network).toString();
+		log.info("Querying balance on network: "+chainID);
+		AAdapter adapter=engine.getAdapter(chainID);
+		if (adapter==null) throw new BadRequestResponse("Can't find network: "+chainID);
+		try {
+			String token=RT.str(src.get(Strings.create("token"))).toString();
+			String address=RT.str(src.get(Strings.create("account"))).toString();
+			AInteger bal=adapter.getBalance(token,address);
+			prepareResult(ctx,Result.value(bal));
+		} catch (IOException e) {
+			throw new BadRequestResponse(e.getMessage());
+		}
+
 	}
 	
 	private AMap<AString,ACell> parseRequest(Context ctx) {

@@ -19,6 +19,7 @@
 		<hc.version>5.4.1</hc.version>
 		<javalin.version>6.3.0</javalin.version>
 		<convex.version>0.8.1</convex.version>
+		<web3j.version>4.13.0</web3j.version>
 	</properties>
 
 	<build>
@@ -104,7 +105,12 @@
 		<dependency>
 			<groupId>org.web3j</groupId>
 			<artifactId>core</artifactId>
-			<version>4.12.2</version>
+			<version>${web3j.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.web3j</groupId>
+			<artifactId>contracts</artifactId>
+			<version>${web3j.version}</version>
 		</dependency>
 
 		<dependency>

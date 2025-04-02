@@ -1,7 +1,10 @@
 package tokengine.adapter;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+
+import convex.core.data.prim.AInteger;
 
 public abstract class AAdapter {
 
@@ -21,4 +24,10 @@ public abstract class AAdapter {
 		data.put("chainID", getChainID());
 		return data;
 	}
+
+	/**
+	 * Gets the balance of the given address account as an Integer
+	 * @return Balance
+	 */
+	public abstract AInteger getBalance(String asset,String address) throws IOException;
 }
