@@ -59,9 +59,9 @@
 			}
 			
 		}
-	}
+	},
 	
-	"operations" {
+	"operations": {
 		/* use this to configure logback */
 		"log-config-file": "~/.tokengine/logback.xml",
 		
