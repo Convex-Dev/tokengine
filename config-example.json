@@ -62,6 +62,7 @@
 	}
 	
 	"operations" {
+		"log-config-file": "~/.tokengine/logback.xml",
 		"log-dir": "~/.tokengine/logs"
 		/* handling for failures? */
 		

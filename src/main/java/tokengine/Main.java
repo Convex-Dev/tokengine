@@ -33,7 +33,7 @@ public class Main {
 		}
 		
 		// configure logging if specified
-		ACell logFile=RT.getIn(config,"operations","log-file");
+		ACell logFile=RT.getIn(config,"operations","log-config-file");
 		if (logFile instanceof AString) {
 			File logConfigFile=FileUtils.getFile(logFile.toString());
 			if (logConfigFile.exists()) {
