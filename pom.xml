@@ -13,12 +13,12 @@
 		<maven.compiler.source>21</maven.compiler.source>
 		<maven.compiler.target>21</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<logback.version>1.5.12</logback.version>
+		<logback.version>1.5.18</logback.version>
 		<junit.version>5.11.3</junit.version>
 		<slf4j.version>2.0.16</slf4j.version>
 		<hc.version>5.4.1</hc.version>
 		<javalin.version>6.3.0</javalin.version>
-		<convex.version>0.8.1</convex.version>
+		<convex.version>0.8.2-SNAPSHOT</convex.version>
 		<web3j.version>4.13.0</web3j.version>
 	</properties>
 
@@ -149,6 +149,11 @@
 			<artifactId>jackson-core</artifactId>
 			<version>2.17.2</version>
 		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>${logback.version}</version>
+		</dependency>
 
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
@@ -172,13 +177,6 @@
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 			<version>${slf4j.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-simple</artifactId>
-			<version>${slf4j.version}</version>
-			<!-- optional becuase not needed by projects depending on this -->
-			<optional>true</optional>
 		</dependency>
 
 	</dependencies>
