@@ -53,6 +53,9 @@ public class RestAPI extends ATokengineAPI {
 
 		javalin.post(ROUTE + "transfer", this::postTransfer);
 		javalin.post(ROUTE + "wrap", this::postWrap);
+		
+		javalin.get(ROUTE + "config", this::getConfig);
+
 	}
 
 	
@@ -61,6 +64,14 @@ public class RestAPI extends ATokengineAPI {
 	protected void getStatus(Context ctx) {
 		ctx.header("Content-type", ContentTypes.JSON);
 		ctx.result("{\"status\":\"OK\"}");
+		ctx.status(200);
+	}
+	
+	@OpenApi(path = ROUTE + "config", methods = HttpMethod.GET, tags = {
+			TOKENGINE_TAG }, summary = "Get the tokengine configuration", operationId = "config")
+	protected void getConfig(Context ctx) {
+		ctx.header("Content-type", ContentTypes.JSON);
+		ctx.result(JSON.toString(engine.getConfig()));
 		ctx.status(200);
 	}
 	

@@ -102,11 +102,23 @@
 			<groupId>world.convex</groupId>
 			<artifactId>convex-peer</artifactId>
 			<version>${convex.version}</version>
+			<exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-simple</artifactId>
+                </exclusion>
+            </exclusions>
 		</dependency>
 		<dependency>
 			<groupId>world.convex</groupId>
 			<artifactId>convex-restapi</artifactId>
 			<version>${convex.version}</version>
+			<exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-simple</artifactId>
+                </exclusion>
+            </exclusions>
 		</dependency>
 
 		<dependency>

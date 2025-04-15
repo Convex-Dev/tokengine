@@ -1,5 +1,7 @@
 /* 
-  Loaded by default from ~/.tokengine/config.json 
+  Loaded by default from ~/.tokengine/config/config.json 
+  
+  If you want to change this path it can be provided as a single command line argument to tokengine.jar
 */
 {
 	/* List networks */ 
@@ -63,7 +65,7 @@
 	
 	"operations": {
 		/* use this to configure logback */
-		"log-config-file": "~/.tokengine/logback.xml",
+		"log-config-file": "~/.tokengine/logs/logback.xml",
 		
 		
 		"log-dir": "~/.tokengine/logs"

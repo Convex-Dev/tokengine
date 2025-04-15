@@ -25,7 +25,7 @@ public class Main {
 
 	public static void main(String[] args) throws Exception  {
 		// File path for config file
-		String cpath=(args.length==0)?"~/.tokengine/config.json":args[0];
+		String cpath=(args.length==0)?"~/.tokengine/config/config.json":args[0];
 		ACell config = loadConfig(cpath);
 		
 		configureLogging(config);

@@ -114,4 +114,8 @@ public class Engine {
 		}
 		return handlers;
 	}
+
+	public ACell getConfig() {
+		return config;
+	}
 }

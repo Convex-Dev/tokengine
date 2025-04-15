@@ -5,16 +5,8 @@
       <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} -%kvp- %msg%n</pattern>
     </encoder>
   </appender>
-  
-  <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-    <file>${user.home}/.tokengine/logs/logback.log</file>
-    <encoder>
-        <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} -%kvp- %msg%n</pattern>
-    </encoder>
-</appender>
 
-  <root level="info">
-    <appender-ref ref="FILE" />
+  <root level="WARN">
     <appender-ref ref="STDOUT" />
   </root>
   
