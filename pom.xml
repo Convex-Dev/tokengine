@@ -30,7 +30,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>tokengine.Main</mainClass>
+							<mainClass>tokengine.TokengineMain</mainClass>
 							<!-- Used to add Maven implementation version  -->
 							<addDefaultImplementationEntries>
 								true

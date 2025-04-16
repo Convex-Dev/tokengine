@@ -32,6 +32,12 @@
 		}
 	],
 	
+	/* Used to configure TokEngine embedded peer */
+	"convex" : {
+		"port":18888,                // Port for embedded Peer (default 18888)
+		"source":"peer.convex.live"  // Convex peer to sync with
+	}
+	
 	/* Used to provide general metadata for cross-chain tokens */
 	"tokens" : [
 		{

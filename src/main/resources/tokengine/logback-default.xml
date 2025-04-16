@@ -2,14 +2,14 @@
 
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
-      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} -%kvp- %msg%n</pattern>
+      <pattern>%date{yyyy-MM-dd'T'HH:mm:ss.SSSX, UTC} %-5level [%thread] %logger{36} -%kvp- %msg%n</pattern>
     </encoder>
   </appender>
   
   <appender name="FILE" class="ch.qos.logback.core.FileAppender">
     <file>${user.home}/.tokengine/logs/logback.log</file>
     <encoder>
-        <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} -%kvp- %msg%n</pattern>
+        <pattern>%date{yyyy-MM-dd'T'HH:mm:ss.SSSX, UTC} %-5level [%thread] %logger{36} -%kvp- %msg%n</pattern>
     </encoder>
 </appender>
 

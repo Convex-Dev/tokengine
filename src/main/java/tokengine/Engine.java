@@ -17,7 +17,9 @@ import convex.core.data.AString;
 import convex.core.data.Keyword;
 import convex.core.data.prim.AInteger;
 import convex.core.init.Init;
+import convex.core.lang.RT;
 import convex.core.lang.Reader;
+import convex.core.util.JSONUtils;
 import convex.peer.API;
 import convex.peer.Server;
 import tokengine.adapter.AAdapter;
@@ -42,12 +44,19 @@ public class Engine {
 	public void start() throws Exception {
 		AKeyPair kp=AKeyPair.createSeeded(6756);
 		
-		Map<Keyword, Object> config=new HashMap<>();
-		State genesis=Init.createState(List.of(kp.getAccountKey()));
+		ACell convexConfig=RT.getIn(config, "convex");
+		
+		Map<Keyword, Object> peerConfig;
+		if (convexConfig==null) {
+			peerConfig=new HashMap<>();
+			State genesis=Init.createState(List.of(kp.getAccountKey()));
+			peerConfig.put(Keywords.STATE,genesis);
+			peerConfig.put(Keywords.KEYPAIR,kp);
+		} else {
+			peerConfig=JSONUtils.json(convexConfig);
+		}
 
-		config.put(Keywords.STATE,genesis);
-		config.put(Keywords.KEYPAIR,kp);
-		server=API.launchPeer(config);
+		server=API.launchPeer(peerConfig);
 		
 		
 		

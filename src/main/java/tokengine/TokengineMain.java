@@ -19,24 +19,25 @@ import convex.core.util.Utils;
 import tokengine.adapter.CVMAdapter;
 import tokengine.adapter.EVMAdapter;
 
-public class Main {
+public class TokengineMain {
 	
-	public static final Logger log=LoggerFactory.getLogger(Main.class);
+	public static final Logger log=LoggerFactory.getLogger(TokengineMain.class);
 
 	public static void main(String[] args) throws Exception  {
-		// File path for config file
-		String cpath=(args.length==0)?"~/.tokengine/config/config.json":args[0];
-		ACell config = loadConfig(cpath);
-		
-		configureLogging(config);
-
-		Engine engine = startEngine(config);
-		
-		APIServer server=APIServer.create(engine);
-		
 		try {
+			// File path for config file
+			String cpath=(args.length==0)?"~/.tokengine/config/config.json":args[0];
+			ACell config = loadConfig(cpath);
+			
+			configureLogging(config);
+	
+			Engine engine = startEngine(config);
+			
+			APIServer server=APIServer.create(engine);
+		
 			server.start();
 		} catch (Exception e) {
+			log.error("Unexpected Failure during TokEngine startup",e);
 			throw new Error(e);
 		}
 		
