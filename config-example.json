@@ -32,7 +32,7 @@
 		}
 	],
 	
-	/* Used to configure TokEngine embedded peer */
+	/* Used to configure TokEngine embedded peer. Omit to run a test peer */
 	"convex" : {
 		"port":18888,                // Port for embedded Peer (default 18888)
 		"source":"peer.convex.live"  // Convex peer to sync with
