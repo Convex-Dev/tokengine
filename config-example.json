@@ -46,6 +46,13 @@
 			"name" : "Werecoin"
 			
 		}
+		{
+			"alias": "CVM", /* must match transfers category exactly */
+			"symbol" : "CVM",
+			"name" : "Werecoin"
+			
+		}
+
 		
 	],
 	
@@ -66,7 +73,22 @@
 				"payout":true
 			}
 			
-		}
+		},
+		"CVM": {
+				"convex" : {
+					"symbol":"CVM",
+					"assetID":"convex:main:#1234",
+					"recieve":true,
+					"payout":true
+				},
+				"sepolia": {
+					"symbol":"CVM",
+					"assetID":"eip155:11155111:0xc62eeb332708f9199d0c6e6f2e76286d79d9311e",
+					"treasuryID":"0x",
+					"recieve":true,
+					"payout":true
+				}
+			}
 	},
 	
 	"operations": {

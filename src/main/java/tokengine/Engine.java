@@ -104,8 +104,14 @@ public class Engine {
 		adapters.put(adapter.getChainID(),adapter);
 	}
 	
+	/**
+	 * Get adapter for a given chain ID
+	 * @param chainID or alias
+	 * @return Adapter, or null if not defined
+	 */
 	public AAdapter getAdapter(String chainID) {
-		return adapters.get(chainID);
+		AAdapter ad= adapters.get(chainID);
+		return ad;
 	}
 	
 	public AInteger getBalance(String acct, String chainID, String token) throws IOException {

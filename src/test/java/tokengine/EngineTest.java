@@ -9,7 +9,6 @@ import convex.api.Convex;
 import convex.core.cvm.Address;
 import convex.core.data.ACell;
 import convex.core.data.prim.AInteger;
-import tokengine.adapter.AAdapter;
 import tokengine.adapter.CVMAdapter;
 
 public class EngineTest {
