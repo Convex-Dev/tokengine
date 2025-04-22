@@ -63,7 +63,7 @@ public class RestAPI extends ATokengineAPI {
 			TOKENGINE_TAG }, summary = "Get a quick TokEngine status report", operationId = "status")
 	protected void getStatus(Context ctx) {
 		ctx.header("Content-type", ContentTypes.JSON);
-		ctx.result("{\"status\":\"OK\"}");
+		ctx.result(JSONUtils.toString(engine.getStatus()));
 		ctx.status(200);
 	}
 	

@@ -61,8 +61,7 @@ public class APIServer {
 		close();
 		javalin=buildApp();
 		start(javalin,port);
-		
-		engine.start();
+		log.info("REST API started on port "+javalin.jettyServer().port());
 	}
 
 	private void start(Javalin app, Integer port) {

@@ -34,7 +34,6 @@ public class TokengineMain {
 			Engine engine = startEngine(config);
 			
 			APIServer server=APIServer.create(engine);
-		
 			server.start();
 		} catch (Exception e) {
 			log.error("Unexpected Failure during TokEngine startup",e);
@@ -46,8 +45,6 @@ public class TokengineMain {
 	private static Engine startEngine(ACell config) throws Exception {
 		Engine engine=new Engine(config);
 		engine.start();
-		engine.addAdapter(CVMAdapter.create(engine.getConvex()));
-		engine.addAdapter(EVMAdapter.create());
 		return engine;
 	}
 

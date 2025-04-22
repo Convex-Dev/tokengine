@@ -10,19 +10,19 @@ import convex.core.cvm.Address;
 import convex.core.data.ACell;
 import convex.core.data.prim.AInteger;
 import convex.core.data.prim.CVMLong;
-import convex.core.init.Init;
 import convex.core.lang.Reader;
 
 public class CVMAdapter extends AAdapter {
 
 	protected Convex convex;
 	
-	public CVMAdapter(Convex convex) {
+	public CVMAdapter(Convex convex,String chainID) {
+		super(chainID);
 		this.convex=convex;
 	}
 
-	public static CVMAdapter create(Convex convex) {
-		return new CVMAdapter(convex);
+	public static CVMAdapter create(Convex convex,String chainID) {
+		return new CVMAdapter(convex,chainID);
 	}
 	
 	public void start() {
@@ -32,11 +32,6 @@ public class CVMAdapter extends AAdapter {
 	@Override
 	public void close() {
 		convex.close();
-	}
-
-	@Override
-	public String getChainID() {
-		return "convex:main";
 	}
 
 	@Override
@@ -50,9 +45,10 @@ public class CVMAdapter extends AAdapter {
 	
 	@Override
 	public AInteger getBalance(String asset, String address) throws IOException {
+		Address addr=parseAddress(address);
 		if (isCVM(asset)) {
 			try {
-				Long l= convex.getBalance(Init.GENESIS_ADDRESS);
+				Long l= convex.getBalance(addr);
 				return AInteger.create(l);
 			} catch (Exception e) {
 				throw new IOException(e);
@@ -60,8 +56,6 @@ public class CVMAdapter extends AAdapter {
 		} else if (asset.startsWith("cad29")) {
 			String tokenString=asset.substring(6); // skip 'cad29:' 
 			ACell tokenID=parseTokenID(tokenString);
-			Address addr=Address.parse(address);
-			if (addr==null) throw new IllegalArgumentException("Invalid account address for CVM ["+address+"]");
 			
 			ACell qs=Reader.read("(@convex.asset/balance (quote "+tokenID+") " +addr+")");
 			Result r=convex.query(qs).join();
@@ -85,9 +79,18 @@ public class CVMAdapter extends AAdapter {
 		if (v==null) throw new IllegalArgumentException("null token ID from String [" +decoded+"]");
 		return v;
 	}
+	
+	@Override
+	public Address parseAddress(String caip10) throws IllegalArgumentException {
+		return Address.parse(caip10);
+	}
 
 	private boolean isCVM(String asset) {
 		if ("CVM".equals(asset)) return true;
 		return "slip44:864".equals(asset);
+	}
+
+	public Convex getConvex() {
+		return convex;
 	}
 }

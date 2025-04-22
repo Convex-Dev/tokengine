@@ -1,10 +1,14 @@
 package tokengine;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import convex.api.Convex;
 import convex.core.Result;
@@ -15,6 +19,9 @@ import convex.core.data.ACell;
 import convex.core.data.AMap;
 import convex.core.data.AString;
 import convex.core.data.Keyword;
+import convex.core.data.Maps;
+import convex.core.data.Strings;
+import convex.core.data.Vectors;
 import convex.core.data.prim.AInteger;
 import convex.core.init.Init;
 import convex.core.lang.RT;
@@ -23,9 +30,12 @@ import convex.core.util.JSONUtils;
 import convex.peer.API;
 import convex.peer.Server;
 import tokengine.adapter.AAdapter;
+import tokengine.adapter.CVMAdapter;
+import tokengine.adapter.EVMAdapter;
 
 public class Engine {
-
+	
+	protected static final Logger log=LoggerFactory.getLogger("tokengine.Engine");
 	
 	Convex convex;
 	Server server;
@@ -55,17 +65,25 @@ public class Engine {
 		} else {
 			peerConfig=JSONUtils.json(convexConfig);
 		}
+		
 
 		server=API.launchPeer(peerConfig);
 		
-		
-		
 		convex=Convex.connect(server);
 		
+		// Set up adapters
+		if (config==null) {
+			addDefaultAdapters();
+		}
 		startAdapters();
 		
 	}
 	
+	private void addDefaultAdapters() {
+		addAdapter(CVMAdapter.create(convex,"convex:test"));
+		addAdapter(EVMAdapter.create("eip155:11155111"));
+	}
+
 	public Convex getConvex() {
 		return convex;
 	}
@@ -73,7 +91,12 @@ public class Engine {
 	private void startAdapters() {
 		for (Map.Entry<String,AAdapter> me: adapters.entrySet()) {
 			AAdapter adapter=me.getValue();
-			adapter.start();
+			try {
+				adapter.start();
+				log.info("Started adapter: "+adapter);
+			} catch (Exception e) {
+				log.warn("Failed to start adapter: "+adapter);
+			}
 		}
 	}
 
@@ -83,6 +106,12 @@ public class Engine {
 	
 	public AAdapter getAdapter(String chainID) {
 		return adapters.get(chainID);
+	}
+	
+	public AInteger getBalance(String acct, String chainID, String token) throws IOException {
+		AAdapter ad=getAdapter(chainID);
+		if (ad==null) throw new IllegalStateException("Chain ID not valid: "+chainID);
+		return ad.getBalance(token, acct);
 	}
 
 	
@@ -126,5 +155,18 @@ public class Engine {
 
 	public ACell getConfig() {
 		return config;
+	}
+
+	public static Engine launch(ACell config) throws Exception {
+		Engine engine=new Engine(config);
+		engine.start();
+		return engine;
+	}
+
+	public ACell getStatus() {
+		AMap<AString,ACell> status=Maps.empty();
+		status=status.assoc(Strings.create("adapters"), Vectors.of(getHandlers().toArray()));
+		status=status.assoc(Strings.create("local-convex"), Strings.create(server.getHostAddress().toString()));
+		return status;
 	}
 }

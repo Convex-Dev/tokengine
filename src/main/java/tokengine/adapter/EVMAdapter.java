@@ -11,14 +11,19 @@ import org.web3j.tx.gas.DefaultGasProvider;
 import org.web3j.contracts.eip20.generated.ERC20;
 import org.web3j.crypto.Credentials;
 
+import convex.core.data.Blob;
 import convex.core.data.prim.AInteger;
 
 public class EVMAdapter extends AAdapter {
 
+	protected EVMAdapter(String chainID) {
+		super(chainID);
+	}
+
 	Web3j web3;
 	
-	public static EVMAdapter create() {
-		return new EVMAdapter();
+	public static EVMAdapter create(String chainID) {
+		return new EVMAdapter(chainID);
 	}
 	
 	@Override
@@ -32,13 +37,6 @@ public class EVMAdapter extends AAdapter {
 		// TODO Auto-generated method stub
 		
 	}
-
-	@Override
-	public String getChainID() {
-		// TODO Auto-generated method stub
-		return "eip155:11155111";
-	}
-
 
 	@Override 
 	public AInteger getBalance(String asset, String address) throws IOException {
@@ -70,6 +68,18 @@ public class EVMAdapter extends AAdapter {
 	private boolean isEth(String asset) {
 		if ("ETH".equals(asset)) return true;
 		return "slip44:60".equals(asset);
+	}
+
+	@Override
+	public String parseAddress(String caip10) throws IllegalArgumentException {
+		Blob b=Blob.parse(caip10);
+		if (b==null) {
+			throw new IllegalArgumentException("Invlid hex address for EVM Adapter");
+		}
+		if (b.count()!=20) {
+			throw new IllegalArgumentException("Invlid hex length for EVM Adapter");
+		}
+		return b.toString();
 	}
 }
 
