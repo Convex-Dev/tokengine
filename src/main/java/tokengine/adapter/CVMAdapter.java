@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import convex.api.Convex;
+import convex.core.ErrorCodes;
 import convex.core.Result;
 import convex.core.cvm.Address;
 import convex.core.data.ACell;
@@ -70,6 +71,25 @@ public class CVMAdapter extends AAdapter {
 		throw new UnsupportedOperationException("Asset not supported in CVMAdapter: "+asset);
 	}
 	
+	@Override
+	public Result payout(String token, AInteger quantity, String destAccount) {
+		Address addr=parseAddress(destAccount);
+		if (isCVM(token)) {
+			if (!quantity.isLong()) {
+				return Result.error(ErrorCodes.ARGUMENT, "Invalid quantity: "+quantity);
+			}
+			Result r;
+			try {
+				r = convex.transferSync(addr, quantity.longValue());
+			} catch (InterruptedException e) {
+				return Result.fromException(e);
+			}
+			return r;
+		} else {
+			return Result.error(ErrorCodes.TODO, "Asset payout not supported: "+token);
+		}
+	}
+	
 	private ACell parseTokenID(String tokenString) {
 		String decoded=java.net.URLDecoder.decode(tokenString, StandardCharsets.UTF_8);
 		ACell v=Reader.read(decoded);
@@ -93,4 +113,6 @@ public class CVMAdapter extends AAdapter {
 	public Convex getConvex() {
 		return convex;
 	}
+
+
 }

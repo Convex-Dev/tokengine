@@ -60,6 +60,7 @@ public class Engine {
 		if (convexConfig==null) {
 			peerConfig=new HashMap<>();
 			State genesis=Init.createState(List.of(kp.getAccountKey()));
+			log.info("Creating test Convex network with genesis seed: "+kp.getSeed());
 			peerConfig.put(Keywords.STATE,genesis);
 			peerConfig.put(Keywords.KEYPAIR,kp);
 		} else {
@@ -70,6 +71,8 @@ public class Engine {
 		server=API.launchPeer(peerConfig);
 		
 		convex=Convex.connect(server);
+		convex.setAddress(Init.GENESIS_ADDRESS);
+		convex.setKeyPair(kp);
 		
 		// Set up adapters
 		if (config==null) {

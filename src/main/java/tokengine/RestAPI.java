@@ -27,6 +27,7 @@ import io.javalin.openapi.OpenApiExampleProperty;
 import io.javalin.openapi.OpenApiRequestBody;
 import tokengine.adapter.AAdapter;
 import tokengine.model.BalanceRequest;
+import tokengine.model.PayoutRequest;
 import tokengine.model.TransferRequest;
 
 public class RestAPI extends ATokengineAPI {
@@ -52,6 +53,7 @@ public class RestAPI extends ATokengineAPI {
 		javalin.post(ROUTE + "balance", this::getBalance);
 
 		javalin.post(ROUTE + "transfer", this::postTransfer);
+		javalin.post(ROUTE + "payout", this::postPayout);
 		javalin.post(ROUTE + "wrap", this::postWrap);
 		
 		javalin.get(ROUTE + "config", this::getConfig);
@@ -110,13 +112,13 @@ public class RestAPI extends ATokengineAPI {
 		ACell network=src.get(Strings.create("network"));
 		if (network==null) throw new BadRequestResponse("Expected 'network' property for source");
 		String chainID=RT.str(network).toString();
-		log.info("Querying balance on network: "+chainID);
 		AAdapter adapter=engine.getAdapter(chainID);
 		if (adapter==null) throw new BadRequestResponse("Can't find network: "+chainID);
 		try {
 			String token=RT.str(src.get(Strings.create("token"))).toString();
 			String address=RT.str(src.get(Strings.create("account"))).toString();
 			AInteger bal=adapter.getBalance(token,address);
+			log.info("Querying balance on network: "+chainID +" token: "+token+" account: "+address + " bal="+bal);
 			prepareResult(ctx,Result.value(bal));
 		} catch (IOException e) {
 			throw new BadRequestResponse(e.getMessage());
@@ -158,10 +160,63 @@ public class RestAPI extends ATokengineAPI {
 													@OpenApiExampleProperty(name = "quantity", value = "1000") })}
 						))
 	protected void postTransfer(Context ctx) {
-		ctx.header("Content-type", ContentTypes.JSON);
-		ctx.result("{\"status\":\"OK\"}");
-		ctx.status(200);
+		AMap<AString,ACell> req=parseRequest(ctx);
+		AMap<AString,ACell> src = RT.ensureMap(req.get(Strings.create("destination")));
+		if (src==null) throw new BadRequestResponse("Expected 'destination' object specifying token");
+		AInteger q= AInteger.parse(req.get(Strings.create("quantity")));
+		if (q==null) throw new BadRequestResponse("Expected 'quantity' as valid integer amount");
+		
+		ACell network=src.get(Strings.create("network"));
+		if (network==null) throw new BadRequestResponse("Expected 'network' property for source");
+		String chainID=RT.str(network).toString();
+		AAdapter adapter=engine.getAdapter(chainID);
+		if (adapter==null) throw new BadRequestResponse("Can't find network: "+chainID);
+		
+		String token=RT.str(src.get(Strings.create("token"))).toString();
+		String address=RT.str(src.get(Strings.create("account"))).toString();
+		Result r=adapter.payout(token,q,address);
+		
+		log.info("Paying out on network: "+chainID +" token: "+token+" account: "+address + " quantity="+q);
+		prepareResult(ctx,r);
 	}
+	
+	@OpenApi(path = ROUTE + "payout", methods = HttpMethod.POST, tags = {
+			TOKENGINE_TAG }, summary = "Payout a quantity of owned tokens", operationId = "payout",
+					requestBody = @OpenApiRequestBody(
+							description = "Payout request, must provide a destination and quantity", 
+							content = {@OpenApiContent(
+											from = PayoutRequest.class,  
+											type = "application/json", 
+											exampleObjects = {
+													@OpenApiExampleProperty(name = "destination", objects= {
+															@OpenApiExampleProperty(name = "account", value="#12"),
+															@OpenApiExampleProperty(name = "network", value="convex:test"),
+															@OpenApiExampleProperty(name = "token", value="CVM")
+													}),
+													@OpenApiExampleProperty(name = "quantity", value = "1000000") })}
+						))
+	protected void postPayout(Context ctx) {
+		AMap<AString,ACell> req=parseRequest(ctx);
+		AMap<AString,ACell> src = RT.ensureMap(req.get(Strings.create("destination")));
+		if (src==null) throw new BadRequestResponse("Expected 'destination' object specifying token");
+		AInteger q= AInteger.parse(req.get(Strings.create("quantity")));
+		if (q==null) throw new BadRequestResponse("Expected 'quantity' as valid integer amount");
+		
+		ACell network=src.get(Strings.create("network"));
+		if (network==null) throw new BadRequestResponse("Expected 'network' property for source");
+		String chainID=RT.str(network).toString();
+		AAdapter adapter=engine.getAdapter(chainID);
+		if (adapter==null) throw new BadRequestResponse("Can't find network: "+chainID);
+		
+		String token=RT.str(src.get(Strings.create("token"))).toString();
+		String address=RT.str(src.get(Strings.create("account"))).toString();
+		Result r=adapter.payout(token,q,address);
+		
+		log.info("Paying out on network: "+chainID +" token: "+token+" account: "+address + " quantity="+q);
+		prepareResult(ctx,r);
+	}
+	
+	
 	
 	@OpenApi(path = ROUTE + "wrap", methods = HttpMethod.POST, tags = {
 			TOKENGINE_TAG }, summary = "Wrap a quantity of tokens", operationId = "wrap")

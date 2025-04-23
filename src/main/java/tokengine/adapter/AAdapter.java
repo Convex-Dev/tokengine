@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import convex.core.Result;
 import convex.core.cvm.Address;
 import convex.core.data.prim.AInteger;
 
@@ -52,4 +53,6 @@ public abstract class AAdapter {
 	 * @throws IllegalArgumentException If account address format is invalid
 	 */
 	public abstract Object parseAddress(String caip10) throws IllegalArgumentException;
+
+	public abstract Result payout(String token, AInteger quantity, String destAccount);
 }

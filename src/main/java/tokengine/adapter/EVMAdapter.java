@@ -11,6 +11,8 @@ import org.web3j.tx.gas.DefaultGasProvider;
 import org.web3j.contracts.eip20.generated.ERC20;
 import org.web3j.crypto.Credentials;
 
+import convex.core.ErrorCodes;
+import convex.core.Result;
 import convex.core.data.Blob;
 import convex.core.data.prim.AInteger;
 
@@ -80,6 +82,11 @@ public class EVMAdapter extends AAdapter {
 			throw new IllegalArgumentException("Invlid hex length for EVM Adapter");
 		}
 		return b.toString();
+	}
+
+	@Override
+	public Result payout(String token, AInteger quantity, String destAccount) {
+		return Result.error(ErrorCodes.TODO, "Asset payout not supported: "+token);
 	}
 }
 
