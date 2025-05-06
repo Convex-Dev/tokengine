@@ -16,8 +16,6 @@ import convex.core.lang.RT;
 import convex.core.util.ConfigUtils;
 import convex.core.util.FileUtils;
 import convex.core.util.Utils;
-import tokengine.adapter.CVMAdapter;
-import tokengine.adapter.EVMAdapter;
 
 public class TokengineMain {
 	
@@ -31,7 +29,7 @@ public class TokengineMain {
 			
 			configureLogging(config);
 	
-			Engine engine = startEngine(config);
+			Engine engine = Engine.launch(config);
 			
 			APIServer server=APIServer.create(engine);
 			server.start();
@@ -40,12 +38,6 @@ public class TokengineMain {
 			throw new Error(e);
 		}
 		
-	}
-
-	private static Engine startEngine(ACell config) throws Exception {
-		Engine engine=new Engine(config);
-		engine.start();
-		return engine;
 	}
 
 	private static void configureLogging(ACell config) throws JoranException, IOException {

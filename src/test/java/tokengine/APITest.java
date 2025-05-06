@@ -13,6 +13,9 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 import convex.core.Result;
+import convex.core.data.ACell;
+import convex.core.util.JSONUtils;
+import convex.core.util.Utils;
 import tokengine.api.Client;
 
 
@@ -27,7 +30,10 @@ public class APITest {
 
 	@BeforeAll
 	public void setupServer() throws Exception {
-		engine=new Engine();
+		ACell config=null;
+		
+		// JSONUtils.parse(Utils.readResourceAsString("/tokengine/config-test.json"));
+		engine=new Engine(config);
 		engine.start();
 		venueServer=APIServer.create(engine);
 		venueServer.start(PORT);

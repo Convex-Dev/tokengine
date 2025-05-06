@@ -37,7 +37,7 @@ public class APIServer {
 	 * Create a RESTServer connected to a Convex Client instance. Defaults to using
 	 * the Peer Controller account.
 	 * 
-	 * @param Engine Tokengine instance
+	 * @param engine Tokengine instance
 	 * @return New {@link APIServer} instance
 	 */
 	public static APIServer create(Engine engine) {

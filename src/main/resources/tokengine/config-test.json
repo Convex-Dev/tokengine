@@ -1,15 +1,10 @@
-/* 
-  Loaded by default from ~/.tokengine/config/config.json 
-  
-  If you want to change this path it can be provided as a single command line argument to tokengine.jar
-*/
+// Default config file for testing
 {
-	/* List networks */ 
 	"networks" : [
 		{
 			"decription": "Convex main network (Protonet)",
 			"alias":"convex",                 // Short alias for network (Operator defined)
-		 	"chainID":"convex:main",          // CAIP19 Chain ID
+		 	"chainID":"convex:local",         // CAIP19 Chain ID
 			"url":"https://peer.convex.live", // RPC / API endpoint
 			"receiver-contract":"#14564",
 			"timeout": "10000" /* Millisecond timeout period */
@@ -30,32 +25,29 @@
 			"timeout":"300000",
 			"receiver-contract":"0xa752b195b4e7b1af82ca472756edfdb13bc9c79d"
 		}
-	],
+	],	
 	
 	/* Used to configure TokEngine embedded peer. Omit to run a test peer */
 	"convex" : {
-		"port":18888,                // Port for embedded Peer (default 18888)
-		"source":"peer.convex.live"  // Convex peer to sync with
+		"test":true,
+		"port":18080,         // Port for embedded Peer (test on 18080)
+		"source":"localhost"  // Convex peer to sync with
 	},
-	
+
 	/* Used to provide general metadata for cross-chain tokens */
 	"tokens" : [
 		{
 			"alias": "WereCoin", /* must match transfers category exactly */
 			"symbol" : "WRC",
 			"name" : "Werecoin"
-			
 		},
 		{
 			"alias": "CVM", /* must match transfers category exactly */
 			"symbol" : "CVM",
 			"name" : "Werecoin"
-			
 		}
-
-		
 	],
-	
+
 	/* Stste equivalent tokens on multilpe networks which can be transferred 1:1 */ 
 	"transfers" : {
 		"WereCoin": {
@@ -90,7 +82,7 @@
 			}
 		}
 	},
-	
+
 	"operations": {
 		/* use this to configure logback */
 		"log-config-file": "~/.tokengine/logs/logback.xml",
@@ -99,5 +91,5 @@
 		"log-dir": "~/.tokengine/logs"
 		/* handling for failures? */
 		
-	}
+	}	
 }

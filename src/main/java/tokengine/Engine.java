@@ -46,10 +46,6 @@ public class Engine {
 	public Engine(ACell config)  {
 		this.config=config;
 	}
-	
-	public Engine() {
-		this(null);
-	}
 
 	public void start() throws Exception {
 		AKeyPair kp=AKeyPair.createSeeded(6756);
@@ -177,5 +173,11 @@ public class Engine {
 		status=status.assoc(Strings.create("adapters"), Vectors.of(getHandlers().toArray()));
 		status=status.assoc(Strings.create("local-convex"), Strings.create(server.getHostAddress().toString()));
 		return status;
+	}
+
+	private static Engine startEngine(ACell config) throws Exception {
+		Engine engine=new Engine(config);
+		engine.start();
+		return engine;
 	}
 }
