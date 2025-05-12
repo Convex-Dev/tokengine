@@ -1,0 +1,12 @@
+---
+# tokengine/host_vars/tokengine/caddy.yml
+#
+# site_urls:
+#
+domain_urls:
+  tokengine:
+    url: <insert URL here>
+    caddy_dest: localhost:8080
+    # offline: true
+##
+

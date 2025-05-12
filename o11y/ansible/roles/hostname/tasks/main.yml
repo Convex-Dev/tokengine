@@ -1,0 +1,52 @@
+# roles/hostname/tasks/main.yml
+#
+- name: set core system hostname using inventory_hostname ({{ inventory_hostname }})
+  # NOTE: ansible hostname does not set name in /etc/hosts
+  ansible.builtin.hostname:
+    name: "{{ inventory_hostname }}"
+  when: defined_hostname is not defined
+#
+- name: set core system hostname using defined_hostname ({{ defined_hostname}})
+  # NOTE: ansible hostname does not set name in /etc/hosts
+  ansible.builtin.hostname:
+    name: "{{ defined_hostname }}"
+  when: defined_hostname is defined
+
+- name: set hostname in /etc/hosts using inventory_hostname ({{ inventory_hostname }})
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: '^127.0.1.1'
+    line: '127.0.1.1 {{ inventory_hostname }}'
+  when:
+    - defined_fqdn is not defined
+    - defined_hostname is not defined
+
+- name: set hostname in /etc/hosts using defined_hostname ({{ defined_hostname }})
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: '^127.0.1.1'
+    line: '127.0.1.1 {{ defined_hostname }}'
+  when:
+    - defined_fqdn is not defined
+    - defined_hostname is defined
+
+- name: set fqdn and hostname in /etc/hosts using inventory_hostname ({{ inventory_hostname }})
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: '^127.0.1.1'
+    line: '127.0.1.1 {{ defined_fqdn }} {{ inventory_hostname }}'
+  when:
+    - defined_fqdn is defined
+    - defined_hostname is not defined
+
+- name: set fqdn and hostname in /etc/hosts using defined_hostname ({{ defined_fqdn }})
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: '^127.0.1.1'
+    line: '127.0.1.1 {{ defined_fqdn }} {{ defined_hostname }}'
+  when:
+    - defined_fqdn is defined
+    - defined_hostname is defined
+
+##
+
