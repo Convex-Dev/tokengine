@@ -1,0 +1,136 @@
+---
+#
+# NOTE: major re-write to change java version handling
+#       Centos code not deprecated but not maintained.
+
+# file roles/java/tasks/main.yml 
+
+- debug:
+    msg: "java role started..."
+
+# -----------------------------------------------------------
+# NOTE: if these packages are not installed, headless systems
+#       will report problems with java.awt.headless like this
+#       "awt is not properly configured on this server"
+
+# NOTE: for jenkins, adding "-Djava.awt.headless=true" in the
+#       config file does not seem to be enough to fix issues.
+
+- name: Install required packages 
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    # - ttf-dejavu
+    # NOTE: use fonts-dejavu-core for 22.04?
+    - fonts-dejavu-core
+    - xvfb
+    - libfonts-java
+    - libfontconfig1
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+  # - name: Install required packages
+  #   package:
+  #     name: "{{ item }}"
+  #     state: present
+  #   with_items:
+  #     - dejavu-sans-fonts
+  #     - libfonts
+  #   when: ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat'
+
+# -----------------------------------------------------------
+
+- name: install default debian/ubuntu java {{ debian_default_java_package }}
+  # NOTE: this will throw an error on raspbian about 
+  #	"APT had planned for dpkg to do more than it reported back"
+  package:
+    # name: "{{ debian_java_package }}"
+    name: "{{ debian_default_java_package }}"
+    state: present
+  when:
+    - ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+    - java_version is not defined
+
+      # - name: install debian/ubuntu java11 {{ debian_java11_package }}
+      #   # NOTE: this will throw an error on raspbian about 
+      #   #	"APT had planned for dpkg to do more than it reported back"
+      #   package:
+      #     name: "{{ debian_java11_package }}"
+      #     state: present
+      #   when:
+      #     - ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+      #     - java_version is defined
+      #     - java_version == 'java11'
+
+      # - name: install debian/ubuntu java17 {{ debian_java17_package }}
+      #   package:
+      #     name: "{{ debian_java17_package }}"
+      #     state: present
+      #   when:
+      #     - ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+      #     - java_version is defined
+      #     - java_version == 'java17'
+
+- name: install specified (in group/host vars) debian/ubuntu java V {{ java_version }} using {{ debian_java_package }}
+  package:
+    name: "{{ debian_java_package }}"
+    state: present
+  when:
+    - ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+    - java_version is defined
+
+      # - name: install RHEL7 default java {{ centos_java_package }}
+      #   package:
+      #     name: "{{ centos_java_package }}"
+      #     state: present
+      #   when:
+      #     - ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat'
+      #     - java_version is not defined
+
+      # - name: install RHEL7 java11 {{ centos_java11_package }}
+      #   package:
+      #     name: "{{ centos_java11_package }}"
+      #     state: present
+      #   when:
+      #     - ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat'
+      #     - java_version is defined
+      #     - java_version == 'java11'
+
+# -----------------------------------------------------------
+
+- name: find java binary on Debian/Ubuntu
+  command: update-alternatives --list java
+  register: java_binary
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+  # - name: find java binary on Centos/Redhat
+  #   shell: alternatives --display java | grep link | cut -d ' ' -f6
+  #   register: java_binary
+  #   when: ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat'
+
+- debug:
+    var: java_binary.stdout
+
+- name: find java home
+  shell: "java -XshowSettings:properties -version 2>&1 | grep java.home | sed 's/ //g' | cut -d '=' -f2"
+  register: java_home_dir 
+
+- debug:
+    var: java_home_dir.stdout
+
+- name: remove any previous java home definitions
+  lineinfile:
+    path: /etc/environment
+    regexp: '^JAVA_HOME'
+    state: absent
+
+- name: set JAVA_HOME
+  lineinfile:
+    dest: /etc/environment
+    line: JAVA_HOME={{ java_home_dir.stdout }}
+
+- debug:
+    msg: "java role finished..."
+
+##
+
