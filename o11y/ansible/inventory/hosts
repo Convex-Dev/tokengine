@@ -1,6 +1,0 @@
-# tokengine/infra/ansible/inventory/hosts
-#
-# NOTE: add the IP address of the target linux (Ubuntu) machine here
-tokengine	ansible_host=<xxx.xxx.xxx.xxx>       ansible_user=ansible
-##
-

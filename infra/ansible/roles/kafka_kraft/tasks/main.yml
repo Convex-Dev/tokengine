@@ -1,0 +1,275 @@
+---
+# roles/kafka_kraft/tasks/main.yml
+#
+# *** WORKING ***
+#
+# NOTE: kafka now require java 17+
+#
+# NOTE: systemd problem solved (dependency on zookeeper left behind in systemd template!)
+#
+# See: https://kafka.apache.org/quickstart
+
+# TODO:
+#   set listeners and advertised listeners
+#   (get rid of public url variable? - not relevant with kafka bridge))
+#   run local CLI tests using bi/kafka-topics.sh
+#   modify kafka-bridge script to run curl POST requests for tests
+#   devise intercept to block topic create/delete POST requests
+#
+
+- debug:
+    msg: "role kafka started..."
+
+- name: create kafka group
+  group:
+    name: "{{ kafka_group }}"
+    state: present
+
+- name: create kafka user
+  user:
+    name: "{{ kafka_user }}"
+    group: "{{ kafka_group }}"
+    shell: "/bin/bash"
+    # NOTE: not sure about this: /home/kafka or {{ kafka_home }}
+    # home: ""
+    # createhome: ""
+
+- name: create {{ kafka_home }} dir
+  file:
+    path: "{{ kafka_home }}"
+    state: directory
+    owner: "{{ kafka_user }}"
+    group: "{{ kafka_group }}"
+    mode: 0755
+
+- name: create {{ kafka_broker_logs }} dir
+  file:
+    path: "{{ kafka_broker_logs }}"
+    state: directory
+    owner: "{{ kafka_user }}"
+    group: "{{ kafka_group }}"
+
+    # - name: ensure any existing kafka service stopped
+    #   service:
+    #     name: kafka
+    #     state: stopped
+
+# -----------------------------------------------------------------------
+- name: Download kafka package {{ kafka_url }}/{{ kafka_package }}{{ kafka_suffix }}
+  get_url:
+    url: "{{ kafka_url }}/{{ kafka_package }}{{ kafka_suffix }}"
+    dest: "{{ kafka_temp_dir }}/{{ kafka_package }}{{ kafka_suffix }}"
+    force: no
+    ## owner: ansible
+    ## group: ansible
+    owner: kafka
+    group: kafka
+    
+- name: Unarchive package to {{ kafka_home }}
+  # command: tar zxf {{ kafka_temp_dir }}/{{ kafka_package }}{{ kafka_suffix }} --directory {{ kafka_home }}
+  unarchive:
+    src: "{{ kafka_temp_dir }}/{{ kafka_package }}{{ kafka_suffix }}"
+    dest: "{{ kafka_home }}"
+    # NOTE: cannot be kafka_home as that has to exist for unarchive,
+    #       and if it does exist, this unarchive step gets skipped..
+    creates: "{{ kafka_home }}/{{ kafka_package }}"
+    remote_src: yes
+    # NOTE: seems this is not reliable in unarchive module
+    # owner: kafka
+    # group: kafka
+  
+- name: fix owner:group
+  command: chown -R {{ kafka_user }}:{{ kafka_group }} {{ kafka_home }}
+  become: true
+
+- name: link kafka {{ kafka_package }} to kafka
+  file:
+    src: "{{ kafka_home }}/{{ kafka_package }}"
+    dest: "{{ kafka_home }}/kafka"
+    state: link
+
+- debug:
+    var: ansible_distribution
+
+    # - name: add {{ kafka_home }}/kafka/bin to PATH in /etc/environment
+    #   lineinfile:
+    #     path: /etc/environment
+    #     # NOTE: text between the outer brackets is captured into backref \1
+    #     regexp: '^(PATH=(.*))"$'
+    #     backrefs: yes
+    #     line: '\1:{{ kafka_home }}/kafka/bin"'
+    #   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+  # - name: create /etc/profile.d/kafka.sh file to add kafka to PATH
+  #   lineinfile:
+  #     path: /etc/profile.d/kafka.sh
+  #     line: 'export PATH=$PATH:{{ kafka_home }}/kafka/bin'
+  #     state: present
+  #     create: yes
+  #     owner: root
+  #     group: root
+  #     mode: 0644
+  #   when: ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat'
+
+- name: get JAVA_HOME from /etc/environment
+  shell: grep JAVA_HOME /etc/environment | cut -d '=' -f2
+  register: java_home
+
+- debug:
+    var: java_home.stdout
+
+- name: get UUID from /etc/uuid
+  shell: cat /etc/uuid
+  register: host_uuid
+
+- debug:
+    var: host_uuid.stdout
+
+# -----------------------------------------------------------------------
+
+    ## - name: adjust java heap size kafka requests, if specified (in host_vars)
+    ##   lineinfile:
+    ##     path: "{{ kafka_home }}/kafka/bin/kafka-server-start.sh"
+    ##     regexp: 'export KAFKA_HEAP_OPTS='
+    ##     line: '    export KAFKA_HEAP_OPTS="-Xmx{{ kafka_java_heap }} -Xms{{ kafka_java_heap }}"'
+    ##   when: kafka_java_heap is defined
+
+# -----------------------------------------------------------------------
+#
+- name: check if {{ kafka_home }}/kafka/config/server.properties.orig exists
+  stat:
+    path: "{{ kafka_home }}/kafka/config/server.properties.orig"
+  register: stat_result
+
+- name: make backup of original {{ kafka_home }}/kafka/config/server.properties
+  command: cp {{ kafka_home }}/kafka/config/server.properties {{ kafka_home }}/kafka/config/server.properties.orig
+  when: stat_result.stat.exists == False
+
+- name: create {{ kafka_home }}/kafka/config/server.properties file
+  template:
+    src: server.properties.j2
+    dest: "{{ kafka_home }}/kafka/config/server.properties"
+    owner: "{{ kafka_user }}"
+    group: "{{ kafka_group }}"
+    mode: 0644
+
+# -----------------------------------------------------------------------
+
+# create kafka cluster UUID
+
+- name: check if /etc/kafka_cluster_uuid exists
+  stat:
+    path: /etc/kafka_cluster_uuid
+  register: kc_uuid
+
+- debug:
+    var: kc_uuid.stat.exists
+
+- name: Generate a Cluster UUID (in base64)
+  shell: bin/kafka-storage.sh random-uuid > /etc/kafka_cluster_uuid
+  args:
+    chdir: "{{ kafka_home }}/kafka"
+  when: kc_uuid.stat.exists == False
+
+  # - name: store kafka cluster ID in /etc/kafka_cluster_id
+  #   command: echo {{ kafka_cluster_uuid }} > /etc/kafka_cluster_id
+  #   when: stat_result.stat.exists == False
+
+- name: Get kafka cluster UUID
+  command: cat /etc/kafka_cluster_uuid
+  register: kafka_cluster_uuid
+
+- debug:
+    var: kafka_cluster_uuid.stdout
+
+# -----------------------------------------------------------------------
+# format log directories
+
+- name: check if {{ kafka_broker_logs }}/meta.properties file exists
+  # NOTE: will exist after log dirs formatted
+  stat:
+    ## path: "{{ kafka_logs }}/meta.properties"
+    path: "{{ kafka_broker_logs }}/meta.properties"
+  register: meta_properties
+
+- debug:
+    var: meta_properties.stat.exists
+
+- name: format kafka log directories as user {{ kafka_user }} ...
+  ## command: bin/kafka-storage.sh format --ignore-formatted -t {{ kafka_cluster_uuid.stdout }} -c config/kraft/server.properties
+  command: bin/kafka-storage.sh format -t {{ kafka_cluster_uuid.stdout }} -c config/server.properties
+  args:
+    chdir: "{{ kafka_home }}/kafka"
+  become: yes
+  become_user: "{{ kafka_user }}"
+  when: meta_properties.stat.exists == False
+
+# -----------------------------------------------------------------------
+
+# TODO: create systemd script in /lib/systemd/system
+#       enable step should generate symlink in /etc/systemd/system
+#
+- name: create kafka systemd script
+  template:
+    src: kafka.service.j2
+    dest: /etc/systemd/system/kafka.service
+    owner: root
+    group: root
+    mode: 0644
+
+- name: daemon-reload
+  shell: systemctl daemon-reload
+
+  # - name: set listeners in server.properties
+  #   lineinfile:
+  #     dest: "{{ kafka_home }}/kafka/config/kraft/server.properties"
+  #     regexp: "^listeners="
+  #     # NOTE: this does not listen on localhost
+  #     line: "listeners=PLAINTEXT://:9092"
+  #     state: present
+    
+- name: ensure kafka service enabled
+  service:
+    name: kafka
+    # state: started
+    enabled: true
+
+- name: start kafka service
+  service:
+    name: kafka
+    state: started
+
+    # - name: wait for kafka to be started
+    #   pause:
+    #     seconds: 10
+    # 
+    # - name: start kafka service
+    #   command: service kafka restart
+    #   become: true
+
+# -----------------------------------------------------------------------
+- name: test kafka topic creation
+  # TODO: NOT WORKING - timeout waiting for node assignment...
+  # NOTE: script need to be able to access the bootstrap node by URL
+  block:
+    - name: wait for kafka to be started
+      pause:
+        seconds: 30
+    - name: create a topic
+      command: "{{ kafka_home }}/kafka/bin/kafka-topics.sh --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic ash-test"
+    - name: check if topic created
+      command: "{{ kafka_home }}/kafka/bin/kafka-topics.sh --list --bootstrap-server localhost:9092"
+      register: topic_list
+    - debug:
+        var: topic_list
+    # NOTE: delete topic to make script idempotent
+    - name: delete topic
+      command: "{{ kafka_home }}/kafka/bin/kafka-topics.sh --delete --bootstrap-server localhost:9092 --topic ash-test"
+    # TODO: Add test of record creation?
+    #
+  when: kafka_test is defined
+
+- debug:
+    msg: "role kafka finished - but JAVA_HOME may not be set in the current shell environment!"
+##
+

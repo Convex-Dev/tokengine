@@ -1,0 +1,12 @@
+---
+# roles/kafdrop-jar/defaults/main.yml
+#
+kafdrop_version: '3.31.0'
+kafdrop_filename: "kafdrop-{{ kafdrop_version }}.jar"
+#
+kafdrop_baseurl: https://github.com/obsidiandynamics/kafdrop/releases/download
+kafdrop_download: "{{ kafdrop_baseurl }}/{{ kafdrop_version }}/{{ kafdrop_filename }}"
+kafdrop_home: /var/lib/kafdrop
+#
+##
+

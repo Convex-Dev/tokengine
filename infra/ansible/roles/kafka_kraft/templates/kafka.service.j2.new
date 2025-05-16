@@ -1,0 +1,32 @@
+#
+# From: https://www.fatlan.com/06-07-2023-kafka-kraft-installation/ but not working yet
+#
+[Unit]
+Description=Kafka Kraft Daemon
+Documentation=https://kafka.apache.org/quickstart
+# ALso, see:
+# https://www.fatlan.com/06-07-2023-kafka-kraft-installation/
+# https://github.com/inomera/kafka-3-cluster
+Requires=network.target
+After=network.target
+
+[Service]
+Type=forking
+# WorkingDirectory=/opt/kafka_2.13-3.5.0
+WorkingDirectory=/opt/kafka_{{ scala_version }}-{{ kafka_version }}
+User=kraft
+Group=kraft
+Environment=KAFKA_HEAP_OPTS="-Xmx1G -Xms1G"
+Environment=KAFKA_JVM_PERFORMANCE_OPTS="-XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:InitiatingHeapOccupancyPercent=35 -XX:+ExplicitGCInvokesConcurrent"
+# Environment="JAVA_HOME=/usr/lib/jvm/java-1.11.0-openjdk-amd64"
+### Environment="JAVA_HOME=/usr/lib/jvm/java-1.11.0-openjdk-amd64"
+#ExecStartPre=/bin/bash -c 'KAFKA_CLUSTER_ID="$(/opt/kafka_2.13-3.5.0/bin/kafka-storage.sh random-uuid)"; /opt/kafka_2.13-3.5.0/bin/kafka-storage.sh format -t $KAFKA_CLUSTER_ID -c /opt/kafka_2.13-3.5.0/config/kraft/server.properties'
+#ExecStartPre=/opt/kafka_2.13-3.5.0/bin/kafka-setup.sh
+ExecStart=/opt/kafka_{{ scala_version }}-{{ kafka_version }}/bin/kafka-server-start.sh -daemon /opt/kafka_{{ scala_version }}-{{ kafka_version }}/config/kraft/server.properties --override controller.mode=kraft
+ExecStop=/opt/kafka_{{ scala_version }}-{{ kafka_version }}/bin/kafka-server-stop.sh /opt/kafka_{{ scala_version }}-{{ kafka_version }}/config/kraft/server.properties --override controller.mode=kraft
+TimeoutSec=30
+Restart=on-failure
+LimitNOFILE=65536
+
+[Install]
+WantedBy=default.target

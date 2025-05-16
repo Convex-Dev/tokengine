@@ -1,0 +1,81 @@
+---
+# roles/kafka_bridge/tasks/main.yml
+#
+#
+
+- name: create kafka-bridge group {{ kafka_bridge_group }}
+  ansible.builtin.group:
+    name: "{{ kafka_bridge_group }}"
+    state: present
+  when: kafka_bridge_group is defined
+
+- name: create kafka-bridge user {{ kafka_bridge_user }}
+  ansible.builtin.user:
+    name: "{{ kafka_bridge_user }}"
+    group: "{{ kafka_bridge_group }}"
+    shell: "/bin/bash"
+  when: kafka_bridge_group is defined
+
+- name: ensure download directory exists
+  ansible.builtin.file:
+    path: Downloads
+    state: directory
+
+- name: ensure kafka-bridge home {{ kafka_bridge_home }} exists
+  ansible.builtin.file:
+    path: "{{ kafka_bridge_home }}"
+    state: directory
+
+- name: download kafka-bridge {{ kafka_bridge_version }}
+  ansible.builtin.get_url:
+    url: "{{ kafka_bridge_baseurl }}/{{ kafka_bridge_version}}/{{ kafka_bridge_package }}"
+    dest: Downloads
+
+- name: unarchive kafka_bridge package {{ kafka_bridge_package }}
+  ansible.builtin.command: tar zxf Downloads/{{ kafka_bridge_package }} --directory {{ kafka_bridge_home }}
+
+- name: fix owner/group on {{ kafka_bridge_home }}/{{ kafka_bridge_path }}/ dir
+  ansible.builtin.command: "chown -R {{ kafka_bridge_user }}:{{ kafka_bridge_group }} {{ kafka_bridge_home }}/{{ kafka_bridge_path }}/"
+  when: kafka_bridge_group is defined
+
+- name: link {{ kafka_bridge_home }}/{{ kafka_bridge_path }} to {{ kafka_bridge_home }}/kafka-bridge
+  ansible.builtin.file:
+    src: "{{ kafka_bridge_home }}/{{ kafka_bridge_path }}"
+    dest: "{{ kafka_bridge_home }}/kafka-bridge"
+    state: link
+
+- name: configure http listen port to be {{ kafka_bridge_port }}
+  ansible.builtin.lineinfile:
+    path: "{{ kafka_bridge_home }}/kafka-bridge/config/application.properties"
+    regexp: 'http.port'
+    line: "http.port={{ kafka_bridge_port }}"
+  when: kafka_bridge_port is defined
+
+- name: get JAVA_HOME from /etc/environment
+  ansible.builtin.shell: grep JAVA_HOME /etc/environment | cut -d '=' -f2
+  register: java_home
+
+- ansible.builtin.debug:
+    var: java_home.stdout
+
+- name: create kafka-bridge systemd script
+  ansible.builtin.template:
+    src: kafka-bridge.service.j2
+    dest: /etc/systemd/system/kafka-bridge.service
+    owner: root
+    group: root
+    mode: 0644
+
+- name: daemon-reload
+  ansible,builtin.shell: systemctl daemon-reload
+
+- name: ensure kafka-bridge service started on boot and enabled
+  ansible.builtin.service:
+    name: kafka-bridge
+    state: started
+    enabled: yes
+
+##
+
+
+

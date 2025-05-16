@@ -1,0 +1,15 @@
+---
+# roles/kafka_bridge/defaults/main.yml
+#
+kafka_bridge_baseurl: 'https://github.com/strimzi/strimzi-kafka-bridge/releases/download/'
+# kafka_bridge_version: '0.26.1'
+kafka_bridge_version: '0.29.0'
+kafka_bridge_path: "kafka-bridge-{{ kafka_bridge_version }}"
+kafka_bridge_package: "{{ kafka_bridge_path }}.tar.gz"
+kafka_bridge_home: /var/lib/kafka-bridge
+kafka_bridge_group: kafka-bridge
+kafka_bridge_user: kafka-bridge
+#
+# NOTE: default port (set in config/application.properties) is 8080
+#       watch out for conflicts with, e.g., pka, druid, whatever...
+##
