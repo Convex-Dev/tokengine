@@ -97,8 +97,10 @@
 		"log-config-file": "~/.tokengine/logs/logback.xml",
 		
 		
-		"log-dir": "~/.tokengine/logs"
+		"log-dir": "~/.tokengine/logs",
 		/* handling for failures? */
 		
+		/* REST API port */
+		"api-port": 8080
 	}
 }

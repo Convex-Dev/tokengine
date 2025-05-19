@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import convex.core.Result;
-import convex.core.cvm.Address;
 import convex.core.data.prim.AInteger;
 
 public abstract class AAdapter {

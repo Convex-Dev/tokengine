@@ -175,9 +175,5 @@ public class Engine {
 		return status;
 	}
 
-	private static Engine startEngine(ACell config) throws Exception {
-		Engine engine=new Engine(config);
-		engine.start();
-		return engine;
-	}
+
 }
