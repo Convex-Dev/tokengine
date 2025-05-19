@@ -26,6 +26,10 @@ public class TokengineMain {
 			// File path for config file
 			String cpath=(args.length==0)?"~/.tokengine/config/config.json":args[0];
 			ACell config = loadConfig(cpath);
+			if ((config==null)&&args.length>0) {
+				log.error("Config file does not exist: "+cpath);
+				return;
+			}
 			
 			configureLogging(config);
 	
@@ -66,12 +70,18 @@ public class TokengineMain {
 		log.info("Logging configured from default resource: "+resourcePath);
 	}
 
+	/**
+	 * Attempts to load a config file
+	 * @param cpath
+	 * @return Config value or null if file does not exist
+	 * @throws IOException
+	 */
 	private static ACell loadConfig(String cpath) throws IOException {
 		ACell config;
 		try {
 			config=ConfigUtils.readConfigFile(cpath);
 		} catch (FileNotFoundException ex) {
-			// No config file, so use default
+			// No config file
 			config=null;
 		}
 		return config;
