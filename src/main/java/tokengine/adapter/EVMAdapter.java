@@ -43,7 +43,7 @@ public class EVMAdapter extends AAdapter {
 	@Override 
 	public AInteger getBalance(String asset, String address) throws IOException {
 		if (isEth(asset)) {
-			EthGetBalance balanceResponse = web3.ethGetBalance(address, DefaultBlockParameterName.FINALIZED).send(); 
+			EthGetBalance balanceResponse = web3.ethGetBalance(address, DefaultBlockParameterName.LATEST).send(); 
 			if (balanceResponse.hasError()) {
 				throw new IllegalStateException("Can't get ETH balance");
 			} else {
