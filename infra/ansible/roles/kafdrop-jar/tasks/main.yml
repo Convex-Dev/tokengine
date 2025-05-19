@@ -1,0 +1,50 @@
+---
+# roles/kafdrop-jar/tasks/main.yml
+# *** WORKING ***
+#
+# NOTE: requires java 17+, which must be the default
+#
+- name: ensure kafdrop_home exists
+  file:
+    path: "{{ kafdrop_home }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: download kafdrop jar version {{ kafdrop_version }} from {{ kafdrop_download }}
+  get_url:
+    url: "{{ kafdrop_download }}"
+    dest: "{{ kafdrop_home }}"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: 0755
+
+- name: create symlink from {{ kafdrop_filename }} to kafka
+  ansible.builtin.file:
+    # NOTE: must be full paths
+    src: "{{ kafdrop_home }}/{{ kafdrop_filename }}"
+    dest: "{{ kafdrop_home }}/kafdrop.jar"
+    state: link
+
+- name: create kafdrop systemd unit file
+  template:
+    src: kafdrop.service.j2
+    dest: /etc/systemd/system/kafdrop.service
+    owner: root
+    group: root
+    mode: 0644
+
+- name: reload systemd
+  command: systemctl daemon-reload
+
+- name: ensure kafdrop servie enabled and started
+  service:
+    name: kafdrop
+    enabled: yes
+    state: started
+
+- debug:
+    msg: "Kafdrop should now be available on port 9000"
+
+##

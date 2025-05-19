@@ -1,0 +1,44 @@
+---
+# roles/vector/tasks/main.yml
+# 
+# NOTE: *** timber.io repo may no longer exist after vector bought by Datadog ***
+#       Check and adjust accordingly!
+#
+# NOTE: WORKING BUT NOT FINISHED - VECTOR NOT STARTED
+#
+# NOTE: v0.21 introduced breaking changes!
+# See https://vector.dev/releases/0.21.0
+#
+# - name: download bash.deb.sh setup script
+#   # NOTE: updates apt.sources.list.d & creates vector user/group
+#   get_url:
+#     url: https://repositories.timber.io/public/vector/cfg/setup/bash.deb.sh
+#     dest: /tmp/bash.deb.sh
+#     mode: 0755
+
+# - name: run the setup script
+#   shell: /tmp/bash.deb.sh
+#   args:
+#     executable: /bin/bash
+
+- name: run the repo setup script
+  shell: bash -c "$(curl -L https://setup.vector.dev)"
+  args:
+    executable: /bin/bash
+
+- name: install vector via package
+  package:
+    name: vector
+    state: present
+
+- name: ensure vector enabled
+  service:
+    name: vector
+    # state: started
+    enabled: yes
+
+# config code here...
+#
+##
+
+    

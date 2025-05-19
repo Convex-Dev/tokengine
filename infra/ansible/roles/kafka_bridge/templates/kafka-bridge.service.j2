@@ -1,0 +1,18 @@
+# /usr/lib/systemd/system/kafka-bridge.service
+
+[Unit]
+Description=Strimzi Kafka Bridge 
+Documentation=https://github.com/strimzi/strimzi-kafka-bridge/blob/main/documentation
+Requires=network.target remote-fs.target
+After=network.target remote-fs.target
+
+[Service]
+Type=simple
+User={{ kafka_bridge_user }}
+Group={{ kafka_bridge_group }}
+Environment=JAVA_HOME={{ java_home.stdout }}
+ExecStart={{ kafka_bridge_home }}/kafka-bridge/bin/kafka_bridge_run.sh --config-file {{ kafka_bridge_home }}/kafka-bridge/config/application.properties
+# ExecStop={{ kafka_bridge_home }}/kafka/bin/kafka-server-stop.sh
+
+[Install]
+WantedBy=multi-user.target

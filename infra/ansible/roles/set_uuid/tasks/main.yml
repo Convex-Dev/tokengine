@@ -1,0 +1,13 @@
+---
+# roles/set_uuid/tasks/main.yml
+#
+- name: check if /etc/uuid exists
+  stat:
+    path: /etc/uuid
+  register: stat_uuid
+
+- name: generate uuid and store in /etc/uuid
+  shell: uuidgen > /etc/uuid
+
+##
+
