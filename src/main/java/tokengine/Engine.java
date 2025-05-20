@@ -61,6 +61,10 @@ public class Engine {
 			peerConfig.put(Keywords.KEYPAIR,kp);
 		} else {
 			peerConfig=JSONUtils.json(convexConfig);
+			if (!peerConfig.containsKey(Keywords.KEYPAIR)) {
+				log.warn("No keypair provided, using test peer key with seed: "+kp.getSeed());
+				peerConfig.put(Keywords.KEYPAIR, kp);
+			}
 		}
 		
 

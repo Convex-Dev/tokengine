@@ -9,6 +9,7 @@ import convex.api.Convex;
 import convex.core.cvm.Address;
 import convex.core.data.ACell;
 import convex.core.data.prim.AInteger;
+import convex.core.util.ConfigUtils;
 import tokengine.adapter.CVMAdapter;
 
 public class EngineTest {
@@ -33,4 +34,12 @@ public class EngineTest {
 		
 		e.close();
 	}
+	
+	@Test public void testExampleEngine() throws Exception {
+		ACell config=ConfigUtils.readConfigFile("config-example.json");
+
+		Engine e = Engine.launch(config); // default config
+		e.close();			
+	}
+
 }
