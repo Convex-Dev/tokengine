@@ -96,12 +96,9 @@
 		/* use this to configure logback */
 		"log-config-file": "~/.tokengine/logs/logback.xml",
 		
-		
 		"log-dir": "~/.tokengine/logs",
-		/* handling for failures? */
 		
 		"key-dir": "~/.tokengine/keys",
-		/* handling for failures? */
 
 		/* REST API port */
 		"api-port": 8080
