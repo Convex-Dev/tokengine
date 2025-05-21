@@ -1,11 +1,19 @@
 package tokengine;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
+import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
+import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
+import org.apache.hc.core5.http.Method;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -16,6 +24,7 @@ import convex.core.Result;
 import convex.core.data.ACell;
 import convex.core.util.JSONUtils;
 import convex.core.util.Utils;
+import convex.java.HTTPClients;
 import tokengine.api.Client;
 
 
@@ -57,7 +66,12 @@ public class APITest {
 		assertFalse(result.isError(),()->"Bad Result: "+result);
 	}
 
-	
+	@Test public void testAPIDoc() throws URISyntaxException, InterruptedException, ExecutionException, TimeoutException {
+		SimpleHttpRequest req=SimpleHttpRequest.create(Method.GET, new URI("http://localhost:"+PORT+"/openapi-plugin/openapi-tokengine.json?v=default"));
+		CompletableFuture<SimpleHttpResponse> future=HTTPClients.execute(req);
+		SimpleHttpResponse resp=future.get(10000,TimeUnit.MILLISECONDS);
+		assertEquals(200,resp.getCode(),()->"Got error response: "+resp);
+	}
 	
 
 	
