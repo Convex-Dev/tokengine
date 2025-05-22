@@ -46,10 +46,6 @@ public class Engine {
 	public Engine(ACell config)  {
 		this.config=config;
 	}
-	
-	public Engine() {
-		this(null);
-	}
 
 	public void start() throws Exception {
 		AKeyPair kp=AKeyPair.createSeeded(6756);
@@ -65,6 +61,10 @@ public class Engine {
 			peerConfig.put(Keywords.KEYPAIR,kp);
 		} else {
 			peerConfig=JSONUtils.json(convexConfig);
+			if (!peerConfig.containsKey(Keywords.KEYPAIR)) {
+				log.warn("No keypair provided, using test peer key with seed: "+kp.getSeed());
+				peerConfig.put(Keywords.KEYPAIR, kp);
+			}
 		}
 		
 
@@ -178,4 +178,6 @@ public class Engine {
 		status=status.assoc(Strings.create("local-convex"), Strings.create(server.getHostAddress().toString()));
 		return status;
 	}
+
+
 }

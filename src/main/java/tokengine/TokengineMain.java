@@ -16,8 +16,6 @@ import convex.core.lang.RT;
 import convex.core.util.ConfigUtils;
 import convex.core.util.FileUtils;
 import convex.core.util.Utils;
-import tokengine.adapter.CVMAdapter;
-import tokengine.adapter.EVMAdapter;
 
 public class TokengineMain {
 	
@@ -28,10 +26,14 @@ public class TokengineMain {
 			// File path for config file
 			String cpath=(args.length==0)?"~/.tokengine/config/config.json":args[0];
 			ACell config = loadConfig(cpath);
+			if ((config==null)&&args.length>0) {
+				log.error("Config file does not exist: "+cpath);
+				return;
+			}
 			
 			configureLogging(config);
 	
-			Engine engine = startEngine(config);
+			Engine engine = Engine.launch(config);
 			
 			APIServer server=APIServer.create(engine);
 			server.start();
@@ -40,12 +42,6 @@ public class TokengineMain {
 			throw new Error(e);
 		}
 		
-	}
-
-	private static Engine startEngine(ACell config) throws Exception {
-		Engine engine=new Engine(config);
-		engine.start();
-		return engine;
 	}
 
 	private static void configureLogging(ACell config) throws JoranException, IOException {
@@ -74,12 +70,18 @@ public class TokengineMain {
 		log.info("Logging configured from default resource: "+resourcePath);
 	}
 
+	/**
+	 * Attempts to load a config file
+	 * @param cpath
+	 * @return Config value or null if file does not exist
+	 * @throws IOException
+	 */
 	private static ACell loadConfig(String cpath) throws IOException {
 		ACell config;
 		try {
 			config=ConfigUtils.readConfigFile(cpath);
 		} catch (FileNotFoundException ex) {
-			// No config file, so use default
+			// No config file
 			config=null;
 		}
 		return config;

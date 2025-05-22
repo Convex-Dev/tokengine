@@ -1,4 +1,6 @@
-<!-- Defayult logback config. Use in tests without full Tokengine startup with overrides with tokengine/logback-default.xml -->
+<!-- Defayult logback config. 
+
+Use in tests without full Tokengine startup with overrides with tokengine/logback-default.xml -->
 <configuration>
 
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">

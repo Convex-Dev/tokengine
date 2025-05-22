@@ -4,6 +4,10 @@ import org.eclipse.jetty.server.ServerConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import convex.core.data.ACell;
+import convex.core.data.prim.AInteger;
+import convex.core.lang.RT;
+import convex.core.util.Utils;
 import io.javalin.Javalin;
 import io.javalin.config.JavalinConfig;
 import io.javalin.http.staticfiles.Location;
@@ -37,7 +41,7 @@ public class APIServer {
 	 * Create a RESTServer connected to a Convex Client instance. Defaults to using
 	 * the Peer Controller account.
 	 * 
-	 * @param Engine Tokengine instance
+	 * @param engine Tokengine instance
 	 * @return New {@link APIServer} instance
 	 */
 	public static APIServer create(Engine engine) {
@@ -47,17 +51,19 @@ public class APIServer {
 	
 	/**
 	 * Start app with default port
-	 * @throws Exception 
 	 */
-	public void start() throws Exception {
-		start(null);
+	public void start() {
+		ACell mp = RT.getIn(engine.config,"operations","api-port");
+		AInteger mp2=RT.ensureInteger(mp);
+		Integer port =(mp2==null)?null:Utils.checkedInt(mp2.longValue());
+		start(port);
 	}
 
 	/**
 	 * Start app with specific port
-	 * @throws Exception 
+	 * @param port Port to use for API
 	 */
-	public synchronized void start(Integer port) throws Exception {
+	public synchronized void start(Integer port) {
 		close();
 		javalin=buildApp();
 		start(javalin,port);

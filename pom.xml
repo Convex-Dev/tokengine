@@ -14,12 +14,12 @@
 		<maven.compiler.target>21</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<logback.version>1.5.18</logback.version>
-		<junit.version>5.11.3</junit.version>
-		<slf4j.version>2.0.16</slf4j.version>
+		<junit.version>5.12.2</junit.version>
+		<slf4j.version>2.0.17</slf4j.version>
 		<hc.version>5.4.1</hc.version>
-		<javalin.version>6.3.0</javalin.version>
+		<javalin.version>6.6.0</javalin.version>
 		<convex.version>0.8.2-SNAPSHOT</convex.version>
-		<web3j.version>4.13.0</web3j.version>
+		<web3j.version>5.0.0</web3j.version>
 	</properties>
 
 	<build>
@@ -163,12 +163,6 @@
 			<artifactId>ssl-plugin</artifactId>
 			<version>${javalin.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-core</artifactId>
-			<version>2.17.2</version>
-		</dependency>
-
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-engine</artifactId>
