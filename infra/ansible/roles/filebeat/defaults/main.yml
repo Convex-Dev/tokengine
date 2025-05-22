@@ -1,0 +1,9 @@
+---
+# roles/filebeat/defaults/main.yml
+#
+filebeat_version: '9.0.0'
+filebeat_baseurl: 'https://artifacts.elastic.co/downloads/beats/filebeat'
+filebeat_package: "filebeat-{{ filebeat_version }}-amd64.deb"
+filebeat_get_url: "{{ filebeat_baseurl }}/{{ filebeat_package }}"
+##
+

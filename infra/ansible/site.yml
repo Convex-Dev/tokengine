@@ -8,8 +8,20 @@
 - hosts: tokengine
   roles:
     - { role: hostname, tags: ["hostname"] }
-    - { role: docker_install, tags: ["docker"] }
+      # - { role: docker_install, tags: ["docker"] }
     - { role: caddy, tags: ["caddy"] }
+    - { role: set_uuid, tags: [ "uuid"] }
+    - { role: java, tags: ["java"] }
+    - { role: tokengine, tags: ["tokengine"] }
+    - { role: filebeat, tags: ["filebeat"] }
 
+- hosts: observer
+  roles:
+    - { role: hostname, tags: ["hostname"] }
+    - { role: set_uuid, tags: [ "uuid"] }
+    - { role: java, tags: ["java"] }
+    - { role: kafka_kraft, tags: ["kafka_kraft", "kafka"] }
+    - { role: kafka_bridge, tags: ["kafka_bridge", "kafka"] }
+    - { role: kafdrop_jar, tags: ["kafdrop_jar", "kafdrop", "kafka"] }
 ##
 

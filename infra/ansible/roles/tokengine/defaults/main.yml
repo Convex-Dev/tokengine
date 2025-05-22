@@ -1,0 +1,15 @@
+---
+# roles/tokengine/defaults/main.yml
+#
+#----------------------------------------------------------
+# tokengine_version: ''
+#
+tokengine_baseurl: 'https://drive.google.com/drive/folders/'
+#
+tokengine_path: '1AZdyuZOmC70i_TtuEW3uEKvjYLOqIMiv'
+tokengine_package: "tokengine.jar"
+tokengine_homedir: '/var/lib/tokengine'
+tokengine_group: tokengine
+tokengine_user: tokengine
+##
+
