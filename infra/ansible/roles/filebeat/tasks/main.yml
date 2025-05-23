@@ -1,0 +1,38 @@
+---
+# roles/filebeat/tasks/main.yml
+#
+- name: Download filebeat package {{ filebeat_get_url }}
+  ansible.builtin.get_url:
+    url: "{{ filebeat_get_url }}"
+    dest: Downloads
+
+- name: Install filebeat package {{ filebeat_package }}
+  ansible.builtin.apt:
+    deb: Downloads/{{ filebeat_package }}
+
+- name: check if filebeat.yml.orig exists exists
+  ansible.builtin.stat:
+    path: /etc/filebeat/filebeat.yml.orig
+  register: stat_result
+
+- name: make backup of original filebeat.yml as filebeat.yml.orig
+  ansible.builtin.command: cp /etc/filebeat/filebeat.yml /etc/filebeat/filebeat.yml.orig
+  when: stat_result.stat.exists == False
+
+- name: restore original filebeat.yml from filebeat.yml.orig
+  command: cp /etc/filebeat/filebeat.yml.orig /etc/filebeat/filebeat.yml
+  when: stat_result.stat.exists == True
+
+- name: set template destination to /etc/filebeat/filebeat.yml
+  ansible.builtin.set_fact:
+    template_dest: /etc/filebeat/filebeat.yml
+
+- name: create /etc/filebeat/filebeat.yml
+  ansible.builtin.template:
+    src: filebeat.yml.j2
+    dest: "{{ template_dest }}"
+    owner: root
+    group: root
+    mode: 0644
+
+##

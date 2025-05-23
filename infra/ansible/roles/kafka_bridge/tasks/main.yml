@@ -67,7 +67,7 @@
     mode: 0644
 
 - name: daemon-reload
-  ansible,builtin.shell: systemctl daemon-reload
+  ansible.builtin.shell: systemctl daemon-reload
 
 - name: ensure kafka-bridge service started on boot and enabled
   ansible.builtin.service:

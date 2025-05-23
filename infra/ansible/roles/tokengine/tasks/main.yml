@@ -1,0 +1,81 @@
+---
+# roles/tokengine/tasks/main.yml
+#
+- name: create tokengine group
+  ansible.builtin.group:
+    name: "{{ tokengine_group }}"
+    state: present
+
+- name: create tokengine user
+  ansible.builtin.user:
+    name: "{{ tokengine_user }}"
+    group: "{{ tokengine_group }}"
+    shell: "/bin/bash"
+
+- name: ensure download directory exists
+  ansible.builtin.file:
+    path: Downloads
+    state: directory
+
+- name: ensure tokengine homedir {{ tokengine_homedir }} exists
+  ansible.builtin.file:
+    path: "{{ tokengine_homedir }}"
+    state: directory
+
+      # - name: download tokengine {{ tokengine_baseurl }}/{{ tokengine_package }}
+      #   ansible.builtin.get_url:
+      #     url: "{{ tokengine_baseurl }}/{{ tokengine_package }}"
+      #     dest: "{{ tokengine_homedir }}/{{ tokengine_package }}"
+
+      #   # NOTE: this egregious hack required because of github redirection
+      # - name: generate download shell script for tokengine
+      #   ansible.builtin.template:
+      #     src: tokengine-dl.sh.j2
+      #     dest: tokengine-dl.sh
+      #     mode: 0755
+      #   become: false
+#
+# - name: run download shell script for tokengine
+#   # (which is just a wget call...)
+#   ansible.builtin.shell: ./tokengine-dl.sh
+#     # become: false
+#   args:
+#     executable: /bin/bash
+
+#
+# https://drive.google.com/drive/folders/1AZdyuZOmC70i_TtuEW3uEKvjYLOqIMiv?usp=drive_link
+- name: Download tokengine jar
+  ansible.builtin.get_url:
+    url: "{{ tokengine_baseurl }}/uc?export=download&id={{ tokengine_path }}"
+    dest: "{{ tokengine_homedir }}/tokengine.jar"
+
+- name: fix owner/group on {{ tokengine_homedir }}/{{ tokengine_path }}/ dir
+  ansible.builtin.command: "chown -R {{ tokengine_user }}:{{ tokengine_group }} {{ tokengine_homedir }}"
+  
+    # - name: symlink {{ tokengine_homedir }}/{{ tokengine_path }} to tokengine
+    #   file:
+    #     src: "{{ tokengine_homedir }}/{{ tokengine_path }}"
+    #     dest: "{{ tokengine_homedir }}/tokengine"
+    #     state: link
+    
+- name: create tokengine systemd script
+  template:
+    src: tokengine.service.j2
+    dest: /etc/systemd/system/tokengine.service
+    owner: root
+    group: root
+    mode: 0644
+
+- name: daemon-reload
+  shell: systemctl daemon-reload
+
+- name: ensure tokengine service started on boot and enabled
+  service:
+    name: tokengine
+    state: started
+    enabled: yes
+
+##
+
+
+
