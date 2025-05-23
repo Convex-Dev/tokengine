@@ -186,6 +186,12 @@
 			<artifactId>slf4j-api</artifactId>
 			<version>${slf4j.version}</version>
 		</dependency>
+		<!-- NEed to stop wrong version getting use for Javalin-openapi? -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-core</artifactId>
+			<version>2.18.1</version>
+		</dependency>
 
 	</dependencies>
 </project>
