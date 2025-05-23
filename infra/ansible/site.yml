@@ -23,5 +23,6 @@
     - { role: kafka_kraft, tags: ["kafka_kraft", "kafka"] }
     - { role: kafka_bridge, tags: ["kafka_bridge", "kafka"] }
     - { role: kafdrop_jar, tags: ["kafdrop_jar", "kafdrop", "kafka"] }
+    - { role: vector, tags: ["vector"] }
 ##
 

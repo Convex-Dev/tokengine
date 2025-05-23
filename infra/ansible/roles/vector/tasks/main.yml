@@ -22,17 +22,17 @@
 #     executable: /bin/bash
 
 - name: run the repo setup script
-  shell: bash -c "$(curl -L https://setup.vector.dev)"
+  ansible.builtin.shell: bash -c "$(curl -L https://setup.vector.dev)"
   args:
     executable: /bin/bash
 
 - name: install vector via package
-  package:
+  ansible.builtin.package:
     name: vector
     state: present
 
 - name: ensure vector enabled
-  service:
+  ansible.builtin.service:
     name: vector
     # state: started
     enabled: yes
