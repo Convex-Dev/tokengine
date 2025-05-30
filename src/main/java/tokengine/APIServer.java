@@ -33,7 +33,7 @@ public class APIServer {
 	public APIServer(Engine engine) {
 		
 		this.engine=engine;
-		webApp=new WebApp();
+		webApp=new WebApp(engine);
 		api=new RestAPI(engine);
 	}
 

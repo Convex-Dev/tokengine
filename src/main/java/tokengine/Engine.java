@@ -91,6 +91,10 @@ public class Engine {
 		return convex;
 	}
 	
+	public ArrayList<AAdapter> getAdapters() {
+		return new ArrayList<>(adapters.values());
+	}
+	
 	private void startAdapters() {
 		for (Map.Entry<String,AAdapter> me: adapters.entrySet()) {
 			AAdapter adapter=me.getValue();

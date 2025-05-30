@@ -1,20 +1,23 @@
 package tokengine;
 
-import static j2html.TagCreator.a;
-import static j2html.TagCreator.body;
-import static j2html.TagCreator.h1;
-import static j2html.TagCreator.head;
-import static j2html.TagCreator.html;
-import static j2html.TagCreator.link;
-import static j2html.TagCreator.p;
-import static j2html.TagCreator.title;
+import static j2html.TagCreator.*;
+
+import java.util.ArrayList;
+import java.util.Map;
 
 import convex.core.util.Utils;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 import j2html.tags.DomContent;
+import tokengine.adapter.AAdapter;
 
 public class WebApp  {
+
+	protected final Engine engine;
+
+	public WebApp(Engine engine) {
+		this.engine=engine;
+	}
 
 	public void addRoutes(Javalin javalin) {
 		javalin.get("/index.html", this::indexPage);
@@ -26,12 +29,16 @@ public class WebApp  {
 		DomContent content= html(
 				makeHeader("Tokengine Server"),
 				body(
-					h1("Tokengine Server"),
+					h1("TokEngine Server"),
 					p("Version: "+Utils.getVersion()),
-					p(a("API Explorer").withHref("swagger")),
-					p(a("Tokengine Docs").withHref("https://docs.convex.world/docs/products/tokengine")),
+					aside(article(
+							h4("Useful links: "),
+							p(a("API Explorer").withHref("swagger")),
+							p(a("Tokengine Docs").withHref("https://docs.convex.world/docs/products/tokengine"))
+					)),
+					makeNetworkTable(),
 
-					p("This is the default web page for a Tokengine running a REST API")
+					footer(p("This is the default web page for a Tokengine running a REST API"))
 				)
 			);
 		ctx.result(content.render());
@@ -39,6 +46,32 @@ public class WebApp  {
 		ctx.status(200);
 	}
 	
+	private DomContent makeNetworkTable() {
+		ArrayList<AAdapter> handlers = engine.getAdapters();
+		DomContent div= div(
+			h4("Available networks"),	
+			table(attrs("#handlers"),
+				thead(tr(
+			        td("Alias"),
+			        td("Chain ID"),
+			        td("Description"),
+			        td("Operator Address")
+			    )),
+				tbody(
+					handlers.stream().map(handler -> {
+						String alias=handler.getAlias();
+						return tr(
+							td(alias),
+		            		td(handler.getChainID()),
+							td(handler.getDescription()),
+							td(Utils.toString(handler.getOperatorAddress()))
+						);
+					}).toArray(DomContent[]::new)
+				)
+	    ));
+		return div;
+	}
+
 	protected void missingPage(Context ctx) { 
 		String type=ctx.header("Accept");
 		if ((type!=null)&&type.contains("html")) {

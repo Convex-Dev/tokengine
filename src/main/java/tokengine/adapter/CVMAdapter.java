@@ -12,6 +12,7 @@ import convex.core.data.ACell;
 import convex.core.data.prim.AInteger;
 import convex.core.data.prim.CVMLong;
 import convex.core.lang.Reader;
+import convex.core.util.Utils;
 
 public class CVMAdapter extends AAdapter {
 
@@ -101,8 +102,8 @@ public class CVMAdapter extends AAdapter {
 	}
 	
 	@Override
-	public Address parseAddress(String caip10) throws IllegalArgumentException {
-		return Address.parse(caip10);
+	public Address parseAddress(String addr) throws IllegalArgumentException {
+		return Address.parse(addr);
 	}
 
 	private boolean isCVM(String asset) {
@@ -112,6 +113,19 @@ public class CVMAdapter extends AAdapter {
 
 	public Convex getConvex() {
 		return convex;
+	}
+	
+	@Override
+	public String getDescription() {
+		Map<String,Object> config=getConfig();
+		Object desc=config.get("description");
+		if (desc==null) return "Convex Network";
+		return Utils.toString(desc);
+	}
+
+	@Override
+	public Object getOperatorAddress() {
+		return Address.create(100);
 	}
 
 

@@ -6,6 +6,7 @@ import java.util.Map;
 
 import convex.core.Result;
 import convex.core.data.prim.AInteger;
+import convex.core.util.Utils;
 
 public abstract class AAdapter {
 
@@ -54,4 +55,14 @@ public abstract class AAdapter {
 	public abstract Object parseAddress(String caip10) throws IllegalArgumentException;
 
 	public abstract Result payout(String token, AInteger quantity, String destAccount);
+
+	public String getAlias() {
+		Map<String,Object> config=getConfig();
+
+		return Utils.toString(config.get("alias"));
+	}
+	
+	public abstract String getDescription();
+
+	public abstract Object getOperatorAddress();
 }

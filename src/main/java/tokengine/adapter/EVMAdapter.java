@@ -2,6 +2,7 @@ package tokengine.adapter;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.Map;
 
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
@@ -15,6 +16,7 @@ import convex.core.ErrorCodes;
 import convex.core.Result;
 import convex.core.data.Blob;
 import convex.core.data.prim.AInteger;
+import convex.core.util.Utils;
 
 public class EVMAdapter extends AAdapter {
 
@@ -88,6 +90,21 @@ public class EVMAdapter extends AAdapter {
 	public Result payout(String token, AInteger quantity, String destAccount) {
 		return Result.error(ErrorCodes.TODO, "Asset payout not supported: "+token);
 	}
+
+	@Override
+	public Object getOperatorAddress() {
+		// TODO fill with real address
+		return "0xa752b195b4e7b1af82ca472756edfdb13bc9c79d";
+	}
+	
+	@Override
+	public String getDescription() {
+		Map<String,Object> config=getConfig();
+		Object desc=config.get("description");
+		if (desc==null) return "Ethereum Network";
+		return Utils.toString(desc);
+	}
+	
 }
 
 
