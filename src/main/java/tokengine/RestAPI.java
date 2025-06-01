@@ -61,7 +61,9 @@ public class RestAPI extends ATokengineAPI {
 	}
 
 	
-	@OpenApi(path = ROUTE + "status", methods = HttpMethod.GET, tags = {
+	@OpenApi(path = ROUTE + "status", 
+			versions="tokengine-v1",
+			methods = HttpMethod.GET, tags = {
 			TOKENGINE_TAG }, summary = "Get a quick TokEngine status report", operationId = "status")
 	protected void getStatus(Context ctx) {
 		ctx.header("Content-type", ContentTypes.JSON);
@@ -69,7 +71,9 @@ public class RestAPI extends ATokengineAPI {
 		ctx.status(200);
 	}
 	
-	@OpenApi(path = ROUTE + "config", methods = HttpMethod.GET, tags = {
+	@OpenApi(path = ROUTE + "config", 
+			versions="tokengine-v1",
+			methods = HttpMethod.GET, tags = {
 			TOKENGINE_TAG }, summary = "Get the tokengine configuration", operationId = "config")
 	protected void getConfig(Context ctx) {
 		ctx.header("Content-type", ContentTypes.JSON);
@@ -77,7 +81,9 @@ public class RestAPI extends ATokengineAPI {
 		ctx.status(200);
 	}
 	
-	@OpenApi(path = ROUTE + "adapters", methods = HttpMethod.GET, tags = {
+	@OpenApi(path = ROUTE + "adapters", 
+			versions="tokengine-v1",
+			methods = HttpMethod.GET, tags = {
 			TOKENGINE_TAG }, summary = "Get a list of current DLT adapters installed", operationId = "adapters")
 	protected void getAdapters(Context ctx) {
 		ctx.header("Content-type", ContentTypes.JSON);
@@ -90,7 +96,9 @@ public class RestAPI extends ATokengineAPI {
 		ctx.status(200);
 	}
 	
-	@OpenApi(path = ROUTE + "balance", methods = HttpMethod.POST, tags = {
+	@OpenApi(path = ROUTE + "balance", 
+			versions="tokengine-v1",
+			methods = HttpMethod.POST, tags = {
 			TOKENGINE_TAG }, summary = "Queries the balance of a token", operationId = "balance",
 					requestBody = @OpenApiRequestBody(
 							description = "Balance request, must provide a token (CAIP-19) and an address", 
@@ -139,7 +147,9 @@ public class RestAPI extends ATokengineAPI {
 	}
 
 
-	@OpenApi(path = ROUTE + "transfer", methods = HttpMethod.POST, tags = {
+	@OpenApi(path = ROUTE + "transfer", 
+			versions="tokengine-v1",
+			methods = HttpMethod.POST, tags = {
 			TOKENGINE_TAG }, summary = "Transfer a quantity of equivalent tokens", operationId = "transfer",
 					requestBody = @OpenApiRequestBody(
 							description = "Transfer request, must provide a source, destination and quantity", 
@@ -180,7 +190,9 @@ public class RestAPI extends ATokengineAPI {
 		prepareResult(ctx,r);
 	}
 	
-	@OpenApi(path = ROUTE + "payout", methods = HttpMethod.POST, tags = {
+	@OpenApi(path = ROUTE + "payout", 
+			versions="tokengine-v1",
+			methods = HttpMethod.POST, tags = {
 			TOKENGINE_TAG }, summary = "Payout a quantity of owned tokens", operationId = "payout",
 					requestBody = @OpenApiRequestBody(
 							description = "Payout request, must provide a destination and quantity", 
@@ -218,8 +230,11 @@ public class RestAPI extends ATokengineAPI {
 	
 	
 	
-	@OpenApi(path = ROUTE + "wrap", methods = HttpMethod.POST, tags = {
-			TOKENGINE_TAG }, summary = "Wrap a quantity of tokens", operationId = "wrap")
+	@OpenApi(path = ROUTE + "wrap", 
+			versions="tokengine-v1",
+			methods = HttpMethod.POST, 
+			tags = {TOKENGINE_TAG }, 
+			summary = "Wrap a quantity of tokens", operationId = "wrap")
 	protected void postWrap(Context ctx) {
 		ctx.header("Content-type", ContentTypes.JSON);
 		ctx.result("{\"status\":\"OK\"}");

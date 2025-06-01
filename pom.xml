@@ -73,14 +73,6 @@
 						</annotationProcessorPath>
 					</annotationProcessorPaths>
 				</configuration>
-				<executions>
-					<execution>
-						<id>default-compile</id>
-						<goals>
-							<goal>compile</goal>
-						</goals>
-					</execution>
-				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
