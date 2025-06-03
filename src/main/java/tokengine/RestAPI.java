@@ -55,6 +55,7 @@ public class RestAPI extends ATokengineAPI {
 		javalin.post(ROUTE + "transfer", this::postTransfer);
 		javalin.post(ROUTE + "payout", this::postPayout);
 		javalin.post(ROUTE + "wrap", this::postWrap);
+		javalin.post(ROUTE + "deposit", this::postDeposit);
 		
 		javalin.get(ROUTE + "config", this::getConfig);
 
@@ -239,5 +240,46 @@ public class RestAPI extends ATokengineAPI {
 		ctx.header("Content-type", ContentTypes.JSON);
 		ctx.result("{\"status\":\"OK\"}");
 		ctx.status(200);
+	}
+	
+	@OpenApi(path = ROUTE + "deposit", 
+			versions="tokengine-v1",
+			methods = HttpMethod.POST, 
+			tags = {TOKENGINE_TAG }, 
+			summary = "Deposit tokens into the system", 
+			operationId = "deposit",
+			requestBody = @OpenApiRequestBody(
+					description = "Deposit request, must provide a source and quantity", 
+					content = {@OpenApiContent(
+									type = "application/json", 
+									exampleObjects = {
+											@OpenApiExampleProperty(name = "source", objects= {
+													@OpenApiExampleProperty(name = "account", value="#11"),
+													@OpenApiExampleProperty(name = "network", value="convex:main"),
+													@OpenApiExampleProperty(name = "token", value="CVM")
+											}),
+											@OpenApiExampleProperty(name = "quantity", value = "1000") })}
+				))
+	protected void postDeposit(Context ctx) {
+		AMap<AString,ACell> req = parseRequest(ctx);
+		AMap<AString,ACell> src = RT.ensureMap(req.get(Strings.create("source")));
+		if (src == null) throw new BadRequestResponse("Expected 'source' object specifying token");
+		AInteger q = AInteger.parse(req.get(Strings.create("quantity")));
+		if (q == null) throw new BadRequestResponse("Expected 'quantity' as valid integer amount");
+		
+		ACell network = src.get(Strings.create("network"));
+		if (network == null) throw new BadRequestResponse("Expected 'network' property for source");
+		String chainID = RT.str(network).toString();
+		AAdapter adapter = engine.getAdapter(chainID);
+		if (adapter == null) throw new BadRequestResponse("Can't find network: " + chainID);
+		
+		String token = RT.str(src.get(Strings.create("token"))).toString();
+		String address = RT.str(src.get(Strings.create("account"))).toString();
+		
+		log.info("Processing deposit on network: " + chainID + " token: " + token + " account: " + address + " quantity=" + q);
+		
+		// For now, we'll treat deposit similar to a transfer, using the engine's transfer functionality
+		Result r = engine.transfer(src, null, q);
+		prepareResult(ctx, r);
 	}
 }
