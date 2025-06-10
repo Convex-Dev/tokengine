@@ -32,6 +32,7 @@ import convex.peer.Server;
 import tokengine.adapter.AAdapter;
 import tokengine.adapter.CVMAdapter;
 import tokengine.adapter.EVMAdapter;
+import tokengine.adapter.Kafka;
 
 public class Engine {
 	
@@ -39,6 +40,8 @@ public class Engine {
 	
 	Convex convex;
 	Server server;
+	Kafka kafka=new Kafka();
+	
 	final ACell config;	
 	
 	protected final Map<String,AAdapter> adapters=new HashMap<>();
