@@ -1,6 +1,7 @@
 package tokengine.adapter;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.concurrent.CompletableFuture;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
@@ -21,6 +22,12 @@ import convex.java.HTTPClients;
 
 public class Kafka {
 	
+	private URI uri;
+
+	public Kafka(URI topicURI) {
+		this.uri=topicURI;
+	}
+	
 	protected static final Logger log=LoggerFactory.getLogger(Kafka.class);
 
 	ContentType CONTENT_TYPE=ContentType.create("application/vnd.kafka.json.v2+json");
@@ -39,7 +46,7 @@ public class Kafka {
 		// System.err.println(data);
 		
 		try {
-			SimpleHttpRequest request=SimpleHttpRequest.create(Method.POST, new URI("https://kfk.walledchannel.net/topics/audit"));
+			SimpleHttpRequest request=SimpleHttpRequest.create(Method.POST, uri);
 			request.setHeader("Accept", "application/vnd.kafka.v2+json");
 			request.setBody(data, CONTENT_TYPE);
 			CompletableFuture<SimpleHttpResponse> future=HTTPClients.execute(request);
@@ -60,8 +67,8 @@ public class Kafka {
 		}
 	}
 	
-	public static void main(String[] args) {
-		Kafka k=new Kafka();
+	public static void main(String[] args) throws URISyntaxException {
+		Kafka k=new Kafka(new URI("https://kfk.walledchannel.net/topics/audit"));
 		k.log(JSONUtils.parse("{\"test\":true,\"id\":\"12456\"}"));
 	}
 }

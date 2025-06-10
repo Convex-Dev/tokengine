@@ -1,6 +1,8 @@
 package tokengine;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -40,7 +42,7 @@ public class Engine {
 	
 	Convex convex;
 	Server server;
-	Kafka kafka=new Kafka();
+	Kafka kafka;
 	
 	final ACell config;	
 	
@@ -48,6 +50,11 @@ public class Engine {
 	
 	public Engine(ACell config)  {
 		this.config=config;
+		try {
+			kafka=new Kafka(new URI("https://kfk.walledchannel.net/topics/audit"));
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public void start() throws Exception {
