@@ -55,6 +55,15 @@ public abstract class AAdapter {
 	public abstract Object parseAddress(String caip10) throws IllegalArgumentException;
 
 	public abstract Result payout(String token, AInteger quantity, String destAccount);
+	
+	/**
+	 * 
+	 * @param message The message as a plain text string
+	 * @param signature Signature in hex
+	 * @param account Public key / account in hex
+	 * @return True if signature verified, false otherwise
+	 */
+	public abstract boolean verifyPersonalSignature(String message, String signature, String account);
 
 	public String getAlias() {
 		Map<String,Object> config=getConfig();

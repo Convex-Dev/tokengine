@@ -7,8 +7,13 @@ import java.util.Map;
 import convex.api.Convex;
 import convex.core.ErrorCodes;
 import convex.core.Result;
+import convex.core.crypto.Ed25519Signature;
 import convex.core.cvm.Address;
 import convex.core.data.ACell;
+import convex.core.data.AString;
+import convex.core.data.AccountKey;
+import convex.core.data.Blob;
+import convex.core.data.Strings;
 import convex.core.data.prim.AInteger;
 import convex.core.data.prim.CVMLong;
 import convex.core.lang.Reader;
@@ -126,6 +131,22 @@ public class CVMAdapter extends AAdapter {
 	@Override
 	public Object getOperatorAddress() {
 		return Address.create(100);
+	}
+
+	@Override
+	public boolean verifyPersonalSignature(String messageText, String signature, String publicKey) {
+		AccountKey pk=AccountKey.parse(publicKey);
+		if (pk==null) throw new IllegalArgumentException("Invalid Convex account key: "+publicKey);
+		
+		Blob sigData=Blob.parse(signature);
+		if (sigData==null) throw new IllegalArgumentException("Invalid signature data: "+signature);
+		
+		AString msg=Strings.create(messageText);
+		if (msg==null) throw new IllegalArgumentException("Invalid message: "+msg);
+		
+		Ed25519Signature sig = Ed25519Signature.wrap(sigData.getBytes());
+		
+		return sig.verify(msg.toFlatBlob(), pk);
 	}
 
 

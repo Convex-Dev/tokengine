@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.junit.jupiter.api.Test;
 
 import convex.api.Convex;
+import convex.core.crypto.AKeyPair;
 import convex.core.cvm.Address;
 import convex.core.data.ACell;
 import convex.core.data.prim.AInteger;
@@ -39,7 +40,15 @@ public class EngineTest {
 		ACell config=ConfigUtils.readConfigFile("config-example.json");
 
 		Engine e = Engine.launch(config); // default config
+		
+		
+		
+		
 		e.close();			
+	}
+	
+	@Test public void testCVMAdapter() {
+		
 	}
 
 }

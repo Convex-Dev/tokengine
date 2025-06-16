@@ -2,19 +2,26 @@ package tokengine.adapter;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.security.SignatureException;
 import java.util.Map;
 
+import org.web3j.contracts.eip20.generated.ERC20;
+import org.web3j.crypto.Credentials;
+import org.web3j.crypto.Keys;
+import org.web3j.crypto.Sign;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.response.EthGetBalance;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.tx.gas.DefaultGasProvider;
-import org.web3j.contracts.eip20.generated.ERC20;
-import org.web3j.crypto.Credentials;
 
 import convex.core.ErrorCodes;
 import convex.core.Result;
+import convex.core.crypto.Hashing;
+import convex.core.data.AString;
 import convex.core.data.Blob;
+import convex.core.data.Hash;
+import convex.core.data.Strings;
 import convex.core.data.prim.AInteger;
 import convex.core.util.Utils;
 
@@ -103,6 +110,42 @@ public class EVMAdapter extends AAdapter {
 		Object desc=config.get("description");
 		if (desc==null) return "Ethereum Network";
 		return Utils.toString(desc);
+	}
+	
+	@Override
+	public boolean verifyPersonalSignature(String message, String signature, String address) {
+		Blob pk = Blob.parse(address);
+		if (pk == null) throw new IllegalArgumentException("Invalid EVM address: " + address);
+		if (pk.count() != 20) throw new IllegalArgumentException("Invalid EVM address length: " + pk.count());
+
+		Blob sigData = Blob.parse(signature);
+		if (sigData == null) throw new IllegalArgumentException("Invalid signature data: " + signature);
+
+		AString msg = Strings.create(message);
+		if (msg == null) throw new IllegalArgumentException("Invalid message: " + msg);
+
+		byte[] signatureBytes = sigData.getBytes();
+		byte[] r = new byte[32];
+		byte[] s = new byte[32];
+		System.arraycopy(signatureBytes, 0, r, 0, 32); // First 32 bytes
+		System.arraycopy(signatureBytes, 32, s, 0, 32); // Next 32 bytes
+		byte v = signatureBytes[64]; // Last byte (recovery id)
+		
+		if (v < 27) {
+            v += 27;
+        }
+		
+		Sign.SignatureData signatureData = new Sign.SignatureData(v, r, s);
+		Hash hash=Hashing.keccak256(msg.getBytes());
+		BigInteger publicKey;
+		try {
+			publicKey = Sign.signedPrefixedMessageToKey(hash.getBytes(), signatureData);
+		} catch (SignatureException e) {
+			return false;
+		}
+
+		String recoveredAddress = Keys.getAddress(publicKey);
+		return recoveredAddress.equalsIgnoreCase(pk.toHexString());
 	}
 	
 }

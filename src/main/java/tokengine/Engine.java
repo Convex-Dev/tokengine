@@ -76,7 +76,6 @@ public class Engine {
 				peerConfig.put(Keywords.KEYPAIR, kp);
 			}
 		}
-		
 
 		server=API.launchPeer(peerConfig);
 		
