@@ -144,11 +144,11 @@ public class APIServer {
 	}
 	
 	protected void addOpenApiPlugins(JavalinConfig config) {
-		String docsPath="openapi-plugin/openapi-tokengine.json";
+		String docsPath="openapi-plugin/openapi-tokengine-v1.json";
 		
 		config.registerPlugin(new OpenApiPlugin(pluginConfig -> {
             pluginConfig
-            .withDocumentationPath(docsPath)
+            // .withDocumentationPath(docsPath) // not needed?
             .withDefinitionConfiguration((version, definition) -> {
             	DefinitionConfiguration def=definition;
                 def=def.withInfo(
@@ -160,7 +160,7 @@ public class APIServer {
 		}));
 
 		config.registerPlugin(new SwaggerPlugin(swaggerConfiguration->{
-			swaggerConfiguration.setDocumentationPath(docsPath);
+			// swaggerConfiguration.setDocumentationPath(docsPath); // not needed?
 		}));
 		
 		for (JsonSchemaResource generatedJsonSchema : new JsonSchemaLoader().loadGeneratedSchemes()) {

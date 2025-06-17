@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import convex.api.Convex;
 import convex.core.ErrorCodes;
 import convex.core.Result;
@@ -20,6 +23,8 @@ import convex.core.lang.Reader;
 import convex.core.util.Utils;
 
 public class CVMAdapter extends AAdapter {
+	
+	protected static final Logger log = LoggerFactory.getLogger(CVMAdapter.class.getName());
 
 	protected Convex convex;
 	
@@ -147,6 +152,12 @@ public class CVMAdapter extends AAdapter {
 		Ed25519Signature sig = Ed25519Signature.wrap(sigData.getBytes());
 		
 		return sig.verify(msg.toFlatBlob(), pk);
+	}
+
+	@Override
+	public boolean checkTransaction(String tx) {
+		log.warn("CVM transaction not checked: "+tx);
+		return false;
 	}
 
 

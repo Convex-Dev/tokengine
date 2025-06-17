@@ -74,4 +74,7 @@ public abstract class AAdapter {
 	public abstract String getDescription();
 
 	public abstract Object getOperatorAddress();
+
+	public abstract boolean checkTransaction(String tx);
+
 }

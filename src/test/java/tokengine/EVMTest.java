@@ -1,5 +1,6 @@
 package tokengine;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -23,6 +24,7 @@ import org.web3j.protocol.http.HttpService;
 import org.web3j.utils.Numeric;
 
 import convex.core.crypto.Hashing;
+import convex.core.crypto.InsecureRandom;
 import tokengine.adapter.EVMAdapter;
 
 public class EVMTest {
@@ -85,16 +87,19 @@ public class EVMTest {
     public void testPersonalSignatureVerification() throws Exception {
     	EVMAdapter ea=EVMAdapter.create("foo"); // chainID doesn't matter etc.
     	
+    	assertEquals("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",EVMAdapter.TRANSFER_SIGNATURE);
+    	
         // Step 1: Generate a new Ethereum key pair
-        ECKeyPair keyPair = Keys.createEcKeyPair();
+        ECKeyPair keyPair = Keys.createEcKeyPair(new InsecureRandom(57865));
         Credentials credentials = Credentials.create(keyPair);
         String signerAddress = credentials.getAddress();
+        assertEquals("0x495ddb47ca16c7161494ae88a82b91d5a0dc19c9",signerAddress);
 
         // Step 2: Create a test message
         String message = "Hello, Ethereum!";
 
         // Step 3: Sign the message using Ethereum's personal_sign format
-        String prefixedMessage = "\u0019Ethereum Signed Message:\n" + message.length() + message;
+        String prefixedMessage = "\u0019Ethereum Signed Message:\nHello" + message.length() + message;
         byte[] messageHash =Hashing.keccak256(prefixedMessage.getBytes()).getBytes();
         Sign.SignatureData signatureData = Sign.signPrefixedMessage(messageHash, keyPair);
 
@@ -105,6 +110,7 @@ public class EVMTest {
         String signature = Numeric.toHexString(r) +
                           Numeric.cleanHexPrefix(Numeric.toHexString(s)) +
                           Numeric.toHexString(v).substring(2);
+        assertEquals("0xdd48188b1647010d908e9fed4b6726cebd0d65e20f412b8b9ff4868386f05b0a28a9c0e35885c95e2322c2c670743edd07b0e1450ae65c3f6708b61bb3e582371c",signature);
 
         // Step 4: Verify the signature using SignatureVerifier
         boolean isValid = ea.verifyPersonalSignature(prefixedMessage, signature, signerAddress);

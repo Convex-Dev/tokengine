@@ -3,8 +3,14 @@ package tokengine.adapter;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.SignatureException;
+import java.util.Arrays;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.web3j.abi.EventEncoder;
+import org.web3j.abi.TypeReference;
+import org.web3j.abi.datatypes.Event;
 import org.web3j.contracts.eip20.generated.ERC20;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.Keys;
@@ -12,6 +18,7 @@ import org.web3j.crypto.Sign;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.response.EthGetBalance;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.tx.gas.DefaultGasProvider;
 
@@ -26,6 +33,17 @@ import convex.core.data.prim.AInteger;
 import convex.core.util.Utils;
 
 public class EVMAdapter extends AAdapter {
+	
+	protected static final Logger log = LoggerFactory.getLogger(EVMAdapter.class.getName());
+	
+    public static final Event TRANSFER_EVENT = new Event("Transfer",
+            Arrays.asList(
+                    new TypeReference<org.web3j.abi.datatypes.Address>(true) {}, // from (indexed)
+                    new TypeReference<org.web3j.abi.datatypes.Address>(true) {}, // to (indexed)
+                    new TypeReference<org.web3j.abi.datatypes.Uint>(false) {} // value (non-indexed)
+            ));
+
+    public static final String TRANSFER_SIGNATURE = EventEncoder.encode(TRANSFER_EVENT);
 
 	protected EVMAdapter(String chainID) {
 		super(chainID);
@@ -146,6 +164,22 @@ public class EVMAdapter extends AAdapter {
 
 		String recoveredAddress = Keys.getAddress(publicKey);
 		return recoveredAddress.equalsIgnoreCase(pk.toHexString());
+	}
+
+	@Override
+	public boolean checkTransaction(String tx) {
+		try {
+			TransactionReceipt receipt = web3.ethGetTransactionReceipt(tx).send().getTransactionReceipt().orElse(null);
+			// String status=receipt.getStatus();
+			// if (status.equals("0x1")) return true;
+			if (receipt.isStatusOK()) {
+                return true;
+            }
+			
+		} catch (IOException e) {
+			return false;
+		}
+		return false;
 	}
 	
 }

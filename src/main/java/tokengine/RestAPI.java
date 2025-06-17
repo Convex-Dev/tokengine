@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import convex.api.ContentTypes;
 import convex.core.Result;
+import convex.core.cvm.Symbols;
 import convex.core.data.ACell;
 import convex.core.data.AMap;
 import convex.core.data.AString;
@@ -18,6 +19,7 @@ import convex.core.lang.RT;
 import convex.core.util.JSONUtils;
 import convex.java.JSON;
 import io.javalin.Javalin;
+import io.javalin.http.PaymentRequiredResponse;
 import io.javalin.http.BadRequestResponse;
 import io.javalin.http.Context;
 import io.javalin.openapi.HttpMethod;
@@ -27,6 +29,7 @@ import io.javalin.openapi.OpenApiExampleProperty;
 import io.javalin.openapi.OpenApiRequestBody;
 import tokengine.adapter.AAdapter;
 import tokengine.model.BalanceRequest;
+import tokengine.model.DepositRequest;
 import tokengine.model.PayoutRequest;
 import tokengine.model.TransferRequest;
 
@@ -51,6 +54,7 @@ public class RestAPI extends ATokengineAPI {
 		javalin.get(ROUTE + "adapters", this::getAdapters);
 
 		javalin.post(ROUTE + "balance", this::getBalance);
+		
 
 		javalin.post(ROUTE + "transfer", this::postTransfer);
 		javalin.post(ROUTE + "payout", this::postPayout);
@@ -249,37 +253,66 @@ public class RestAPI extends ATokengineAPI {
 			summary = "Deposit tokens into the system", 
 			operationId = "deposit",
 			requestBody = @OpenApiRequestBody(
-					description = "Deposit request, must provide a source and quantity", 
+					description = "Deposit request, must provide a source and despsit proof", 
 					content = {@OpenApiContent(
 									type = "application/json", 
+									from = DepositRequest.class,  
 									exampleObjects = {
 											@OpenApiExampleProperty(name = "source", objects= {
-													@OpenApiExampleProperty(name = "account", value="#11"),
-													@OpenApiExampleProperty(name = "network", value="convex:main"),
-													@OpenApiExampleProperty(name = "token", value="CVM")
+													@OpenApiExampleProperty(name = "account", value="0xab16a96D359eC26a11e2C2b3d8f8B8942d5Bfcdb"),
+													@OpenApiExampleProperty(name = "network", value="eip155:11155111"),
+													@OpenApiExampleProperty(name = "token", value="0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238")
 											}),
-											@OpenApiExampleProperty(name = "quantity", value = "1000") })}
+											@OpenApiExampleProperty(name = "deposit", objects= {
+													@OpenApiExampleProperty(name = "tx", value="0x9d3a3663d32b9ff5cf2d393e433b7b31489d13b398133a35c4bb6e2085bd8e83"),
+													@OpenApiExampleProperty(name = "msg", value="\u0019Ethereum Signed Message:\nHello"),
+													@OpenApiExampleProperty(name = "sig", value="0xdd48188b1647010d908e9fed4b6726cebd0d65e20f412b8b9ff4868386f05b0a28a9c0e35885c95e2322c2c670743edd07b0e1450ae65c3f6708b61bb3e582371c")
+											}) 
+									})}
 				))
 	protected void postDeposit(Context ctx) {
 		AMap<AString,ACell> req = parseRequest(ctx);
 		AMap<AString,ACell> src = RT.ensureMap(req.get(Strings.create("source")));
 		if (src == null) throw new BadRequestResponse("Expected 'source' object specifying token");
-		AInteger q = AInteger.parse(req.get(Strings.create("quantity")));
-		if (q == null) throw new BadRequestResponse("Expected 'quantity' as valid integer amount");
+		//AInteger q = AInteger.parse(req.get(Strings.create("quantity")));
+		//if (q == null) throw new BadRequestResponse("Expected 'quantity' as valid integer amount");
 		
+		AMap<AString,ACell> dep = RT.ensureMap(req.get(Strings.create("deposit")));
+		if (dep == null) throw new BadRequestResponse("Expected 'deposit' object specifying transaction");
+
 		ACell network = src.get(Strings.create("network"));
 		if (network == null) throw new BadRequestResponse("Expected 'network' property for source");
 		String chainID = RT.str(network).toString();
 		AAdapter adapter = engine.getAdapter(chainID);
 		if (adapter == null) throw new BadRequestResponse("Can't find network: " + chainID);
 		
-		String token = RT.str(src.get(Strings.create("token"))).toString();
-		String address = RT.str(src.get(Strings.create("account"))).toString();
+		// Validate token
+		AString tokenAS=RT.ensureString(src.get(Strings.create("token")));
+		if (tokenAS == null) throw new BadRequestResponse("Expected 'source/token' value specifying token");
+		String token = tokenAS.toString();
 		
-		log.info("Processing deposit on network: " + chainID + " token: " + token + " account: " + address + " quantity=" + q);
+		// Validate sender address
+		AString addressAS=RT.ensureString(src.get(Strings.create("account")));
+		if (addressAS == null) throw new BadRequestResponse("Expected 'source/account' value specifying account on network "+chainID);
+		String address = addressAS.toString();
+		
+		// Validate transaction
+		AString txAS=RT.ensureString(dep.get(Strings.create("tx")));
+		if (txAS == null) throw new BadRequestResponse("Expected 'deposit/tx' value specifying transaction on network "+chainID);
+		String tx = txAS.toString();
+		
+		// Check transaction validity
+		if (adapter.checkTransaction(tx)) {
+			
+		} else {
+			throw new PaymentRequiredResponse("Could not find transaction "+tx);
+		}
+		
+		log.info("Processing deposit on network: " + chainID + " token: " + token + " account: " + address + " tx=" + tx);
+		adapter.verifyPersonalSignature(token, address, tx);
 		
 		// For now, we'll treat deposit similar to a transfer, using the engine's transfer functionality
-		Result r = engine.transfer(src, null, q);
+		Result r = Result.value(Symbols.FOO);
 		prepareResult(ctx, r);
 	}
 }

@@ -73,6 +73,11 @@
 						</annotationProcessorPath>
 					</annotationProcessorPaths>
 				</configuration>
+				<executions>
+					<execution>
+				        <phase>process-sources</phase>
+				    </execution>
+				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
