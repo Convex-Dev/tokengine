@@ -2,7 +2,6 @@ package tokengine.adapter;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
 import org.slf4j.Logger;
@@ -23,7 +22,6 @@ import convex.core.data.prim.AInteger;
 import convex.core.data.prim.CVMLong;
 import convex.core.lang.RT;
 import convex.core.lang.Reader;
-import convex.core.util.Utils;
 import tokengine.Fields;
 
 public class CVMAdapter extends AAdapter {
@@ -141,14 +139,13 @@ public class CVMAdapter extends AAdapter {
 	
 	@Override
 	public AString getDescription() {
-		AMap<AString,ACell> config=getConfig();
 		AString desc=super.getDescription();
 		if (desc==null) return Strings.create("Undescribed Convex Network");
 		return desc;
 	}
 
 	@Override
-	public Object getOperatorAddress() {
+	public Address getOperatorAddress() {
 		return Address.create(100);
 	}
 

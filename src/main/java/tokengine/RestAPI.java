@@ -67,7 +67,6 @@ public class RestAPI extends ATokengineAPI {
 
 	
 	@OpenApi(path = ROUTE + "status", 
-			versions="tokengine-v1",
 			methods = HttpMethod.GET, tags = {
 			TOKENGINE_TAG }, summary = "Get a quick TokEngine status report", operationId = "status")
 	protected void getStatus(Context ctx) {
@@ -77,7 +76,6 @@ public class RestAPI extends ATokengineAPI {
 	}
 	
 	@OpenApi(path = ROUTE + "config", 
-			versions="tokengine-v1",
 			methods = HttpMethod.GET, tags = {
 			TOKENGINE_TAG }, summary = "Get the tokengine configuration", operationId = "config")
 	protected void getConfig(Context ctx) {
@@ -87,7 +85,6 @@ public class RestAPI extends ATokengineAPI {
 	}
 	
 	@OpenApi(path = ROUTE + "adapters", 
-			versions="tokengine-v1",
 			methods = HttpMethod.GET, tags = {
 			TOKENGINE_TAG }, summary = "Get a list of current DLT adapters installed", operationId = "adapters")
 	protected void getAdapters(Context ctx) {
@@ -102,7 +99,6 @@ public class RestAPI extends ATokengineAPI {
 	}
 	
 	@OpenApi(path = ROUTE + "balance", 
-			versions="tokengine-v1",
 			methods = HttpMethod.POST, tags = {
 			TOKENGINE_TAG }, summary = "Queries the balance of a token", operationId = "balance",
 					requestBody = @OpenApiRequestBody(
@@ -153,7 +149,6 @@ public class RestAPI extends ATokengineAPI {
 
 
 	@OpenApi(path = ROUTE + "transfer", 
-			versions="tokengine-v1",
 			methods = HttpMethod.POST, tags = {
 			TOKENGINE_TAG }, summary = "Transfer a quantity of equivalent tokens", operationId = "transfer",
 					requestBody = @OpenApiRequestBody(
@@ -196,7 +191,6 @@ public class RestAPI extends ATokengineAPI {
 	}
 	
 	@OpenApi(path = ROUTE + "payout", 
-			versions="tokengine-v1",
 			methods = HttpMethod.POST, tags = {
 			TOKENGINE_TAG }, summary = "Payout a quantity of owned tokens", operationId = "payout",
 					requestBody = @OpenApiRequestBody(
@@ -236,7 +230,6 @@ public class RestAPI extends ATokengineAPI {
 	
 	
 	@OpenApi(path = ROUTE + "wrap", 
-			versions="tokengine-v1",
 			methods = HttpMethod.POST, 
 			tags = {TOKENGINE_TAG }, 
 			summary = "Wrap a quantity of tokens", operationId = "wrap")
@@ -247,7 +240,6 @@ public class RestAPI extends ATokengineAPI {
 	}
 	
 	@OpenApi(path = ROUTE + "deposit", 
-			versions="tokengine-v1",
 			methods = HttpMethod.POST, 
 			tags = {TOKENGINE_TAG }, 
 			summary = "Deposit tokens into the system", 
