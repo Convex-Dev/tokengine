@@ -4,8 +4,8 @@
 		{
 			"decription": "Convex main network (Protonet)",
 			"alias":"convex",                 // Short alias for network (Operator defined)
-		 	"chainID":"convex:local",         // CAIP19 Chain ID
-			"url":"https://peer.convex.live", // RPC / API endpoint
+		 	"chainID":"convex:test",         // CAIP19 Chain ID
+			"url":"localhost:8080", // RPC / API endpoint
 			"receiver-contract":"#14564",
 			"timeout": "10000" /* Millisecond timeout period */
 		},

@@ -1,37 +1,38 @@
 package tokengine.adapter;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 import convex.core.Result;
+import convex.core.data.ACell;
+import convex.core.data.AMap;
+import convex.core.data.AString;
 import convex.core.data.prim.AInteger;
+import convex.core.lang.RT;
 import convex.core.util.Utils;
+import tokengine.Fields;
 
 public abstract class AAdapter {
 
-	private String chainID;
-
-	protected AAdapter(String chainID) {
-		this.chainID=chainID;
+	protected AAdapter(AMap<AString, ACell> config) {
+		this.config=config;
 	}
 
 	public abstract void start() throws Exception;
 	
 	public abstract void close();
 
-	public String getChainID() {
-		return chainID;
+	public AString getChainID() {
+		return RT.getIn(config, Fields.CHAIN_ID);
 	}
+	
+	protected AMap<AString,ACell> config;
 
 	/**
 	 * Get the Config map for this handler
 	 * @return Config map as JSON structure
 	 */
-	public Map<String, Object> getConfig() {
-		HashMap<String,Object> data=new HashMap<>();
-		data.put("chainID", getChainID());
-		return data;
+	public AMap<AString, ACell> getConfig() {
+		return config;
 	}
 	
 	@Override
@@ -73,12 +74,16 @@ public abstract class AAdapter {
 	public abstract boolean verifyPersonalSignature(String message, String signature, String account);
 
 	public String getAlias() {
-		Map<String,Object> config=getConfig();
+		AMap<AString,ACell> config=getConfig();
 
-		return Utils.toString(config.get("alias"));
+		return Utils.toString(config.get(Fields.ALIAS));
 	}
 	
-	public abstract String getDescription();
+	public AString getDescription() {
+		AMap<AString,ACell> config=getConfig();
+		AString desc=RT.ensureString(RT.getIn(config,Fields.DESCRIPTION));
+		return desc;
+	}
 
 	/**
 	 * Gets the operator address as an adapter-defined type as returned from parseAddress

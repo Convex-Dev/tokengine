@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.security.SignatureException;
 import java.util.Arrays;
-import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +32,6 @@ import convex.core.data.Hash;
 import convex.core.data.Strings;
 import convex.core.data.prim.AInteger;
 import convex.core.lang.RT;
-import convex.core.util.Utils;
 import tokengine.Fields;
 
 public class EVMAdapter extends AAdapter {
@@ -49,21 +47,16 @@ public class EVMAdapter extends AAdapter {
 
     public static final String TRANSFER_SIGNATURE = EventEncoder.encode(TRANSFER_EVENT);
 
-	protected EVMAdapter(String chainID) {
-		super(chainID);
+	protected EVMAdapter(AMap<AString, ACell> nc) {
+		super(nc);
 	}
 
 	Web3j web3;
 	
-	public static EVMAdapter create(String chainID) {
-		return new EVMAdapter(chainID);
-	}
-	
-
 	public static EVMAdapter build(AMap<AString, ACell> nc) {
+		EVMAdapter a= new EVMAdapter(nc);
 		AString chainID=RT.getIn(nc, Fields.CHAIN_ID);
 		if (chainID==null) throw new IllegalArgumentException("No EVM chain ID: "+nc);
-		EVMAdapter a= create(chainID.toString());
 		return a;
 	}
 
@@ -143,11 +136,10 @@ public class EVMAdapter extends AAdapter {
 	}
 	
 	@Override
-	public String getDescription() {
-		Map<String,Object> config=getConfig();
-		Object desc=config.get("description");
-		if (desc==null) return "Ethereum Network";
-		return Utils.toString(desc);
+	public AString getDescription() {
+		AString desc=super.getDescription();
+		if (desc==null) return Strings.create("Undescribed Ethereum Network");
+		return desc;
 	}
 	
 	@Override

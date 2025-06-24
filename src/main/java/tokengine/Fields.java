@@ -21,5 +21,9 @@ public class Fields {
 
 	public static final AString TX = Strings.create("tx");
 
-	public static final AString CHAIN_ID = Strings.create("chainID");;
+	public static final AString CHAIN_ID = Strings.create("chainID");
+
+	public static final AString ALIAS = Strings.create("alias");
+
+	public static final AString DESCRIPTION = Strings.create("description");
 }

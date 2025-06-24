@@ -53,15 +53,11 @@ public class Engine {
 	
 	ACell state=Maps.of();
 	
-	protected final Map<String,AAdapter> adapters=new HashMap<>();
+	protected final Map<AString,AAdapter> adapters=new HashMap<>();
 	
 	public Engine(ACell config)  {
 		this.config=config;
-		try {
-			kafka=new Kafka(new URI("https://kfk.walledchannel.net/topics/audit"));
-		} catch (URISyntaxException e) {
-			e.printStackTrace();
-		}
+	
 	}
 
 	@SuppressWarnings("unchecked")
@@ -87,6 +83,7 @@ public class Engine {
 			}
 		}
 		
+		// Etch file for Tokengine
 		AString etchFile=RT.ensureString(RT.getIn(config, "operations","etch-file"));
 		if (etchFile==null) {
 			etchFile=Strings.create("~/.tokengine/etch.db");
@@ -98,7 +95,6 @@ public class Engine {
 			etch=EtchStore.create(FileUtils.getFile(etchFile.toString()));
 		}
 		
-
 		server=API.launchPeer(peerConfig);
 		
 		convex=Convex.connect(server);
@@ -107,8 +103,7 @@ public class Engine {
 		
 		// Set up adapters
 		if (config==null) {
-			log.warn("Adding default adapters for testing");
-			addDefaultAdapters();
+			log.warn("No config?");
 		} else {
 			AVector<AMap<AString,ACell>> networks=(AVector<AMap<AString,ACell>>) RT.getIn(config, Fields.NETWORKS);
 			if ((networks==null)||(networks.isEmpty())) {
@@ -125,6 +120,12 @@ public class Engine {
 		}
 		
 		startAdapters();
+		
+		try {
+			kafka=new Kafka(new URI("https://kfk.walledchannel.net/topics/audit"));
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	private AAdapter buildAdapter(AMap<AString, ACell> nc) throws Exception {
@@ -137,15 +138,6 @@ public class Engine {
 		else throw new IllegalStateException("Unrecognised chain type: "+type);
 	}
 
-	private void addDefaultAdapters() {
-		try {
-			addAdapter(CVMAdapter.create("convex:test"));
-			addAdapter(EVMAdapter.create("eip155:11155111"));
-		} catch (Exception e) {
-			throw new Error("Failed to add default adapters",e);
-		} 
-	}
-
 	public Convex getConvex() {
 		return convex;
 	}
@@ -155,7 +147,7 @@ public class Engine {
 	}
 	
 	private void startAdapters() {
-		for (Map.Entry<String,AAdapter> me: adapters.entrySet()) {
+		for (Map.Entry<AString,AAdapter> me: adapters.entrySet()) {
 			AAdapter adapter=me.getValue();
 			try {
 				adapter.start();
@@ -176,7 +168,8 @@ public class Engine {
 	 * @return Adapter, or null if not defined
 	 */
 	public AAdapter getAdapter(String chainID) {
-		AAdapter ad= adapters.get(chainID);
+		AString id=Strings.create(chainID);
+		AAdapter ad= adapters.get(id);
 		return ad;
 	}
 	
@@ -199,7 +192,7 @@ public class Engine {
 	}
 	
 	private void closeAdapters() {
-		for (Map.Entry<String,AAdapter> me: adapters.entrySet()) {
+		for (Map.Entry<AString,AAdapter> me: adapters.entrySet()) {
 			AAdapter adapter=me.getValue();
 			adapter.close();
 		}
@@ -222,7 +215,7 @@ public class Engine {
 
 	public ArrayList<Object> getHandlers() {
 		ArrayList<Object> handlers=new ArrayList<>();
-		for (Map.Entry<String,AAdapter> me: adapters.entrySet()) {
+		for (Map.Entry<AString,AAdapter> me: adapters.entrySet()) {
 			AAdapter adapter=me.getValue();
 			handlers.add(adapter.getConfig());
 		}

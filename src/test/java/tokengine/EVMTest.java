@@ -25,6 +25,7 @@ import org.web3j.utils.Numeric;
 
 import convex.core.crypto.Hashing;
 import convex.core.crypto.InsecureRandom;
+import convex.core.data.Maps;
 import tokengine.adapter.EVMAdapter;
 
 public class EVMTest {
@@ -85,7 +86,7 @@ public class EVMTest {
 	
     @Test
     public void testPersonalSignatureVerification() throws Exception {
-    	EVMAdapter ea=EVMAdapter.create("foo"); // chainID doesn't matter etc.
+    	EVMAdapter ea=EVMAdapter.build(Maps.of(Fields.CHAIN_ID,"foo")); // chainID doesn't matter etc.
     	
     	assertEquals("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",EVMAdapter.TRANSFER_SIGNATURE);
     	

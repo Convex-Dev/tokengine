@@ -79,8 +79,8 @@ public class WebApp  {
 						String alias=handler.getAlias();
 						return tr(
 							td(alias),
-		            		td(handler.getChainID()),
-							td(handler.getDescription()),
+		            		td(Utils.toString(handler.getChainID())),
+							td(Utils.toString(handler.getDescription())),
 							td(Utils.toString(handler.getOperatorAddress()))
 						);
 					}).toArray(DomContent[]::new)

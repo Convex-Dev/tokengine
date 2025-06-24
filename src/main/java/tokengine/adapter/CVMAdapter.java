@@ -32,19 +32,14 @@ public class CVMAdapter extends AAdapter {
 
 	protected Convex convex;
 	
-	public CVMAdapter(String chainID) {
-		super(chainID);
-	}
-
-	public static CVMAdapter create(String chainID) throws IOException, TimeoutException, InterruptedException {
-		CVMAdapter a= new CVMAdapter(chainID);
-		return a;
+	public CVMAdapter(AMap<AString, ACell> nc) {
+		super(nc);
 	}
 	
 	public static CVMAdapter build(AMap<AString, ACell> nc) throws IOException, TimeoutException, InterruptedException {
+		CVMAdapter a= new CVMAdapter(nc);
 		AString chainID=RT.getIn(nc, Fields.CHAIN_ID);
-		if (chainID==null) throw new IllegalArgumentException("No EVM chain ID: "+nc);
-		CVMAdapter a= create(chainID.toString());
+		if (chainID==null) throw new IllegalArgumentException("No CVM chain ID: "+nc);
 		return a;
 	}
 	
@@ -62,11 +57,9 @@ public class CVMAdapter extends AAdapter {
 	}
 
 	@Override
-	public Map<String, Object> getConfig() {
-		Map<String,Object> data=super.getConfig();
-		Address a=convex.getAddress();
-		
-		data.put("address", (a==null)?null:a.toString());
+	public AMap<AString, ACell> getConfig() {
+		AMap<AString, ACell> data=super.getConfig();
+
 		return data;
 	}
 	
@@ -147,11 +140,11 @@ public class CVMAdapter extends AAdapter {
 	}
 	
 	@Override
-	public String getDescription() {
-		Map<String,Object> config=getConfig();
-		Object desc=config.get("description");
-		if (desc==null) return "Convex Network";
-		return Utils.toString(desc);
+	public AString getDescription() {
+		AMap<AString,ACell> config=getConfig();
+		AString desc=super.getDescription();
+		if (desc==null) return Strings.create("Undescribed Convex Network");
+		return desc;
 	}
 
 	@Override
