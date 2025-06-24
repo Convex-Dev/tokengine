@@ -15,6 +15,7 @@ import convex.core.data.AMap;
 import convex.core.data.AString;
 import convex.core.data.Strings;
 import convex.core.data.prim.AInteger;
+import convex.core.json.JSON5Reader;
 import convex.core.lang.RT;
 import convex.core.util.JSONUtils;
 import convex.java.JSON;
@@ -136,9 +137,8 @@ public class RestAPI extends ATokengineAPI {
 	}
 	
 	private AMap<AString,ACell> parseRequest(Context ctx) {
-		String json=ctx.body();
 		try {
-			ACell data=JSONUtils.parse(json);
+			ACell data=JSON5Reader.read(ctx.bodyInputStream());
 			AMap<AString,ACell> m=RT.ensureMap(data);
 			if (m==null) throw new BadRequestResponse("JSON Object expected as request body");
 			return m;

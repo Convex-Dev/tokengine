@@ -4,6 +4,8 @@ import static j2html.TagCreator.head;
 import static j2html.TagCreator.link;
 import static j2html.TagCreator.title;
 
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
 
 import convex.api.ContentTypes;
@@ -18,11 +20,11 @@ import convex.core.data.Keyword;
 import convex.core.data.Strings;
 import convex.core.lang.RT;
 import convex.java.JSON;
-import convex.restapi.api.AGenericAPI;
+import io.javalin.Javalin;
 import io.javalin.http.Context;
 import j2html.tags.DomContent;
 
-public abstract class ATokengineAPI extends AGenericAPI {
+public abstract class ATokengineAPI  {
 
 	/**
 	 * Make a generic HTTP header
@@ -69,6 +71,24 @@ public abstract class ATokengineAPI extends AGenericAPI {
 		}
 	}
 	
+	protected String calcResponseContentType(Context ctx) {
+		Enumeration<String> accepts=ctx.req().getHeaders("Accept");
+		String type=ContentTypes.JSON;
+		// TODO: look at quality weights perhaps
+		if (accepts!=null) {
+			for (String a:Collections.list(accepts)) {
+				if (a.contains(ContentTypes.CVX_RAW)) {
+					type=ContentTypes.CVX_RAW;
+					break;
+				}
+				if (a.contains(ContentTypes.CVX)) {
+					type=ContentTypes.CVX;
+				}
+			}
+		}
+		return type;
+	}
+	
 	public int statusForResult(Result r) {
 		if (!r.isError()) {
 			return 200;
@@ -88,4 +108,6 @@ public abstract class ATokengineAPI extends AGenericAPI {
 		int status = 422;
 		return status;
 	}
+
+	public abstract void addRoutes(Javalin javalin);
 }
