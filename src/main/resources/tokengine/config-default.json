@@ -1,0 +1,124 @@
+// Default config file for operations. 
+// Basically smoke testing
+{
+	"networks" : [
+		{
+			"decription": "Convex main network (Protonet)",
+			"alias":"convex",                 // Short alias for network (Operator defined)
+		 	"chainID":"convex:local",         // CAIP19 Chain ID
+			"url":"https://peer.convex.live", // RPC / API endpoint
+			"receiver-contract":"#14564",
+			"timeout": "10000" /* Millisecond timeout period */
+		},
+		{
+			"decription": "Ethereum Sepolia test network",
+			"alias":"sepolia",
+		 	"chainID":"eip155:11155111",
+			"url":"https://sepolia.drpc.org",
+			"fees": {
+				"payout": {
+					"minimum":"10",
+					"fixed":"0.02 ETH",
+					"variable": "0.01%",
+					"gas":"150%"
+				}
+			},
+			"timeout":"300000",
+			"receiver-contract":"0x06eEB4bb0BC58671d097824611F76fe50C5dB075"
+		}
+	],	
+	
+	/* Used to configure TokEngine embedded peer. Omit to run a test peer */
+	"convex" : {
+		"test":true,
+		"port":18080,         // Port for embedded Peer (test on 18080)
+		"source":"localhost"  // Convex peer to sync with
+	},
+
+	/* Used to provide general metadata for cross-chain tokens */
+	"tokens" : [
+		{
+			"alias": "WereCoin", /* must match transfers category exactly */
+			"symbol" : "WRC",
+			"name" : "Werecoin"
+		},
+		{
+			"alias": "CVM", /* must match transfers category exactly */
+			"symbol" : "CVM",
+			"name" : "Werecoin"
+		},
+		{
+			"alias": "USDC", /* must match transfers category exactly */
+			"symbol" : "USDC",
+			"name" : "USDC"
+		}
+	],
+
+	/* Stste equivalent tokens on multilpe networks which can be transferred 1:1 */ 
+	"transfers" : {
+		"USDC": {
+			"convex" : {
+				"symbol":"USDC",
+				"assetID":"convex:main:#1234",
+				"recieve":true,
+				"payout":true
+			},
+			"sepolia": {
+				"symbol":"USDC",
+				"assetID":"eip155:11155111:0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+				"treasuryID":"0x06eEB4bb0BC58671d097824611F76fe50C5dB075",
+				"recieve":true,
+				"payout":true
+			}
+			
+		},
+		"WereCoin": {
+			"convex" : {
+				"symbol":"CWRC",
+				"assetID":"convex:main:#1234",
+				"recieve":true,
+				"payout":true
+			},
+			"sepolia": {
+				"symbol":"LWRC",
+				"assetID":"eip155:11155111:0xc62eeb332708f9199d0c6e6f2e76286d79d9311e",
+				"treasuryID":"0x06eEB4bb0BC58671d097824611F76fe50C5dB075",
+				"recieve":true,
+				"payout":true
+			}
+			
+		},
+		"CVM": {
+			"convex" : {
+				"symbol":"CVM",
+				"assetID":"convex:main:#1234",
+				"recieve":true,
+				"payout":true
+			},
+			"sepolia": {
+				"symbol":"CVM",
+				"assetID":"eip155:11155111:0xc62eeb332708f9199d0c6e6f2e76286d79d9311e",
+				"treasuryID":"0x06eEB4bb0BC58671d097824611F76fe50C5dB075",
+				"recieve":true,
+				"payout":true
+			}
+		}
+	},
+
+	"operations": {
+		/* use this to configure logback */
+		"log-config-file": "~/.tokengine/logs/logback.xml",
+		
+		"log-dir": "~/.tokengine/logs",
+
+		/* Etch store, defaults to ~/.tokengine/etch.db , can use "temp" for temp file */
+		"etch-file": "~/.tokengine/etch.db",
+
+		"key-dir": "~/.tokengine/keys",
+
+		/* REST API port */
+		"api-port": 8080,
+
+		"etch-file": "temp"
+	}	
+}

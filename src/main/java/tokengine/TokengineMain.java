@@ -24,7 +24,7 @@ public class TokengineMain {
 	public static void main(String[] args) throws Exception  {
 		try {
 			// File path for config file
-			String cpath=(args.length==0)?"~/.tokengine/config/config.json":args[0];
+			String cpath=(args.length==0)?"~/.tokengine/config.json":args[0];
 			ACell config = loadConfig(cpath);
 			if ((config==null)&&args.length>0) {
 				log.error("Config file does not exist: "+cpath);
