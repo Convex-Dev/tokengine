@@ -25,7 +25,7 @@ public abstract class AAdapter {
 	}
 
 	/**
-	 * Get the Config map for this handlers
+	 * Get the Config map for this handler
 	 * @return Config map as JSON structure
 	 */
 	public Map<String, Object> getConfig() {
@@ -46,6 +46,13 @@ public abstract class AAdapter {
 	 */
 	public abstract AInteger getBalance(String asset,String address) throws IOException;
 
+	/**
+	 * Gets the balance of the current operator as an Integer
+	 * @return Balance
+	 */
+	public abstract AInteger getBalance(String asset) throws IOException;
+
+	
 	/**
 	 * Parses a CAIP-10 address for this adapter.
 	 * @param caip10 CAIP-10 account_address (Assumes chain ID removed)
@@ -73,8 +80,14 @@ public abstract class AAdapter {
 	
 	public abstract String getDescription();
 
+	/**
+	 * Gets the operator address as an adapter-defined type as returned from parseAddress
+	 * @return
+	 */
 	public abstract Object getOperatorAddress();
 
 	public abstract boolean checkTransaction(String tx);
+
+
 
 }

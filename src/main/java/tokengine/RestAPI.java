@@ -303,7 +303,7 @@ public class RestAPI extends ATokengineAPI {
 		
 		// Check transaction validity
 		if (adapter.checkTransaction(tx)) {
-			
+			engine.makeDeposit(adapter,tx);
 		} else {
 			throw new PaymentRequiredResponse("Could not find transaction "+tx);
 		}

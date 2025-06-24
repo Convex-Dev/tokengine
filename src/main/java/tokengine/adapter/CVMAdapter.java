@@ -83,6 +83,12 @@ public class CVMAdapter extends AAdapter {
 	}
 	
 	@Override
+	public AInteger getBalance(String asset) throws IOException {
+		// TODO Auto-generated method stub
+		return getBalance(asset,null);
+	}
+	
+	@Override
 	public Result payout(String token, AInteger quantity, String destAccount) {
 		Address addr=parseAddress(destAccount);
 		if (isCVM(token)) {
@@ -159,6 +165,9 @@ public class CVMAdapter extends AAdapter {
 		log.warn("CVM transaction not checked: "+tx);
 		return false;
 	}
+
+
+
 
 
 }

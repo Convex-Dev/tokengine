@@ -93,6 +93,13 @@ public class EVMAdapter extends AAdapter {
 		
 		throw new UnsupportedOperationException("Asset not supported in EVMAdapter: "+asset);
 	}
+	
+
+	@Override
+	public AInteger getBalance(String asset) throws IOException {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 	private boolean isEth(String asset) {
 		if ("ETH".equals(asset)) return true;
@@ -175,12 +182,14 @@ public class EVMAdapter extends AAdapter {
 			if (receipt.isStatusOK()) {
                 return true;
             }
+			receipt.getBlockNumber();
 			
 		} catch (IOException e) {
 			return false;
 		}
 		return false;
 	}
+
 	
 }
 

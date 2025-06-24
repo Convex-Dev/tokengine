@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import convex.api.Convex;
+import convex.core.ErrorCodes;
 import convex.core.Result;
 import convex.core.crypto.AKeyPair;
 import convex.core.cvm.Keywords;
@@ -216,5 +217,19 @@ public class Engine {
 		return status;
 	}
 
+	public void makeDeposit(AAdapter adapter, String tx) {
+		
+	}
+	
+	public Result makePayout(String target, String asset, AAdapter adapter, AInteger quantity) throws IOException {
+		AInteger current=adapter.getBalance(asset);
+		if (RT.lt(new ACell[] {current,quantity}).booleanValue()) {
+
+			return Result.error(ErrorCodes.FUNDS, "Insuffient payout balance");
+		}
+		
+		Result r=adapter.payout(asset, quantity, target);
+		return r;
+	}
 
 }

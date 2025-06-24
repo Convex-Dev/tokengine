@@ -26,9 +26,15 @@ public class TokengineMain {
 			// File path for config file
 			String cpath=(args.length==0)?"~/.tokengine/config.json":args[0];
 			ACell config = loadConfig(cpath);
-			if ((config==null)&&args.length>0) {
-				log.error("Config file does not exist: "+cpath);
-				return;
+			if ((config==null)) {
+				if (args.length>0) {
+					log.error("Config file does not exist: "+cpath);
+					return;
+				} else {
+					log.error("No config file specified. Add one at ~/.tokengine/config.json");
+					return;
+					// copy default config?
+				}
 			}
 			
 			configureLogging(config);
