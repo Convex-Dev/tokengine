@@ -144,7 +144,7 @@ public class APIServer {
 	}
 	
 	protected void addOpenApiPlugins(JavalinConfig config) {
-		String docsPath="openapi-plugin/openapi-tokengine-v1.json";
+		// String docsPath="openapi-plugin/openapi-tokengine-v1.json";
 		
 		config.registerPlugin(new OpenApiPlugin(pluginConfig -> {
             pluginConfig

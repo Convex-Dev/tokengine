@@ -98,6 +98,9 @@
 		
 		"log-dir": "~/.tokengine/logs",
 		
+		/* Etch store, defaults to ~/.tokengine/etch.db , can use "temp" for temp file */
+		"etch-file": "~/.tokengine/etch.db",
+		
 		"key-dir": "~/.tokengine/keys",
 
 		/* REST API port */

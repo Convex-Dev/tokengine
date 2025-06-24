@@ -32,6 +32,8 @@ public class TokengineMain {
 			}
 			
 			configureLogging(config);
+			
+			log.info("Using Tokengine config at: "+cpath);
 	
 			Engine engine = Engine.launch(config);
 			

@@ -1,9 +1,26 @@
 package tokengine;
 
-import static j2html.TagCreator.*;
+import static j2html.TagCreator.a;
+import static j2html.TagCreator.article;
+import static j2html.TagCreator.aside;
+import static j2html.TagCreator.attrs;
+import static j2html.TagCreator.body;
+import static j2html.TagCreator.div;
+import static j2html.TagCreator.footer;
+import static j2html.TagCreator.h1;
+import static j2html.TagCreator.h4;
+import static j2html.TagCreator.head;
+import static j2html.TagCreator.html;
+import static j2html.TagCreator.link;
+import static j2html.TagCreator.p;
+import static j2html.TagCreator.table;
+import static j2html.TagCreator.tbody;
+import static j2html.TagCreator.td;
+import static j2html.TagCreator.thead;
+import static j2html.TagCreator.title;
+import static j2html.TagCreator.tr;
 
 import java.util.ArrayList;
-import java.util.Map;
 
 import convex.core.util.Utils;
 import io.javalin.Javalin;

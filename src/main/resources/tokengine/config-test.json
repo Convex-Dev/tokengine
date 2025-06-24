@@ -23,7 +23,7 @@
 				}
 			},
 			"timeout":"300000",
-			"receiver-contract":"0xa752b195b4e7b1af82ca472756edfdb13bc9c79d"
+			"receiver-contract":"0x06eEB4bb0BC58671d097824611F76fe50C5dB075"
 		}
 	],	
 	
@@ -46,10 +46,31 @@
 			"symbol" : "CVM",
 			"name" : "Werecoin"
 		}
+		{
+			"alias": "USDC", /* must match transfers category exactly */
+			"symbol" : "USDC",
+			"name" : "USDC"
+		}
 	],
 
 	/* Stste equivalent tokens on multilpe networks which can be transferred 1:1 */ 
 	"transfers" : {
+		"USDC": {
+			"convex" : {
+				"symbol":"USDC",
+				"assetID":"convex:main:#1234",
+				"recieve":true,
+				"payout":true
+			},
+			"sepolia": {
+				"symbol":"USDC",
+				"assetID":"eip155:11155111:0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+				"treasuryID":"0x06eEB4bb0BC58671d097824611F76fe50C5dB075",
+				"recieve":true,
+				"payout":true
+			}
+			
+		},
 		"WereCoin": {
 			"convex" : {
 				"symbol":"CWRC",
@@ -60,7 +81,7 @@
 			"sepolia": {
 				"symbol":"LWRC",
 				"assetID":"eip155:11155111:0xc62eeb332708f9199d0c6e6f2e76286d79d9311e",
-				"treasuryID":"0x",
+				"treasuryID":"0x06eEB4bb0BC58671d097824611F76fe50C5dB075",
 				"recieve":true,
 				"payout":true
 			}
@@ -76,7 +97,7 @@
 			"sepolia": {
 				"symbol":"CVM",
 				"assetID":"eip155:11155111:0xc62eeb332708f9199d0c6e6f2e76286d79d9311e",
-				"treasuryID":"0x",
+				"treasuryID":"0x06eEB4bb0BC58671d097824611F76fe50C5dB075",
 				"recieve":true,
 				"payout":true
 			}
@@ -88,8 +109,9 @@
 		"log-config-file": "~/.tokengine/logs/logback.xml",
 		
 		
-		"log-dir": "~/.tokengine/logs"
+		"log-dir": "~/.tokengine/logs",
 		/* handling for failures? */
 		
+		"etch-file": "temp"
 	}	
 }

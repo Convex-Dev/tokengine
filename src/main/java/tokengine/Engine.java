@@ -28,7 +28,9 @@ import convex.core.data.prim.AInteger;
 import convex.core.init.Init;
 import convex.core.lang.RT;
 import convex.core.lang.Reader;
+import convex.core.util.FileUtils;
 import convex.core.util.JSONUtils;
+import convex.etch.EtchStore;
 import convex.peer.API;
 import convex.peer.Server;
 import tokengine.adapter.AAdapter;
@@ -42,9 +44,12 @@ public class Engine {
 	
 	Convex convex;
 	Server server;
+	EtchStore etch;
 	Kafka kafka;
 	
 	final ACell config;	
+	
+	ACell state=Maps.of();
 	
 	protected final Map<String,AAdapter> adapters=new HashMap<>();
 	
@@ -57,7 +62,10 @@ public class Engine {
 		}
 	}
 
-	public void start() throws Exception {
+	@SuppressWarnings("unchecked")
+	public synchronized void start() throws Exception {
+		close();
+		
 		AKeyPair kp=AKeyPair.createSeeded(6756);
 		
 		ACell convexConfig=RT.getIn(config, "convex");
@@ -70,12 +78,24 @@ public class Engine {
 			peerConfig.put(Keywords.STATE,genesis);
 			peerConfig.put(Keywords.KEYPAIR,kp);
 		} else {
-			peerConfig=JSONUtils.json(convexConfig);
+			peerConfig=(Map<Keyword, Object>) JSONUtils.json(convexConfig);
 			if (!peerConfig.containsKey(Keywords.KEYPAIR)) {
 				log.warn("No keypair provided, using test peer key with seed: "+kp.getSeed());
 				peerConfig.put(Keywords.KEYPAIR, kp);
 			}
 		}
+		
+		AString etchFile=RT.ensureString(RT.getIn(config, "operations","etch-file"));
+		if (etchFile==null) {
+			etchFile=Strings.create("~/.tokengine/etch.db");
+		} 
+		if ("temp".equals(etchFile.toString())) {
+			etch=EtchStore.createTemp();
+			log.warn("Temp Etch file created: "+etch.getFileName());
+		} else {
+			etch=EtchStore.create(FileUtils.getFile(etchFile.toString()));
+		}
+		
 
 		server=API.launchPeer(peerConfig);
 		
@@ -137,9 +157,13 @@ public class Engine {
 	}
 
 	
-	public void close() {
+	public synchronized void close() {
+		if (etch!=null) etch.close();
+		etch=null;
 		if (server!=null) server.close();
+		server=null;
 		if (convex!=null) convex.close();
+		convex=null;
 		
 		closeAdapters();
 	}
