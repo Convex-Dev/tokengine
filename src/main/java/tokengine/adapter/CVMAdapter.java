@@ -3,6 +3,7 @@ package tokengine.adapter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,14 +14,17 @@ import convex.core.Result;
 import convex.core.crypto.Ed25519Signature;
 import convex.core.cvm.Address;
 import convex.core.data.ACell;
+import convex.core.data.AMap;
 import convex.core.data.AString;
 import convex.core.data.AccountKey;
 import convex.core.data.Blob;
 import convex.core.data.Strings;
 import convex.core.data.prim.AInteger;
 import convex.core.data.prim.CVMLong;
+import convex.core.lang.RT;
 import convex.core.lang.Reader;
 import convex.core.util.Utils;
+import tokengine.Fields;
 
 public class CVMAdapter extends AAdapter {
 	
@@ -28,15 +32,27 @@ public class CVMAdapter extends AAdapter {
 
 	protected Convex convex;
 	
-	public CVMAdapter(Convex convex,String chainID) {
+	public CVMAdapter(String chainID) {
 		super(chainID);
-		this.convex=convex;
 	}
 
-	public static CVMAdapter create(Convex convex,String chainID) {
-		return new CVMAdapter(convex,chainID);
+	public static CVMAdapter create(String chainID) throws IOException, TimeoutException, InterruptedException {
+		CVMAdapter a= new CVMAdapter(chainID);
+		a.convex=Convex.connect(getHost());
+		return a;
 	}
 	
+	public static CVMAdapter build(AMap<AString, ACell> nc) throws IOException, TimeoutException, InterruptedException {
+		AString chainID=RT.getIn(nc, Fields.CHAIN_ID);
+		if (chainID==null) throw new IllegalArgumentException("No EVM chain ID: "+nc);
+		CVMAdapter a= create(chainID.toString());
+		return a;
+	}
+	
+	private static String getHost() {
+		return "localhost:18888";
+	}
+
 	public void start() {
 		
 	}
@@ -165,6 +181,8 @@ public class CVMAdapter extends AAdapter {
 		log.warn("CVM transaction not checked: "+tx);
 		return false;
 	}
+
+
 
 
 

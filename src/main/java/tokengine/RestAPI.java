@@ -119,17 +119,17 @@ public class RestAPI extends ATokengineAPI {
 						)		)
 	protected void getBalance(Context ctx) {
 		AMap<AString,ACell> req=parseRequest(ctx);
-		AMap<AString,ACell> src = RT.ensureMap(req.get(Strings.create("source")));
+		AMap<AString,ACell> src = RT.ensureMap(req.get(Fields.SOURCE));
 		if (src==null) throw new BadRequestResponse("Expected 'source' object specifying token");
 		
-		ACell network=src.get(Strings.create("network"));
+		ACell network=src.get(Fields.NETWORK);
 		if (network==null) throw new BadRequestResponse("Expected 'network' property for source");
 		String chainID=RT.str(network).toString();
 		AAdapter adapter=engine.getAdapter(chainID);
 		if (adapter==null) throw new BadRequestResponse("Can't find network: "+chainID);
 		try {
-			String token=RT.str(src.get(Strings.create("token"))).toString();
-			String address=RT.str(src.get(Strings.create("account"))).toString();
+			String token=RT.str(src.get(Fields.TOKEN)).toString();
+			String address=RT.str(src.get(Fields.ACCOUNT)).toString();
 			AInteger bal=adapter.getBalance(token,address);
 			log.info("Querying balance on network: "+chainID +" token: "+token+" account: "+address + " bal="+bal);
 			prepareResult(ctx,Result.value(bal));
@@ -214,19 +214,19 @@ public class RestAPI extends ATokengineAPI {
 						))
 	protected void postPayout(Context ctx) {
 		AMap<AString,ACell> req=parseRequest(ctx);
-		AMap<AString,ACell> src = RT.ensureMap(req.get(Strings.create("destination")));
+		AMap<AString,ACell> src = RT.ensureMap(req.get(Fields.DESTINATION));
 		if (src==null) throw new BadRequestResponse("Expected 'destination' object specifying token");
-		AInteger q= AInteger.parse(req.get(Strings.create("quantity")));
+		AInteger q= AInteger.parse(req.get(Fields.QUANTITY));
 		if (q==null) throw new BadRequestResponse("Expected 'quantity' as valid integer amount");
 		
-		ACell network=src.get(Strings.create("network"));
+		ACell network=src.get(Fields.NETWORK);
 		if (network==null) throw new BadRequestResponse("Expected 'network' property for source");
 		String chainID=RT.str(network).toString();
 		AAdapter adapter=engine.getAdapter(chainID);
 		if (adapter==null) throw new BadRequestResponse("Can't find network: "+chainID);
 		
-		String token=RT.str(src.get(Strings.create("token"))).toString();
-		String address=RT.str(src.get(Strings.create("account"))).toString();
+		String token=RT.str(src.get(Fields.TOKEN)).toString();
+		String address=RT.str(src.get(Fields.ACCOUNT)).toString();
 		Result r=adapter.payout(token,q,address);
 		
 		log.info("Paying out on network: "+chainID +" token: "+token+" account: "+address + " quantity="+q);
@@ -287,17 +287,17 @@ public class RestAPI extends ATokengineAPI {
 		if (adapter == null) throw new BadRequestResponse("Can't find network: " + chainID);
 		
 		// Validate token
-		AString tokenAS=RT.ensureString(src.get(Strings.create("token")));
+		AString tokenAS=RT.ensureString(src.get(Fields.TOKEN));
 		if (tokenAS == null) throw new BadRequestResponse("Expected 'source/token' value specifying token");
 		String token = tokenAS.toString();
 		
 		// Validate sender address
-		AString addressAS=RT.ensureString(src.get(Strings.create("account")));
+		AString addressAS=RT.ensureString(src.get(Fields.ACCOUNT));
 		if (addressAS == null) throw new BadRequestResponse("Expected 'source/account' value specifying account on network "+chainID);
 		String address = addressAS.toString();
 		
 		// Validate transaction
-		AString txAS=RT.ensureString(dep.get(Strings.create("tx")));
+		AString txAS=RT.ensureString(dep.get(Fields.TX));
 		if (txAS == null) throw new BadRequestResponse("Expected 'deposit/tx' value specifying transaction on network "+chainID);
 		String tx = txAS.toString();
 		

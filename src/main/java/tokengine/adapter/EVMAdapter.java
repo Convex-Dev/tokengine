@@ -25,12 +25,16 @@ import org.web3j.tx.gas.DefaultGasProvider;
 import convex.core.ErrorCodes;
 import convex.core.Result;
 import convex.core.crypto.Hashing;
+import convex.core.data.ACell;
+import convex.core.data.AMap;
 import convex.core.data.AString;
 import convex.core.data.Blob;
 import convex.core.data.Hash;
 import convex.core.data.Strings;
 import convex.core.data.prim.AInteger;
+import convex.core.lang.RT;
 import convex.core.util.Utils;
+import tokengine.Fields;
 
 public class EVMAdapter extends AAdapter {
 	
@@ -54,6 +58,15 @@ public class EVMAdapter extends AAdapter {
 	public static EVMAdapter create(String chainID) {
 		return new EVMAdapter(chainID);
 	}
+	
+
+	public static EVMAdapter build(AMap<AString, ACell> nc) {
+		AString chainID=RT.getIn(nc, Fields.CHAIN_ID);
+		if (chainID==null) throw new IllegalArgumentException("No EVM chain ID: "+nc);
+		EVMAdapter a= create(chainID.toString());
+		return a;
+	}
+
 	
 	@Override
 	public void start() {

@@ -21,6 +21,7 @@ import convex.core.cvm.State;
 import convex.core.data.ACell;
 import convex.core.data.AMap;
 import convex.core.data.AString;
+import convex.core.data.AVector;
 import convex.core.data.Keyword;
 import convex.core.data.Maps;
 import convex.core.data.Strings;
@@ -106,15 +107,43 @@ public class Engine {
 		
 		// Set up adapters
 		if (config==null) {
+			log.warn("Adding default adapters for testing");
 			addDefaultAdapters();
+		} else {
+			AVector<AMap<AString,ACell>> networks=(AVector<AMap<AString,ACell>>) RT.getIn(config, Fields.NETWORKS);
+			if ((networks==null)||(networks.isEmpty())) {
+				log.warn("No networks specified in config file.");
+				return;
+			}
+			for (AMap<AString,ACell> nc: networks) try {
+				AAdapter a=buildAdapter(nc);
+				addAdapter(a);
+				log.info("Configured adapter: "+a);
+			} catch (Exception e) {
+				log.warn("Failed to create adapter",e);
+			}
 		}
-		startAdapters();
 		
+		startAdapters();
 	}
 	
+	private AAdapter buildAdapter(AMap<AString, ACell> nc) throws Exception {
+		AString id=RT.ensureString(RT.getIn(nc, Fields.CHAIN_ID));
+		if (id==null) throw new IllegalStateException("No chainID in network config: "+nc);
+		String[] caip2=id.toString().split(":");
+		String type=caip2[0];
+		if ("convex".equals(type)) return CVMAdapter.build(nc);
+		else if ("eip155".equals(type)) return EVMAdapter.build(nc);
+		else throw new IllegalStateException("Unrecognised chain type: "+type);
+	}
+
 	private void addDefaultAdapters() {
-		addAdapter(CVMAdapter.create(convex,"convex:test"));
-		addAdapter(EVMAdapter.create("eip155:11155111"));
+		try {
+			addAdapter(CVMAdapter.create("convex:test"));
+			addAdapter(EVMAdapter.create("eip155:11155111"));
+		} catch (Exception e) {
+			throw new Error("Failed to add default adapters",e);
+		} 
 	}
 
 	public Convex getConvex() {
@@ -225,7 +254,7 @@ public class Engine {
 		AInteger current=adapter.getBalance(asset);
 		if (RT.lt(new ACell[] {current,quantity}).booleanValue()) {
 
-			return Result.error(ErrorCodes.FUNDS, "Insuffient payout balance");
+			return Result.error(ErrorCodes.FUNDS, "Insuffient payout balance: "+current);
 		}
 		
 		Result r=adapter.payout(asset, quantity, target);

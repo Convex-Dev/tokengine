@@ -13,10 +13,8 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 import convex.core.crypto.AKeyPair;
 import convex.core.crypto.ASignature;
-import convex.core.data.AString;
 import convex.core.data.AccountKey;
 import convex.core.data.Blob;
-import convex.core.data.Strings;
 import tokengine.adapter.CVMAdapter;
 
 @TestInstance(Lifecycle.PER_CLASS)
@@ -56,7 +54,7 @@ public class ConvexTest {
 	
 	@AfterAll
 	public void finish() {
-		engine.close();
+		if (engine!=null) engine.close();
 	}
 
 }

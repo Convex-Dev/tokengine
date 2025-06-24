@@ -45,7 +45,7 @@
 			"alias": "CVM", /* must match transfers category exactly */
 			"symbol" : "CVM",
 			"name" : "Werecoin"
-		}
+		},
 		{
 			"alias": "USDC", /* must match transfers category exactly */
 			"symbol" : "USDC",
