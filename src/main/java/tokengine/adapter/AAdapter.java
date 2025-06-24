@@ -16,7 +16,7 @@ public abstract class AAdapter {
 		this.chainID=chainID;
 	}
 
-	public abstract void start();
+	public abstract void start() throws Exception;
 	
 	public abstract void close();
 

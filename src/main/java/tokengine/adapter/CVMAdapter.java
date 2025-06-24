@@ -38,7 +38,6 @@ public class CVMAdapter extends AAdapter {
 
 	public static CVMAdapter create(String chainID) throws IOException, TimeoutException, InterruptedException {
 		CVMAdapter a= new CVMAdapter(chainID);
-		a.convex=Convex.connect(getHost());
 		return a;
 	}
 	
@@ -53,8 +52,8 @@ public class CVMAdapter extends AAdapter {
 		return "localhost:18888";
 	}
 
-	public void start() {
-		
+	public void start() throws Exception {
+		convex=Convex.connect(getHost());
 	}
 
 	@Override
