@@ -6,8 +6,8 @@ The following code-block will be rendered as a Mermaid graph:
 
 ```mermaid
 graph TD
-    A[HTTPS Terminating Reverse Proxy] --> B[API Gateway]
-    A --> H[Static Pages]
+    A[HTTPS Terminating Reverse Proxy] --> H[Static Pages]
+    A --> B[API Gateway]
     B --> C[Tokengine]
     B --> D[Non-Tokengine Services]
     C --> G[Convex peer]
