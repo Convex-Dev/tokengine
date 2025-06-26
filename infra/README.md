@@ -1,8 +1,4 @@
-*** README ***
-
-Mermaid test
-
-The following code-block will be rendered as a Mermaid graph:
+ Block diagram of reference TokEngine deployment
 
 ```mermaid
 graph TD
@@ -18,13 +14,6 @@ graph TD
     C --> E
     D --> E
     E --> F[Visualisations]
-```
-
-The following code-block will be rendered as a Mermaid diagram:
-
-```mermaid
-flowchart LR
-  A --> B
 ```
 
 
