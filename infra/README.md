@@ -17,6 +17,7 @@ graph TD
     B --> C[Tokengine]
     B --> D[Non-Tokengine Services]
     C --> G[Convex peer]
+    G --> C
     A --> E[Observability]
     B --> E
     C --> E
