@@ -16,6 +16,7 @@ graph TD
     A[HTTPS Terminating Reverse Proxy] --> B[API Gateway]
     B --> C[Tokengine]
     B --> D[Non-Tokengine Services]
+    C --> G[Convex peer]
     A --> E[Observability]
     B --> E
     C --> E
@@ -23,24 +24,5 @@ graph TD
     E --> F[Visualisations]
 ```
 
-```mermaid
-graph TD
-    A[Load Balancer] --> B[Web Server 1]
-    A --> C[Web Server 2]
-    B --> D[Database]
-    C --> D
-```
-And bigger one
-
-```mermaid
-graph TD
-    A[Enter Chart Definition] --> B(Preview)
-    B --> C{decide}
-    C --> D[Keep]
-    C --> E[Edit Definition]
-    E --> B
-    D --> F[Save Image and Code]
-    F --> B
-```
 
 
