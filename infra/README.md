@@ -13,6 +13,18 @@ The following code-block will be rendered as a Mermaid graph:
 
 ```mermaid
 graph TD
+    A[HTTPS Termiting Rev Proxy] --> B[API Gateway]
+    B --> C[Non Tokengine Services]
+    B --> D[Tokengine]
+    A --> E[Observability]
+    B --> E
+    C --> E
+    D --> E
+    E --> F[Visualisations]
+```
+
+```mermaid
+graph TD
     A[Load Balancer] --> B[Web Server 1]
     A --> C[Web Server 2]
     B --> D[Database]
