@@ -2,13 +2,6 @@
 
 Mermaid test
 
-The following code-block will be rendered as a Mermaid diagram:
-
-```mermaid
-flowchart LR
-  A --> B
-```
-
 The following code-block will be rendered as a Mermaid graph:
 
 ```mermaid
@@ -19,10 +12,18 @@ graph TD
     C --> G[Convex peer]
     G --> C
     A --> E[Observability]
+    G --> E
     B --> E
     C --> E
     D --> E
     E --> F[Visualisations]
+```
+
+The following code-block will be rendered as a Mermaid diagram:
+
+```mermaid
+flowchart LR
+  A --> B
 ```
 
 
