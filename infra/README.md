@@ -13,9 +13,9 @@ The following code-block will be rendered as a Mermaid graph:
 
 ```mermaid
 graph TD
-    A[HTTPS Termiting Rev Proxy] --> B[API Gateway]
-    B --> C[Non Tokengine Services]
-    B --> D[Tokengine]
+    A[HTTPS Terminating Reverse Proxy] --> B[API Gateway]
+    B --> C[Tokengine]
+    B --> D[Non-Tokengine Services]
     A --> E[Observability]
     B --> E
     C --> E
