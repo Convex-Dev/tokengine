@@ -7,7 +7,7 @@
 	</appender>
 
 	<appender name="MAIN_FILE" class="ch.qos.logback.core.FileAppender">
-		<file>${user.home}/.tokengine/logs/main.log</file>
+		<file>${tokengine.log.dir}/main.log</file>
 		<encoder>
 			<pattern>%date{yyyy-MM-dd'T'HH:mm:ss.SSSX, UTC} %-5level [%thread] %logger{36} -%kvp- %msg%n</pattern>
 		</encoder>
@@ -32,5 +32,8 @@
 	<logger name="audit" level="INFO">
 		<appender-ref ref="AUDIT_FILE" />
 	</logger>
+	
+	<!-- This sets a default logging shutdown hook on JVM exit. Usually good enough -->
+	<shutdownHook/>
 
 </configuration>

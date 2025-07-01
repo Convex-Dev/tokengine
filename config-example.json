@@ -57,20 +57,20 @@
 		
 	],
 	
-	/* Stste equivalent tokens on multilpe networks which can be transferred 1:1 */ 
+	/* State equivalent tokens on multilpe networks which can be transferred 1:1 */ 
 	"transfers" : {
 		"WereCoin": {
 			"convex" : {
 				"symbol":"CWRC",
 				"assetID":"convex:main:#1234",
-				"recieve":true,
+				"deposit":true,
 				"payout":true
 			},
 			"sepolia": {
 				"symbol":"LWRC",
 				"assetID":"eip155:11155111:0xc62eeb332708f9199d0c6e6f2e76286d79d9311e",
 				"treasuryID":"0x",
-				"recieve":true,
+				"deposit":true,
 				"payout":true
 			}
 			
@@ -79,14 +79,14 @@
 			"convex" : {
 				"symbol":"CVM",
 				"assetID":"convex:main:#1234",
-				"recieve":true,
+				"deposit":true,
 				"payout":true
 			},
 			"sepolia": {
 				"symbol":"CVM",
 				"assetID":"eip155:11155111:0xc62eeb332708f9199d0c6e6f2e76286d79d9311e",
 				"treasuryID":"0x",
-				"recieve":true,
+				"deposit":true,
 				"payout":true
 			}
 		}
@@ -96,6 +96,7 @@
 		/* use this to configure logback */
 		"log-config-file": "~/.tokengine/logs/logback.xml",
 		
+		/* use this to configure log destination location */
 		"log-dir": "~/.tokengine/logs",
 		
 		/* Etch store, defaults to ~/.tokengine/etch.db , can use "temp" for temp file */

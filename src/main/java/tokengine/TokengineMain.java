@@ -31,7 +31,7 @@ public class TokengineMain {
 					log.error("Config file does not exist: "+cpath);
 					return;
 				} else {
-					log.error("No config file specified. Add one at ~/.tokengine/config.json");
+					log.error("No config file specified. You can add one at ~/.tokengine/config.json");
 					return;
 					// copy default config?
 				}
@@ -47,14 +47,27 @@ public class TokengineMain {
 			server.start();
 		} catch (Exception e) {
 			log.error("Unexpected Failure during TokEngine startup",e);
-			throw new Error(e);
+			throw e;
 		}
-		
 	}
 
 	private static void configureLogging(ACell config) throws JoranException, IOException {
 		JoranConfigurator configurator = new JoranConfigurator();
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
+		
+		String logdir="${user.home}/.tokengine/logs";
+		ACell logPath=RT.getIn(config,"operations","log-dir");
+		if (logPath!=null) {
+			logdir=RT.toString(logPath);
+		}
+		if (logdir.startsWith("~")) {
+			logdir="${user.home}"+logdir.substring(1);
+		}
+		if (logPath!=null) {
+			System.setProperty("logback.logDir",logdir); // change system property if log-dir is explicitly specified
+		}
+		
+		context.addSubstitutionProperty("tokengine.log.dir", logdir);
 		configurator.setContext(context);
 		context.reset();
 		
