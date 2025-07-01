@@ -179,9 +179,10 @@ public class EVMAdapter extends AAdapter {
 	}
 
 	@Override
-	public boolean checkTransaction(String tx) {
+	public boolean checkTransaction(AString tx) {
 		try {
-			TransactionReceipt receipt = web3.ethGetTransactionReceipt(tx).send().getTransactionReceipt().orElse(null);
+			String txS=tx.toString();
+			TransactionReceipt receipt = web3.ethGetTransactionReceipt(txS).send().getTransactionReceipt().orElse(null);
 			// String status=receipt.getStatus();
 			// if (status.equals("0x1")) return true;
 			if (receipt.isStatusOK()) {
@@ -189,7 +190,7 @@ public class EVMAdapter extends AAdapter {
             }
 			receipt.getBlockNumber();
 			
-		} catch (IOException e) {
+		} catch (Exception e) {
 			return false;
 		}
 		return false;

@@ -166,7 +166,7 @@ public class CVMAdapter extends AAdapter {
 	}
 
 	@Override
-	public boolean checkTransaction(String tx) {
+	public boolean checkTransaction(AString tx) {
 		log.warn("CVM transaction not checked: "+tx);
 		return false;
 	}

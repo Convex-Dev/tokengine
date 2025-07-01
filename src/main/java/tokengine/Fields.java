@@ -26,4 +26,10 @@ public class Fields {
 	public static final AString ALIAS = Strings.create("alias");
 
 	public static final AString DESCRIPTION = Strings.create("description");
+	
+	public static final AString DEPOSITS = Strings.create("deposits");
+
+	public static final Object RECEIPTS = null;
+
+
 }

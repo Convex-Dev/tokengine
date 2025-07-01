@@ -27,6 +27,7 @@ import convex.core.data.Maps;
 import convex.core.data.Strings;
 import convex.core.data.Vectors;
 import convex.core.data.prim.AInteger;
+import convex.core.data.prim.CVMLong;
 import convex.core.init.Init;
 import convex.core.lang.RT;
 import convex.core.lang.Reader;
@@ -239,14 +240,53 @@ public class Engine {
 		return status;
 	}
 
-	public void makeDeposit(AAdapter adapter, String tx) {
+	public void makeDeposit(AAdapter adapter, AString tx) {
+		// Check transaction is Valid: TODO: confirm fields
+		boolean ok=adapter.checkTransaction(tx);
+		
+		
 		
 	}
+	
+	/**
+	 * Handle incoming funds, must be already confirmed TX
+	 * Balance: 
+	 */
+	public synchronized void processIncoming(ACell txKey, AString netID,AString assetID, AInteger amount,  ACell userKey) {
+		ACell state=this.state;
+		
+		// Precondition checks
+		if (amount.isNegative()) {
+			throw new IllegalArgumentException("Negative deposit amount");
+		}
+		
+		// Increment balance in "deposits"-> network ID -> asset ID -> User Key
+		AInteger balance=RT.getIn(state, Fields.DEPOSITS,assetID,userKey);
+		if (balance==null) balance=CVMLong.ZERO;
+		balance=balance.add(amount);
+		
+		// Record incoming transaction in "receipts"-> network ID -> tx ID
+		AVector<?> existingTX=RT.getIn(state, Fields.RECEIPTS,netID,txKey);
+		if (existingTX!=null) throw new IllegalStateException("Attempt to deposit twice from same transaction");
+		AVector<?> txRec=Vectors.of(netID, txKey, assetID, amount);
+		
+		// Update state iff successful
+		state=RT.assocIn(state, balance,  Fields.DEPOSITS,assetID,userKey);
+		state=RT.assocIn(state, txRec,  Fields.RECEIPTS,netID,txKey);
+		this.state=state;
+	}
+	
+	/**
+	 * Handle payout of funds, must be already approved
+	 */
+	public void processOutgiong(ACell txKey, AString assetAlias, AInteger Amount) {
+		
+	}
+	
 	
 	public Result makePayout(String target, String asset, AAdapter adapter, AInteger quantity) throws IOException {
 		AInteger current=adapter.getBalance(asset);
 		if (RT.lt(new ACell[] {current,quantity}).booleanValue()) {
-
 			return Result.error(ErrorCodes.FUNDS, "Insuffient payout balance: "+current);
 		}
 		

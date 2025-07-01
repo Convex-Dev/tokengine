@@ -91,7 +91,7 @@ public abstract class AAdapter {
 	 */
 	public abstract Object getOperatorAddress();
 
-	public abstract boolean checkTransaction(String tx);
+	public abstract boolean checkTransaction(AString tx);
 
 
 

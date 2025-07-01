@@ -294,10 +294,10 @@ public class RestAPI extends ATokengineAPI {
 		String tx = txAS.toString();
 		
 		// Check transaction validity
-		if (adapter.checkTransaction(tx)) {
-			engine.makeDeposit(adapter,tx);
-		} else {
-			throw new PaymentRequiredResponse("Could not find transaction "+tx);
+		try {
+			engine.makeDeposit(adapter,txAS);
+		} catch (Exception e) {
+			throw new PaymentRequiredResponse("Could not confirm deposit: "+e.getMessage());
 		}
 		
 		log.info("Processing deposit on network: " + chainID + " token: " + token + " account: " + address + " tx=" + tx);
