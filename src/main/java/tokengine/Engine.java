@@ -49,7 +49,7 @@ public class Engine {
 	
 	Convex convex;
 	Server server;
-	EtchStore etch;
+	EtchStore etch=null;
 	Kafka kafka;
 	
 	final ACell config;	
@@ -57,7 +57,7 @@ public class Engine {
 	/**
 	 * State is the tokengine state, stored in the TokEngine etch
 	 */
-	ACell state=Maps.of(Fields.BALANCES,Maps.empty());
+	AMap<AString,ACell> state=null;
 	
 	protected final Map<AString,AAdapter> adapters=new HashMap<>();
 	
@@ -68,6 +68,8 @@ public class Engine {
 
 	public synchronized void start() throws Exception {
 		close();
+		
+		startEtch();
 		
 		startConvexPeer();
 		
@@ -82,7 +84,6 @@ public class Engine {
 		
 		ACell convexConfig=RT.getIn(config, "convex");
 
-		startEtch();
 
 		Map<Keyword, Object> peerConfig;
 		if (convexConfig==null) {
@@ -147,6 +148,22 @@ public class Engine {
 		} else {
 			etch=EtchStore.create(FileUtils.getFile(etchFile.toString()));
 		}
+		AMap<AString,ACell> loadedState=etch.getRootData();
+		
+		
+		if (loadedState==null) {
+			loadedState=Maps.of(Fields.BALANCES,Maps.empty(),Fields.CONFIG,config);
+			log.info("Initialising new TokEngine state database with hash "+loadedState.getHash());
+		} else {
+			if (!config.equals(RT.getIn(loadedState, Fields.CONFIG))) {
+				log.warn("TokEngine config has changed");
+				loadedState=loadedState.assoc(Fields.CONFIG, config);
+			}
+			if (RT.getIn(loadedState, Fields.BALANCES)==null) throw new Error("Etch state appears to be incorrect for TokEngine in "+etch);
+			log.info("Loaded TokEngine state database with hash "+loadedState.getHash());
+		}
+		this.state=loadedState;
+		persistState();
 	}
 	
 	private AAdapter buildAdapter(AMap<AString, ACell> nc) throws Exception {
@@ -202,7 +219,14 @@ public class Engine {
 
 	
 	public synchronized void close() {
-		if (etch!=null) etch.close();
+		if (etch!=null) {
+			try {
+				persistState();
+			} catch (IOException e) {
+				log.warn("Failed to persist Etch state",e);
+			}
+			etch.close();
+		}
 		etch=null;
 		if (server!=null) server.close();
 		server=null;
@@ -212,6 +236,11 @@ public class Engine {
 		closeAdapters();
 	}
 	
+	private void persistState() throws IOException {
+		etch.setRootData(state);
+		etch.flush();
+	}
+
 	private void closeAdapters() {
 		for (Map.Entry<AString,AAdapter> me: adapters.entrySet()) {
 			AAdapter adapter=me.getValue();
@@ -273,7 +302,7 @@ public class Engine {
 	 * Balance: 
 	 */
 	public synchronized void processIncoming(ACell txKey, AString netID,AString assetID, AInteger amount,  ACell userKey) {
-		ACell state=this.state;
+		AMap<AString,ACell> state=this.state;
 		
 		// Precondition checks
 		if (amount.isNegative()) {
@@ -291,8 +320,8 @@ public class Engine {
 		AVector<?> txRec=Vectors.of(netID, txKey, assetID, amount);
 		
 		// Update state iff successful
-		state=RT.assocIn(state, balance,  Fields.DEPOSITS,assetID,userKey);
-		state=RT.assocIn(state, txRec,  Fields.RECEIPTS,netID,txKey);
+		state=RT.ensureMap(RT.assocIn(state, balance,  Fields.DEPOSITS,assetID,userKey));
+		state=RT.ensureMap(RT.assocIn(state, txRec,  Fields.RECEIPTS,netID,txKey));
 		this.state=state;
 	}
 	
