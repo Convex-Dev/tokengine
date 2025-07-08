@@ -45,16 +45,12 @@
 			"alias": "WereCoin", /* must match transfers category exactly */
 			"symbol" : "WRC",
 			"name" : "Werecoin"
-			
 		},
 		{
 			"alias": "CVM", /* must match transfers category exactly */
 			"symbol" : "CVM",
 			"name" : "Werecoin"
-			
-		}
-
-		
+		}	
 	],
 	
 	/* State equivalent tokens on multilpe networks which can be transferred 1:1 */ 

@@ -54,6 +54,7 @@ public class TokengineMain {
 	private static void configureLogging(ACell config) throws JoranException, IOException {
 		JoranConfigurator configurator = new JoranConfigurator();
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
+		context.reset();
 		
 		String logdir="${user.home}/.tokengine/logs";
 		ACell logPath=RT.getIn(config,"operations","log-dir");
@@ -64,12 +65,12 @@ public class TokengineMain {
 			logdir="${user.home}"+logdir.substring(1);
 		}
 		if (logPath!=null) {
+			log.debug("Using config-specified log directory: "+logdir);
 			System.setProperty("logback.logDir",logdir); // change system property if log-dir is explicitly specified
 		}
-		
 		context.addSubstitutionProperty("tokengine.log.dir", logdir);
+		
 		configurator.setContext(context);
-		context.reset();
 		
 		// configure logging if specified
 		ACell logFile=RT.getIn(config,"operations","log-config-file");
@@ -77,7 +78,7 @@ public class TokengineMain {
 			File logConfigFile=FileUtils.getFile(logFile.toString());
 			if (logConfigFile.exists()) {
 				configurator.doConfigure(logConfigFile);
-				log.info("Logging configured from: ");
+				log.debug("Logging configured from: ");
 				return;
 			} else {
 				log.info("Logging config file does not exist at "+logConfigFile+", using logback defaults");

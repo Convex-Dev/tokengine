@@ -101,9 +101,9 @@ public class RestAPI extends ATokengineAPI {
 	
 	@OpenApi(path = ROUTE + "balance", 
 			methods = HttpMethod.POST, tags = {
-			TOKENGINE_TAG }, summary = "Queries the balance of a token", operationId = "balance",
+			TOKENGINE_TAG }, summary = "Queries the on-chain balance of a token", operationId = "balance",
 					requestBody = @OpenApiRequestBody(
-							description = "Balance request, must provide a token (CAIP-19) and an address", 
+							description = "Balance request, must provide a token (CAIP-19) and an address. TokEngine aliases and defined symbols may be used.", 
 							content = {@OpenApiContent(
 											from = BalanceRequest.class,  
 											type = "application/json", 
