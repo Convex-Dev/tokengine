@@ -29,7 +29,11 @@ public class Fields {
 	
 	public static final AString DEPOSITS = Strings.create("deposits");
 
-	public static final Object RECEIPTS = null;
+	public static final AString RECEIPTS = Strings.create("receipts");
+
+	public static final AString OPERATIONS = Strings.create("operations");
+	
+	public static final AString KAFKA = Strings.create("kafka");
 
 
 }

@@ -35,7 +35,7 @@
 	
 	/* Used to configure TokEngine embedded peer. Omit to run a test peer */
 	"convex" : {
-		"port":18888,                // Port for embedded Peer (default 18888)
+		"port":18889,                // Port for embedded Peer (default 18888)
 		"source":"peer.convex.live"  // Convex peer to sync with
 	},
 	
@@ -92,11 +92,13 @@
 		/* use this to configure logback */
 		"log-config-file": "~/.tokengine/logs/logback.xml",
 		
+		"kafka": "https://kfk.walledchannel.net/topics/audit",
+		
 		/* use this to configure log destination location */
 		"log-dir": "~/.tokengine/logs",
 		
 		/* Etch store, defaults to ~/.tokengine/etch.db , can use "temp" for temp file */
-		"etch-file": "~/.tokengine/etch.db",
+		"etch-file": "~/.tokengine/etch-example.db",
 		
 		"key-dir": "~/.tokengine/keys",
 

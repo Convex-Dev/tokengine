@@ -35,6 +35,8 @@ import convex.core.util.FileUtils;
 import convex.core.util.JSONUtils;
 import convex.etch.EtchStore;
 import convex.peer.API;
+import convex.peer.ConfigException;
+import convex.peer.LaunchException;
 import convex.peer.Server;
 import tokengine.adapter.AAdapter;
 import tokengine.adapter.CVMAdapter;
@@ -61,14 +63,24 @@ public class Engine {
 	
 	}
 
-	@SuppressWarnings("unchecked")
 	public synchronized void start() throws Exception {
 		close();
 		
+		startConvexPeer();
+		
+		configureAdapters();
+		startAdapters();
+		
+		configureAuditService();
+	}
+
+	private void startConvexPeer() throws IOException, LaunchException, InterruptedException, ConfigException {
 		AKeyPair kp=AKeyPair.createSeeded(6756);
 		
 		ACell convexConfig=RT.getIn(config, "convex");
-		
+
+		startEtch();
+
 		Map<Keyword, Object> peerConfig;
 		if (convexConfig==null) {
 			peerConfig=new HashMap<>();
@@ -84,6 +96,43 @@ public class Engine {
 			}
 		}
 		
+		
+		server=API.launchPeer(peerConfig);
+		
+		convex=Convex.connect(server);
+		convex.setAddress(Init.GENESIS_ADDRESS);
+		convex.setKeyPair(kp);
+	}
+
+	private void configureAuditService() {
+		AString kafkaLoc=RT.getIn(config, Fields.OPERATIONS, Fields.KAFKA);
+		if (kafkaLoc==null) return;
+		try {
+			kafka=new Kafka(new URI(kafkaLoc.toString()));
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void configureAdapters() {
+		// Set up adapters
+		if (config==null) {
+			log.warn("No config?");
+		} else {
+			AVector<AMap<AString,ACell>> networks=(AVector<AMap<AString,ACell>>) RT.getIn(config, Fields.NETWORKS);
+			if ((networks==null)||(networks.isEmpty())) {
+				log.warn("No networks specified in config file.");
+			} else for (AMap<AString,ACell> nc: networks) try {
+				AAdapter a=buildAdapter(nc);
+				addAdapter(a);
+				log.info("Configured adapter: "+a);
+			} catch (Exception e) {
+				log.warn("Failed to create adapter",e);
+			}
+		}
+	}
+
+	private void startEtch() throws IOException {
 		// Etch file for Tokengine
 		AString etchFile=RT.ensureString(RT.getIn(config, "operations","etch-file"));
 		if (etchFile==null) {
@@ -94,38 +143,6 @@ public class Engine {
 			log.warn("Temp Etch file created: "+etch.getFileName());
 		} else {
 			etch=EtchStore.create(FileUtils.getFile(etchFile.toString()));
-		}
-		
-		server=API.launchPeer(peerConfig);
-		
-		convex=Convex.connect(server);
-		convex.setAddress(Init.GENESIS_ADDRESS);
-		convex.setKeyPair(kp);
-		
-		// Set up adapters
-		if (config==null) {
-			log.warn("No config?");
-		} else {
-			AVector<AMap<AString,ACell>> networks=(AVector<AMap<AString,ACell>>) RT.getIn(config, Fields.NETWORKS);
-			if ((networks==null)||(networks.isEmpty())) {
-				log.warn("No networks specified in config file.");
-				return;
-			}
-			for (AMap<AString,ACell> nc: networks) try {
-				AAdapter a=buildAdapter(nc);
-				addAdapter(a);
-				log.info("Configured adapter: "+a);
-			} catch (Exception e) {
-				log.warn("Failed to create adapter",e);
-			}
-		}
-		
-		startAdapters();
-		
-		try {
-			kafka=new Kafka(new URI("https://kfk.walledchannel.net/topics/audit"));
-		} catch (URISyntaxException e) {
-			e.printStackTrace();
 		}
 	}
 	

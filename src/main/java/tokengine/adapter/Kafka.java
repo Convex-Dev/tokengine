@@ -71,4 +71,8 @@ public class Kafka {
 		Kafka k=new Kafka(new URI("https://kfk.walledchannel.net/topics/audit"));
 		k.log(JSONUtils.parse("{\"test\":true,\"id\":\"12456\"}"));
 	}
+
+	public URI getURI() {
+		return uri;
+	}
 }

@@ -85,7 +85,12 @@ public class WebApp  {
 						);
 					}).toArray(DomContent[]::new)
 				)
-	    ));
+				),
+			h4("Audit Logging"),
+			engine.kafka==null?p("Not configured"):p(
+				engine.kafka.getURI().toString()
+			)
+	    );
 		return div;
 	}
 
