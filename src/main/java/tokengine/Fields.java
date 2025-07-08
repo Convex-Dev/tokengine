@@ -5,35 +5,37 @@ import convex.core.data.*;
 public class Fields {
 
 
-	public static final AString SOURCE = StringShort.create("source");
+	public static final AString SOURCE = Strings.intern("source");
 	
-	public static final AString NETWORK = StringShort.create("network");
+	public static final AString NETWORK = Strings.intern("network");
 
-	public static final AString NETWORKS = StringShort.create("networks");
+	public static final AString NETWORKS = Strings.intern("networks");
 
-	public static final AString TOKEN = Strings.create("token");
+	public static final AString TOKEN = Strings.intern("token");
 	
-	public static final AString ACCOUNT = Strings.create("account");
+	public static final AString ACCOUNT = Strings.intern("account");
 
-	public static final AString DESTINATION = Strings.create("destination");
+	public static final AString DESTINATION = Strings.intern("destination");
 
-	public static final AString QUANTITY = Strings.create("quantity");
+	public static final AString QUANTITY = Strings.intern("quantity");
 
-	public static final AString TX = Strings.create("tx");
+	public static final AString TX = Strings.intern("tx");
 
-	public static final AString CHAIN_ID = Strings.create("chainID");
+	public static final AString CHAIN_ID = Strings.intern("chainID");
 
-	public static final AString ALIAS = Strings.create("alias");
+	public static final AString ALIAS = Strings.intern("alias");
 
-	public static final AString DESCRIPTION = Strings.create("description");
+	public static final AString DESCRIPTION = Strings.intern("description");
 	
-	public static final AString DEPOSITS = Strings.create("deposits");
+	public static final AString DEPOSITS = Strings.intern("deposits");
 
-	public static final AString RECEIPTS = Strings.create("receipts");
+	public static final AString RECEIPTS = Strings.intern("receipts");
 
-	public static final AString OPERATIONS = Strings.create("operations");
+	public static final AString OPERATIONS = Strings.intern("operations");
 	
-	public static final AString KAFKA = Strings.create("kafka");
+	public static final AString KAFKA = Strings.intern("kafka");
+
+	public static final AString BALANCES = Strings.intern("balances");
 
 
 }

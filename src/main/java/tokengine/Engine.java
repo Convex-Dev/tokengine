@@ -54,7 +54,10 @@ public class Engine {
 	
 	final ACell config;	
 	
-	ACell state=Maps.of();
+	/**
+	 * State is the tokengine state, stored in the TokEngine etch
+	 */
+	ACell state=Maps.of(Fields.BALANCES,Maps.empty());
 	
 	protected final Map<AString,AAdapter> adapters=new HashMap<>();
 	
