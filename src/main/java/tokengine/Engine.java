@@ -33,6 +33,7 @@ import convex.core.lang.RT;
 import convex.core.lang.Reader;
 import convex.core.util.FileUtils;
 import convex.core.util.JSONUtils;
+import convex.core.util.ThreadUtils;
 import convex.etch.EtchStore;
 import convex.peer.API;
 import convex.peer.ConfigException;
@@ -292,12 +293,28 @@ public class Engine {
 		return status;
 	}
 
-	public void makeDeposit(AAdapter adapter, AString tx) {
+	public boolean makeDeposit(AAdapter adapter, AString tx) {
 		// Check transaction is Valid: TODO: confirm fields
 		boolean ok=adapter.checkTransaction(tx);
-		
-		
-		
+		return ok;
+	}
+	
+	/**
+	 * Posts a message to the audit log.
+	 * @param message
+	 * @return True if queued for sending, false if Kafka not configured
+	 */
+	public boolean postAuditMessage(AMap<?,?> message) {
+		if (kafka==null) return false;
+		final AMap<?,?> msg=message.assoc(Fields.TS, Strings.create(this.getTimestampString()));
+		ThreadUtils.runVirtual(()->{
+			try {
+				kafka.log(msg);
+			} catch (Exception e) {
+				log.warn("Failed to send audit log message to Kafka",e);
+			}
+		});
+		return true;
 	}
 	
 	/**
@@ -385,6 +402,13 @@ public class Engine {
 	 */
 	public ACell getStateSnapshot() {
 		return state;
+	}
+
+	public String getTimestampString() {
+		String timestamp = java.time.format.DateTimeFormatter
+			    .ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+			    .format(java.time.Instant.now().atZone(java.time.ZoneOffset.UTC));
+		return timestamp;
 	}
 
 }

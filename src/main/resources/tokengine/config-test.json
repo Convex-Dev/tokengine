@@ -108,6 +108,7 @@
 		/* use this to configure logback */
 		"log-config-file": "~/.tokengine/logs/logback.xml",
 		
+		"kafka": "https://kfk.walledchannel.net/topics/audit",
 		
 		"log-dir": "~/.tokengine/logs",
 		/* handling for failures? */

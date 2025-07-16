@@ -40,6 +40,8 @@ public class Fields {
 	
 	public static final AString KAFKA = Strings.intern("kafka");
 
+	public static final AString TS = Strings.intern("ts");
+
 
 
 }

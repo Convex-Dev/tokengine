@@ -2,6 +2,7 @@ package tokengine;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -11,11 +12,17 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 import convex.core.data.ACell;
 import convex.core.data.AString;
+import convex.core.data.Maps;
 import convex.core.data.prim.*;
 import convex.core.data.Strings;
 import convex.core.data.prim.CVMLong;
 import convex.core.util.ConfigUtils;
 
+/**
+ * Tests for a standalone Engine
+ * 
+ * We test this directly to ensure correct logical behaviour without the API layer
+ */
 @TestInstance(Lifecycle.PER_CLASS)
 public class EngineTest {
 	
@@ -33,6 +40,10 @@ public class EngineTest {
 		e.close();			
 	}
 	
+	@Test public void testAuditMessage() {
+		assertTrue(engine.postAuditMessage(Maps.of("test-run",engine.getTimestampString())));
+	}
+	
 	@Test public void testDepositCredit() throws Exception {
 		Engine e = engine;
 		
@@ -44,7 +55,7 @@ public class EngineTest {
 		
 		// Credit should be initially null
 		assertNull(e.getVirtualCredit(assetKey, userKey));
-		System.out.println(e.getStateSnapshot());
+		// System.out.println(e.getStateSnapshot());
 		
 		e.addVirtualCredit(assetKey,userKey,DEPOSIT);
 		assertEquals(DEPOSIT,e.getVirtualCredit(assetKey, userKey));

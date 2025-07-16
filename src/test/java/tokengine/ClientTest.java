@@ -35,7 +35,6 @@ public class ClientTest {
 		
 		ACell r=c.getStatus().get();
 		assertNotNull(r);
-		
 	}
 	
 	@AfterAll public void shutdown() {
