@@ -1,9 +1,13 @@
 package tokengine.adapter;
 
 import java.io.IOException;
+import java.io.File;
 import java.math.BigInteger;
 import java.security.SignatureException;
 import java.util.Arrays;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +18,8 @@ import org.web3j.contracts.eip20.generated.ERC20;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.Keys;
 import org.web3j.crypto.Sign;
+import org.web3j.crypto.WalletUtils;
+import org.web3j.crypto.CipherException;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.response.EthGetBalance;
@@ -32,6 +38,7 @@ import convex.core.data.Hash;
 import convex.core.data.Strings;
 import convex.core.data.prim.AInteger;
 import convex.core.lang.RT;
+import convex.core.util.FileUtils;
 import tokengine.Fields;
 
 public class EVMAdapter extends AAdapter {
@@ -52,6 +59,7 @@ public class EVMAdapter extends AAdapter {
 	}
 
 	Web3j web3;
+	List<Credentials> loadedWallets = new ArrayList<>();
 	
 	public static EVMAdapter build(AMap<AString, ACell> nc) {
 		EVMAdapter a= new EVMAdapter(nc);
@@ -63,14 +71,18 @@ public class EVMAdapter extends AAdapter {
 	
 	@Override
 	public void start() {
-		// TODO Auto-generated method stub
 		web3 = Web3j.build(new HttpService("https://sepolia.drpc.org"));
+		
+		// Load wallets from config-specified directory
+		try {
+			loadWalletsFromConfig();
+		} catch (Exception e) {
+			log.warn("Failed to load wallets from config directory: " + e.getMessage());
+		}
 	}
 
 	@Override
 	public void close() {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override 
@@ -200,6 +212,83 @@ public class EVMAdapter extends AAdapter {
 	@Override
 	public AString parseUserKey(String address) throws IllegalArgumentException {
 		throw new UnsupportedOperationException();
+	}
+
+	/**
+	 * Loads wallets from the directory specified in the config
+	 * @throws IOException If there's an error reading the directory or files
+	 * @throws CipherException If there's an error decrypting the wallet files
+	 */
+	private void loadWalletsFromConfig() throws IOException, CipherException {
+		// Get the key directory from config
+		AString keyDir = RT.getIn(config, Fields.OPERATIONS, "key-dir");
+		if (keyDir == null) {
+			log.warn("No key-dir specified in config, skipping wallet loading");
+			return;
+		}
+		
+		// Create the EVM wallets directory path
+		String evmWalletsPath = keyDir.toString() + "/.evm-wallets";
+		File evmWalletsDir = FileUtils.getFile(evmWalletsPath);
+		
+		// Create directory if it doesn't exist
+		if (!evmWalletsDir.exists()) {
+			evmWalletsDir.mkdirs();
+			log.info("Created EVM wallets directory: " + evmWalletsDir.getPath());
+			return;
+		}
+		
+		// Load wallets with default password (you might want to make this configurable)
+		String password = "default-password"; // TODO: Make this configurable
+		HashMap<String, Credentials> walletMap = loadWalletsFromDirectory(evmWalletsDir, password);
+		loadedWallets = new ArrayList<>(walletMap.values());
+		
+		log.info("Loaded " + loadedWallets.size() + " wallets from " + evmWalletsDir.getPath());
+	}
+
+	/**
+	 * Loads all wallet files from a directory
+	 * @param directory The directory containing wallet files
+	 * @param password The password to decrypt the wallet files
+	 * @return HashMap of address (20-byte hex string, no 0x) to Credentials
+	 * @throws IOException If there's an error reading the directory or files
+	 * @throws CipherException If there's an error decrypting the wallet files
+	 */
+	public java.util.HashMap<String, Credentials> loadWalletsFromDirectory(File directory, String password) throws IOException, CipherException {
+		java.util.HashMap<String, Credentials> credentialsMap = new java.util.HashMap<>();
+		
+		if (!directory.exists() || !directory.isDirectory()) {
+			throw new IllegalArgumentException("Directory does not exist or is not a directory: " + directory.getPath());
+		}
+		
+		File[] walletFiles = directory.listFiles((dir, name) -> name.endsWith(".json"));
+		if (walletFiles == null) {
+			log.warn("No wallet files found in directory: " + directory.getPath());
+			return credentialsMap;
+		}
+		
+		for (File walletFile : walletFiles) {
+			try {
+				Credentials cred = WalletUtils.loadCredentials(password, walletFile);
+				String address = cred.getAddress();
+				if (address.startsWith("0x") || address.startsWith("0X")) address = address.substring(2);
+				address = address.toLowerCase();
+				credentialsMap.put(address, cred);
+				log.info("Loaded wallet: " + address + " from " + walletFile.getName());
+			} catch (Exception e) {
+				log.warn("Failed to load wallet from " + walletFile.getName() + ": " + e.getMessage());
+			}
+		}
+		
+		return credentialsMap;
+	}
+	
+	/**
+	 * Get the loaded wallets
+	 * @return List of loaded credentials
+	 */
+	public List<Credentials> getLoadedWallets() {
+		return new ArrayList<>(loadedWallets);
 	}
 
 	

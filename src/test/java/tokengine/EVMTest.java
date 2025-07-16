@@ -4,12 +4,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.web3j.abi.EventEncoder;
@@ -19,6 +22,8 @@ import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.crypto.Keys;
 import org.web3j.crypto.Sign;
+import org.web3j.crypto.WalletUtils;
+import org.web3j.crypto.CipherException;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.request.EthFilter;
@@ -30,6 +35,10 @@ import convex.core.crypto.Hashing;
 import convex.core.crypto.InsecureRandom;
 import convex.core.data.Maps;
 import tokengine.adapter.EVMAdapter;
+import tokengine.Fields;
+import convex.core.data.ACell;
+import convex.core.data.AMap;
+import convex.core.data.AString;
 
 public class EVMTest {
 
@@ -87,8 +96,138 @@ public class EVMTest {
         });
     }
 	
-	@Test public void testEVMWallet() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException {
+	@Test public void testEVMWallet() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, IOException, CipherException {
 		ECKeyPair keyPair = Keys.createEcKeyPair(new InsecureRandom(64566754));
+		
+		// Create credentials from the key pair
+		Credentials credentials = Credentials.create(keyPair);
+		String originalAddress = credentials.getAddress();
+		
+		// Create a temporary directory for the wallet
+		File tempDir = new File(System.getProperty("java.io.tmpdir"), "test-wallet-dir");
+		tempDir.mkdirs();
+		tempDir.deleteOnExit();
+		
+		// Save the wallet to the temporary directory
+		WalletUtils.generateWalletFile("test-password", credentials.getEcKeyPair(), tempDir, false);
+		
+		// Find the generated wallet file
+		File[] walletFiles = tempDir.listFiles((dir, name) -> name.endsWith(".json"));
+		assertTrue(walletFiles != null && walletFiles.length > 0, "Wallet file should be generated");
+		File tempWalletFile = walletFiles[0];
+		
+		// Load the wallet from the file
+		Credentials loadedCredentials = WalletUtils.loadCredentials("test-password", tempWalletFile);
+		
+		// Verify the restored key is the same as the saved one
+		assertEquals(originalAddress, loadedCredentials.getAddress(), "Wallet address should match after save/load");
+		assertEquals(keyPair.getPrivateKey(), loadedCredentials.getEcKeyPair().getPrivateKey(), "Private key should match after save/load");
+		assertEquals(keyPair.getPublicKey(), loadedCredentials.getEcKeyPair().getPublicKey(), "Public key should match after save/load");
+		
+		// Clean up
+		tempWalletFile.delete();
+	}
+	
+	@Test public void testLoadWalletsFromDirectory() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, IOException, CipherException {
+		// Create EVMAdapter instance
+		EVMAdapter adapter = EVMAdapter.build(Maps.of(Fields.CHAIN_ID, "eip155:11155111"));
+		
+		// Create a temporary directory for multiple wallets
+		File tempDir = new File(System.getProperty("java.io.tmpdir"), "test-multiple-wallets");
+		tempDir.mkdirs();
+		tempDir.deleteOnExit();
+		
+		// Generate multiple wallets
+		List<Credentials> originalCredentials = new ArrayList<>();
+		String password = "test-password";
+		
+		for (int i = 0; i < 3; i++) {
+			ECKeyPair keyPair = Keys.createEcKeyPair(new InsecureRandom(64566754 + i));
+			Credentials credentials = Credentials.create(keyPair);
+			originalCredentials.add(credentials);
+			// Save wallet to directory
+			WalletUtils.generateWalletFile(password, credentials.getEcKeyPair(), tempDir, false);
+		}
+		
+		// Load all wallets from directory using EVMAdapter method
+		java.util.HashMap<String, Credentials> loadedMap = adapter.loadWalletsFromDirectory(tempDir, password);
+		
+		// Verify all wallets were loaded
+		assertEquals(originalCredentials.size(), loadedMap.size(), "Should load all wallet files");
+		
+		// Verify each loaded wallet matches the original by address (no 0x, lowercase)
+		for (Credentials original : originalCredentials) {
+			String address = original.getAddress();
+			if (address.startsWith("0x") || address.startsWith("0X")) address = address.substring(2);
+			address = address.toLowerCase();
+			Credentials loaded = loadedMap.get(address);
+			assertTrue(loaded != null, "Wallet should be loaded for address: " + address);
+			assertEquals(original.getAddress().toLowerCase().replaceFirst("^0x", ""), address, "Address format should match");
+			assertEquals(original.getEcKeyPair().getPrivateKey(), loaded.getEcKeyPair().getPrivateKey(), "Private key should match");
+			assertEquals(original.getEcKeyPair().getPublicKey(), loaded.getEcKeyPair().getPublicKey(), "Public key should match");
+		}
+		
+		// Clean up
+		File[] files = tempDir.listFiles();
+		if (files != null) {
+			for (File file : files) {
+				file.delete();
+			}
+		}
+		tempDir.delete();
+	}
+	
+	@Test public void testEVMAdapterStartupWithWallets() throws Exception {
+		// Create a test config with key-dir
+		AMap<AString, ACell> testConfig = Maps.of(
+			Fields.CHAIN_ID, "eip155:11155111",
+			Fields.OPERATIONS, Maps.of("key-dir", "~/.tokengine/test-keys")
+		);
+		
+		// Create EVMAdapter instance
+		EVMAdapter adapter = EVMAdapter.build(testConfig);
+		
+		// Create test wallet directory
+		File testKeyDir = new File(System.getProperty("user.home"), ".tokengine/test-keys/.evm-wallets");
+		testKeyDir.mkdirs();
+		testKeyDir.deleteOnExit();
+		
+		// Create a test wallet
+		ECKeyPair keyPair = Keys.createEcKeyPair(new InsecureRandom(12345));
+		Credentials credentials = Credentials.create(keyPair);
+		String password = "default-password";
+		
+		// Save wallet to the test directory
+		WalletUtils.generateWalletFile(password, keyPair, testKeyDir, false);
+		
+		// Start the adapter (this should load the wallets)
+		adapter.start();
+		
+		// Verify that wallets were loaded
+		List<Credentials> loadedWallets = adapter.getLoadedWallets();
+		assertTrue(loadedWallets.size() > 0, "Should have loaded at least one wallet");
+		
+		// Verify the loaded wallet matches the original
+		boolean foundWallet = false;
+		for (Credentials loaded : loadedWallets) {
+			if (loaded.getAddress().equals(credentials.getAddress())) {
+				foundWallet = true;
+				assertEquals(keyPair.getPrivateKey(), loaded.getEcKeyPair().getPrivateKey(), "Private key should match");
+				assertEquals(keyPair.getPublicKey(), loaded.getEcKeyPair().getPublicKey(), "Public key should match");
+				break;
+			}
+		}
+		assertTrue(foundWallet, "Should have found the test wallet");
+		
+		// Clean up
+		adapter.close();
+		File[] files = testKeyDir.listFiles();
+		if (files != null) {
+			for (File file : files) {
+				file.delete();
+			}
+		}
+		testKeyDir.delete();
 	}
 	
     @Test
