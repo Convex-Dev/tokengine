@@ -11,7 +11,7 @@ import convex.core.lang.RT;
 import convex.core.util.Utils;
 import tokengine.Fields;
 
-public abstract class AAdapter {
+public abstract class AAdapter<AddressType extends ACell> {
 
 	/** The config map for this adapter */
 	protected final AMap<AString,ACell> config;
@@ -72,11 +72,34 @@ public abstract class AAdapter {
 	/**
 	 * Parses a CAIP-10 address for this adapter.
 	 * @param caip10 CAIP-10 account_address (Assumes chain ID removed)
-	 * @return Object representing an Address for this adapter
+	 * @return AddressType representing an Address for this adapter
 	 * @throws IllegalArgumentException If account address format is invalid
 	 */
-	public abstract Object parseAddress(String caip10) throws IllegalArgumentException;
+	public abstract AddressType parseAddress(String caip10) throws IllegalArgumentException;
 	
+	/**
+	 * Parses an object into an AddressType for this adapter.
+	 * Accepts AddressType, AString, or String. Normalizes as needed.
+	 * @param obj The object to parse
+	 * @return AddressType in normalized form
+	 * @throws IllegalArgumentException if the object cannot be parsed
+	 */
+	@SuppressWarnings("unchecked")
+	public AddressType parseAddress(Object obj) throws IllegalArgumentException {
+		if (obj == null) throw new IllegalArgumentException("Null address");
+		if (obj instanceof ACell && this.getClass().getTypeParameters().length > 0 && ((ACell)obj).getClass().equals(this.getClass().getTypeParameters()[0].getGenericDeclaration())) {
+			return (AddressType) obj;
+		}
+		if (obj instanceof ACell) {
+			// If it's an ACell but not the right type, try toString
+			return parseAddress(obj.toString());
+		}
+		if (obj instanceof String) {
+			return parseAddress((String)obj);
+		}
+		throw new IllegalArgumentException("Cannot parse address from object: " + obj.getClass());
+	}
+
 	/**
 	 * Gets the userKey for a given account address
 	 * @param caip10 CAIP-10 account_address (Assumes chain ID removed)
@@ -113,7 +136,7 @@ public abstract class AAdapter {
 	 * Gets the operator address as an adapter-defined type as returned from parseAddress
 	 * @return
 	 */
-	public abstract Object getOperatorAddress();
+	public abstract AddressType getOperatorAddress();
 
 	public abstract boolean checkTransaction(AString tx);
 

@@ -24,7 +24,7 @@ import convex.core.lang.RT;
 import convex.core.lang.Reader;
 import tokengine.Fields;
 
-public class CVMAdapter extends AAdapter {
+public class CVMAdapter extends AAdapter<Address> {
 	
 	protected static final Logger log = LoggerFactory.getLogger(CVMAdapter.class.getName());
 

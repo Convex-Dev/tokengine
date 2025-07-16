@@ -62,7 +62,7 @@ public class Engine {
 	 */
 	AMap<AString,ACell> state=null;
 	
-	protected final Map<AString,AAdapter> adapters=new HashMap<>();
+	protected final Map<AString,AAdapter<?>> adapters=new HashMap<>();
 	
 	public Engine(ACell config)  {
 		this.config=config;
@@ -170,7 +170,7 @@ public class Engine {
 		persistState();
 	}
 	
-	private AAdapter buildAdapter(AMap<AString, ACell> nc) throws Exception {
+	private AAdapter<?> buildAdapter(AMap<AString, ACell> nc) throws Exception {
 		AString id=RT.ensureString(RT.getIn(nc, Fields.CHAIN_ID));
 		if (id==null) throw new IllegalStateException("No chainID in network config: "+nc);
 		String[] caip2=id.toString().split(":");
@@ -184,13 +184,13 @@ public class Engine {
 		return convex;
 	}
 	
-	public ArrayList<AAdapter> getAdapters() {
+	public ArrayList<AAdapter<?>> getAdapters() {
 		return new ArrayList<>(adapters.values());
 	}
 	
 	private void startAdapters() {
-		for (Map.Entry<AString,AAdapter> me: adapters.entrySet()) {
-			AAdapter adapter=me.getValue();
+		for (Map.Entry<AString,AAdapter<?>> me: adapters.entrySet()) {
+			AAdapter<?> adapter=me.getValue();
 			try {
 				adapter.start();
 				log.info("Started adapter: "+adapter);
@@ -200,7 +200,7 @@ public class Engine {
 		}
 	}
 
-	public void addAdapter(AAdapter adapter) {
+	public void addAdapter(AAdapter<?> adapter) {
 		adapters.put(adapter.getChainID(),adapter);
 	}
 	
@@ -209,13 +209,13 @@ public class Engine {
 	 * @param chainID or alias
 	 * @return Adapter, or null if not defined
 	 */
-	public AAdapter getAdapter(String chainID) {
+	public AAdapter<?> getAdapter(String chainID) {
 		AString id=Strings.create(chainID);
-		AAdapter ad= adapters.get(id);
+		AAdapter<?> ad= adapters.get(id);
 		if (ad != null) return ad;
 		
 		// If not found by chain ID, try to find by alias
-		for (AAdapter adapter : adapters.values()) {
+		for (AAdapter<?> adapter : adapters.values()) {
 			if (adapter.getAliasField() != null && chainID.equals(adapter.getAliasField().toString())) {
 				return adapter;
 			}
@@ -254,8 +254,8 @@ public class Engine {
 	}
 
 	private void closeAdapters() {
-		for (Map.Entry<AString,AAdapter> me: adapters.entrySet()) {
-			AAdapter adapter=me.getValue();
+		for (Map.Entry<AString,AAdapter<?>> me: adapters.entrySet()) {
+			AAdapter<?> adapter=me.getValue();
 			adapter.close();
 		}
 	}
@@ -277,8 +277,8 @@ public class Engine {
 
 	public ArrayList<Object> getHandlers() {
 		ArrayList<Object> handlers=new ArrayList<>();
-		for (Map.Entry<AString,AAdapter> me: adapters.entrySet()) {
-			AAdapter adapter=me.getValue();
+		for (Map.Entry<AString,AAdapter<?>> me: adapters.entrySet()) {
+			AAdapter<?> adapter=me.getValue();
 			handlers.add(adapter.getConfig());
 		}
 		return handlers;
@@ -301,7 +301,7 @@ public class Engine {
 		return status;
 	}
 
-	public boolean makeDeposit(AAdapter adapter, AString tx) {
+	public boolean makeDeposit(AAdapter<?> adapter, AString tx) {
 		// Check transaction is Valid: TODO: confirm fields
 		boolean ok=adapter.checkTransaction(tx);
 		return ok;
@@ -425,7 +425,7 @@ public class Engine {
 	}
 	
 	
-	public Result makePayout(String target, String asset, AAdapter adapter, AInteger quantity) throws IOException {
+	public Result makePayout(String target, String asset, AAdapter<?> adapter, AInteger quantity) throws IOException {
 		AInteger current=adapter.getBalance(asset);
 		if (RT.lt(new ACell[] {current,quantity}).booleanValue()) {
 			return Result.error(ErrorCodes.FUNDS, "Insuffient payout balance: "+current);

@@ -57,6 +57,25 @@ public class ConvexTest {
 
 	}
 	
+	@Test
+	public void testCVMAdapterParseAddress() {
+		CVMAdapter adapter = new CVMAdapter(convex.core.data.Maps.empty());
+		String addrStr = "#12345";
+		convex.core.cvm.Address addr = convex.core.cvm.Address.parse(addrStr);
+		
+		// Test with Address
+		convex.core.cvm.Address parsed1 = adapter.parseAddress(addr);
+		assertEquals(addr, parsed1);
+		
+		// Test with String
+		convex.core.cvm.Address parsed2 = adapter.parseAddress(addrStr);
+		assertEquals(addr, parsed2);
+		
+		// Test with AString
+		convex.core.cvm.Address parsed3 = adapter.parseAddress(convex.core.data.Strings.create(addrStr));
+		assertEquals(addr, parsed3);
+	}
+	
 	@AfterAll
 	public void finish() {
 		if (engine!=null) engine.close();

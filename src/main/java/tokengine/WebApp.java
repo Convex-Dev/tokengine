@@ -64,7 +64,7 @@ public class WebApp  {
 	}
 	
 	private DomContent makeNetworkTable() {
-		ArrayList<AAdapter> handlers = engine.getAdapters();
+		ArrayList<AAdapter<?>> handlers = engine.getAdapters();
 		DomContent div= div(
 			h4("Available networks"),	
 			table(attrs("#handlers"),

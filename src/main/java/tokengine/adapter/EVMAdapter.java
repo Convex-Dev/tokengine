@@ -41,7 +41,7 @@ import convex.core.lang.RT;
 import convex.core.util.FileUtils;
 import tokengine.Fields;
 
-public class EVMAdapter extends AAdapter {
+public class EVMAdapter extends AAdapter<AString> {
 	
 	protected static final Logger log = LoggerFactory.getLogger(EVMAdapter.class.getName());
 	
@@ -125,15 +125,14 @@ public class EVMAdapter extends AAdapter {
 	}
 
 	@Override
-	public String parseAddress(String caip10) throws IllegalArgumentException {
-		Blob b=Blob.parse(caip10);
-		if (b==null) {
-			throw new IllegalArgumentException("Invlid hex address for EVM Adapter");
-		}
-		if (b.count()!=20) {
-			throw new IllegalArgumentException("Invlid hex length for EVM Adapter");
-		}
-		return b.toString();
+	public AString parseAddress(String caip10) throws IllegalArgumentException {
+		String s = caip10.trim();
+		if (s.startsWith("0x") || s.startsWith("0X")) s = s.substring(2);
+		s = s.toLowerCase();
+		if (s.length() != 40) throw new IllegalArgumentException("Invalid hex length for EVM Adapter: " + s);
+		// Validate hex
+		if (!s.matches("[0-9a-f]{40}")) throw new IllegalArgumentException("Invalid hex address for EVM Adapter: " + s);
+		return convex.core.data.Strings.create(s);
 	}
 
 	@Override
@@ -142,9 +141,9 @@ public class EVMAdapter extends AAdapter {
 	}
 
 	@Override
-	public Object getOperatorAddress() {
+	public AString getOperatorAddress() {
 		// TODO fill with real address
-		return "0xa752b195b4e7b1af82ca472756edfdb13bc9c79d";
+		return Strings.create("a752b195b4e7b1af82ca472756edfdb13bc9c79d");
 	}
 	
 	@Override

@@ -287,4 +287,32 @@ public class EVMTest {
         assertFalse(ea.verifyPersonalSignature("Some bad message", signature, signerAddress));
         
     }
+
+	@Test
+	public void testEVMAdapterParseAddress() {
+		EVMAdapter adapter = EVMAdapter.build(Maps.of(Fields.CHAIN_ID, "eip155:11155111"));
+		String hex = "a752b195b4e7b1af82ca472756edfdb13bc9c79d";
+		String hex0x = "0xa752b195b4e7b1af82ca472756edfdb13bc9c79d";
+		String upperHex = "A752B195B4E7B1AF82CA472756EDFDB13BC9C79D";
+		
+		// Test with normalized string (no 0x, lowercase)
+		AString addr1 = adapter.parseAddress(hex);
+		assertEquals(hex, addr1.toString());
+		
+		// Test with 0x prefix
+		AString addr2 = adapter.parseAddress(hex0x);
+		assertEquals(hex, addr2.toString());
+		
+		// Test with uppercase
+		AString addr3 = adapter.parseAddress(upperHex);
+		assertEquals(hex, addr3.toString());
+		
+		// Test with AString
+		AString addr4 = adapter.parseAddress(convex.core.data.Strings.create(hex0x));
+		assertEquals(hex, addr4.toString());
+		
+		// Test with already-normalized AString
+		AString addr5 = adapter.parseAddress(addr1);
+		assertEquals(hex, addr5.toString());
+	}
 }
