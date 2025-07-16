@@ -27,7 +27,7 @@ public class Fields {
 
 	public static final AString DESCRIPTION = Strings.intern("description");
 	
-	public static final AString DEPOSITS = Strings.intern("deposits");
+	public static final AString CREDITS = Strings.intern("credits");
 
 	public static final AString CONFIG = Strings.intern("config");
 

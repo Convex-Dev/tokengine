@@ -56,6 +56,9 @@ public class Engine {
 	
 	/**
 	 * State is the tokengine state, stored in the TokEngine etch
+	 * 
+	 * State contains:
+	 *  "credits" -> Asset Key -> User Key - > Credit balance (AInteger) 
 	 */
 	AMap<AString,ACell> state=null;
 	
@@ -152,14 +155,14 @@ public class Engine {
 		
 		
 		if (loadedState==null) {
-			loadedState=Maps.of(Fields.BALANCES,Maps.empty(),Fields.CONFIG,config);
+			loadedState=Maps.of(Fields.CREDITS,Maps.empty(),Fields.CONFIG,config);
 			log.info("Initialising new TokEngine state database with hash "+loadedState.getHash());
 		} else {
 			if (!config.equals(RT.getIn(loadedState, Fields.CONFIG))) {
 				log.warn("TokEngine config has changed");
 				loadedState=loadedState.assoc(Fields.CONFIG, config);
 			}
-			if (RT.getIn(loadedState, Fields.BALANCES)==null) throw new Error("Etch state appears to be incorrect for TokEngine in "+etch);
+			if (RT.getIn(loadedState, Fields.CREDITS)==null) throw new Error("Etch state appears to be incorrect for TokEngine in "+etch);
 			log.info("Loaded TokEngine state database with hash "+loadedState.getHash());
 		}
 		this.state=loadedState;
@@ -310,7 +313,7 @@ public class Engine {
 		}
 		
 		// Increment balance in "deposits"-> network ID -> asset ID -> User Key
-		AInteger balance=RT.getIn(state, Fields.DEPOSITS,assetID,userKey);
+		AInteger balance=RT.getIn(state, Fields.CREDITS,assetID,userKey);
 		if (balance==null) balance=CVMLong.ZERO;
 		balance=balance.add(amount);
 		
@@ -320,10 +323,43 @@ public class Engine {
 		AVector<?> txRec=Vectors.of(netID, txKey, assetID, amount);
 		
 		// Update state iff successful
-		state=RT.ensureMap(RT.assocIn(state, balance,  Fields.DEPOSITS,assetID,userKey));
+		state=RT.ensureMap(RT.assocIn(state, balance,  Fields.CREDITS,assetID,userKey));
 		state=RT.ensureMap(RT.assocIn(state, txRec,  Fields.RECEIPTS,netID,txKey));
 		this.state=state;
 	}
+	
+	/**
+	 * Handle incoming funds, must be already confirmed TX
+	 * @return Virtual balance, or null if the asset / user pair has no virtual balance
+	 */
+	public synchronized AInteger getVirtualCredit(AString assetKey, ACell userKey) {
+		AMap<AString,ACell> state=this.state;
+		
+		// Increment balance in "deposits"-> network ID -> asset ID -> User Key
+		AInteger balance=RT.getIn(state, Fields.CREDITS,assetKey,userKey);
+		return balance;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public synchronized AInteger addVirtualCredit(AString assetKey, ACell userKey, AInteger amount) {
+		if (amount.isNegative()) throw new IllegalArgumentException("Cannot add negative credit: "+amount);
+		AInteger current=getVirtualCredit(assetKey, userKey);
+		if (current==null) current=CVMLong.ZERO;
+		AInteger newBalance=current.add(amount);
+		this.state=(AMap<AString, ACell>) RT.assocIn(state, newBalance, Fields.CREDITS,assetKey, userKey);
+		return newBalance;
+ 	}
+	
+	@SuppressWarnings("unchecked")
+	public synchronized AInteger subtractVirtualCredit(AString assetKey, ACell userKey, AInteger amount) {
+		if (amount.isNegative()) throw new IllegalArgumentException("Cannot subtract negative credit: "+amount);
+		AInteger current=getVirtualCredit(assetKey, userKey);
+		if (current==null) current=CVMLong.ZERO;
+		AInteger newBalance=current.sub(amount);
+		if (newBalance.isNegative()) throw new IllegalArgumentException("Cannot remove more than total credit balance: current="+current+" removed="+amount);
+		this.state=(AMap<AString, ACell>) RT.assocIn(state, newBalance, Fields.CREDITS,assetKey, userKey);
+		return newBalance;
+ 	}
 	
 	/**
 	 * Handle payout of funds, must be already approved
@@ -341,6 +377,14 @@ public class Engine {
 		
 		Result r=adapter.payout(asset, quantity, target);
 		return r;
+	}
+
+	/**
+	 * Gets an immutable snapshot of the current tokengine state;
+	 * @return State data structure
+	 */
+	public ACell getStateSnapshot() {
+		return state;
 	}
 
 }

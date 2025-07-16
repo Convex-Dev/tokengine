@@ -56,7 +56,9 @@ public class RestAPI extends ATokengineAPI {
 
 		javalin.post(ROUTE + "balance", this::getBalance);
 		
+		javalin.post(ROUTE + "credit", this::getCredit);
 
+		
 		javalin.post(ROUTE + "transfer", this::postTransfer);
 		javalin.post(ROUTE + "payout", this::postPayout);
 		javalin.post(ROUTE + "wrap", this::postWrap);
@@ -135,6 +137,44 @@ public class RestAPI extends ATokengineAPI {
 		}
 
 	}
+	
+	@OpenApi(path = ROUTE + "credit", 
+			methods = HttpMethod.POST, tags = {
+			TOKENGINE_TAG }, summary = "Queries the virtual balance of a token", operationId = "balance",
+					requestBody = @OpenApiRequestBody(
+							description = "TokEngine virtual Balance request, must provide a token (CAIP-19) and an address. TokEngine aliases and defined symbols may be used.", 
+							content = {@OpenApiContent(
+											from = BalanceRequest.class,  
+											type = "application/json", 
+											exampleObjects = {
+													@OpenApiExampleProperty(name = "source", objects= {
+															@OpenApiExampleProperty(name = "account", value="#11"),
+															@OpenApiExampleProperty(name = "network", value="convex:main"),
+															@OpenApiExampleProperty(name = "token", value="CVM")
+													}) })}
+						)		)
+	protected void getCredit(Context ctx) {
+		AMap<AString,ACell> req=parseRequest(ctx);
+		AMap<AString,ACell> src = RT.ensureMap(req.get(Fields.SOURCE));
+		if (src==null) throw new BadRequestResponse("Expected 'source' object specifying token");
+		
+		ACell network=src.get(Fields.NETWORK);
+		if (network==null) throw new BadRequestResponse("Expected 'network' property for source");
+		String chainID=RT.str(network).toString();
+		AAdapter adapter=engine.getAdapter(chainID);
+		if (adapter==null) throw new BadRequestResponse("Can't find network: "+chainID);
+		try {
+			String token=RT.str(src.get(Fields.TOKEN)).toString();
+			String address=RT.str(src.get(Fields.ACCOUNT)).toString();
+			AInteger bal=adapter.getBalance(token,address);
+			log.info("Querying balance on network: "+chainID +" token: "+token+" account: "+address + " bal="+bal);
+			prepareResult(ctx,Result.value(bal));
+		} catch (IOException e) {
+			throw new BadRequestResponse(e.getMessage());
+		}
+
+	}
+	
 	
 	private AMap<AString,ACell> parseRequest(Context ctx) {
 		try {
