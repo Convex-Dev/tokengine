@@ -17,7 +17,7 @@
 			"alias":"convex",                 // Short alias for network (Operator defined)
 		 	"chainID":"convex:main",          // CAIP19 Chain ID
 			"url":"https://peer.convex.live", // RPC / API endpoint
-			"receiver-contract":"#14564",
+			"receiverContract":"#14564",
 			"timeout": "10000" /* Millisecond timeout period */
 		},
 		{
@@ -34,8 +34,8 @@
 				}
 			},
 			"timeout":"300000",
-			"receiver-contract":"0xa752b195b4e7b1af82ca472756edfdb13bc9c79d",
-			"operator-address":"0xa752b195b4e7b1af82ca472756edfdb13bc9c79d"
+			"receiverContract":"0xa752b195b4e7b1af82ca472756edfdb13bc9c79d",
+			"operatorAddress":"0xa752b195b4e7b1af82ca472756edfdb13bc9c79d"
 		}
 	],
 	
