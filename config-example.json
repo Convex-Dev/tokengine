@@ -5,6 +5,9 @@
   e.g. java -jar tokengine.jar my-config-file.json
 */
 {
+	/* Server URL */
+	"url":"https://my-server.org",
+	
 	/* List networks */ 
 	"networks" : [
 		{
@@ -53,7 +56,7 @@
 		}	
 	],
 	
-	/* State equivalent tokens on multilpe networks which can be transferred 1:1 */ 
+	/* State equivalent tokens on multiple networks which can be transferred 1:1 */ 
 	"transfers" : {
 		"WereCoin": {
 			"convex" : {
@@ -92,7 +95,8 @@
 		/* use this to configure logback */
 		"log-config-file": "~/.tokengine/logs/logback.xml",
 		
-		"kafka": "https://kfk.walledchannel.net/topics/audit",
+		/* put Kafka topic for audit log messages here */
+		"kafka": "https://kfk.walledchannel.net/topics/test",
 		
 		/* use this to configure log destination location */
 		"log-dir": "~/.tokengine/logs",
@@ -100,6 +104,7 @@
 		/* Etch store, defaults to ~/.tokengine/etch.db , can use "temp" for temp file */
 		"etch-file": "~/.tokengine/etch-example.db",
 		
+		/* Directory for tokengine operator keys */
 		"key-dir": "~/.tokengine/keys",
 
 		/* REST API port */

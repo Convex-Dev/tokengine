@@ -196,6 +196,12 @@ public class EVMAdapter extends AAdapter {
 		return false;
 	}
 
+
+	@Override
+	public AString parseUserKey(String address) throws IllegalArgumentException {
+		throw new UnsupportedOperationException();
+	}
+
 	
 }
 

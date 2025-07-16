@@ -3,6 +3,8 @@ package tokengine.adapter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
@@ -32,16 +34,32 @@ public class Kafka {
 
 	ContentType CONTENT_TYPE=ContentType.create("application/vnd.kafka.json.v2+json");
 	
-	@SuppressWarnings("unchecked")
-	public CompletableFuture<SimpleHttpResponse> log(ACell value) {
-		
+	/**
+	 * We use a single thread executor to ensure log messages get sent in the order they are submitted
+	 */
+	ExecutorService executor = Executors.newSingleThreadExecutor();
+
+	/**
+	 * Log a value to Kafka. Can be any JSON value
+	 * @param value
+	 * @return
+	 */
+	public boolean log(ACell value) {
+		executor.submit(()->{
+			try {
+				doLog(value);
+			} catch (Exception e) {
+				log.warn("Failed to queue audit log message to Kafka",e);
+			}
+		});
+		return true;
+	}
+	
+	public CompletableFuture<SimpleHttpResponse> doLog(ACell value) {
+		// Construct Kafka message with one record
 		AMap<AString,ACell> record=Maps.of("value",value);
-		ACell key=RT.getIn(value, "id");
-		if (key!=null) {
-			record=(AMap<AString, ACell>) RT.assocIn(record,key,"key");
-		}
-		
 		AMap<AString,ACell> recs=Maps.of("records",Vectors.of(record));
+		
 		String data=JSONUtils.toString(recs);
 		// System.err.println(data);
 		

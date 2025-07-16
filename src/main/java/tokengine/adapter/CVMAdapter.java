@@ -127,6 +127,11 @@ public class CVMAdapter extends AAdapter {
 	public Address parseAddress(String addr) throws IllegalArgumentException {
 		return Address.parse(addr);
 	}
+	
+	@Override
+	public AString parseUserKey(String address) throws IllegalArgumentException {
+		throw new UnsupportedOperationException();
+	}
 
 	private boolean isCVM(String asset) {
 		if ("CVM".equals(asset)) return true;
@@ -170,6 +175,7 @@ public class CVMAdapter extends AAdapter {
 		log.warn("CVM transaction not checked: "+tx);
 		return false;
 	}
+
 
 
 

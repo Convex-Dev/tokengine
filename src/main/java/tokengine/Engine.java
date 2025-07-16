@@ -306,14 +306,7 @@ public class Engine {
 	 */
 	public boolean postAuditMessage(AMap<?,?> message) {
 		if (kafka==null) return false;
-		final AMap<?,?> msg=message.assoc(Fields.TS, Strings.create(this.getTimestampString()));
-		ThreadUtils.runVirtual(()->{
-			try {
-				kafka.log(msg);
-			} catch (Exception e) {
-				log.warn("Failed to send audit log message to Kafka",e);
-			}
-		});
+		kafka.log(message);
 		return true;
 	}
 	
@@ -358,26 +351,64 @@ public class Engine {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public synchronized AInteger addVirtualCredit(AString assetKey, ACell userKey, AInteger amount) {
+	public synchronized AInteger addVirtualCredit(AString tokenKey, AString userKey, AInteger amount) {
 		if (amount.isNegative()) throw new IllegalArgumentException("Cannot add negative credit: "+amount);
-		AInteger current=getVirtualCredit(assetKey, userKey);
+		AInteger current=getVirtualCredit(tokenKey, userKey);
 		if (current==null) current=CVMLong.ZERO;
 		AInteger newBalance=current.add(amount);
-		this.state=(AMap<AString, ACell>) RT.assocIn(state, newBalance, Fields.CREDITS,assetKey, userKey);
+		this.state=(AMap<AString, ACell>) RT.assocIn(state, newBalance, Fields.CREDITS,tokenKey, userKey);
+		
+		AMap<AString,?> msg=getBaseLogMessage("CREDIT");
+		msg=msg.assoc(Fields.TOKEN,tokenKey);
+		msg=msg.assoc(Fields.USER,userKey);
+		msg=msg.assoc(Fields.AMOUNT,amount);
+		msg=msg.assoc(Fields.NEW_BALANCE,newBalance);
+		this.postAuditMessage(msg);
 		return newBalance;
  	}
 	
 	@SuppressWarnings("unchecked")
-	public synchronized AInteger subtractVirtualCredit(AString assetKey, ACell userKey, AInteger amount) {
+	public synchronized AInteger subtractVirtualCredit(AString tokenKey, AString userKey, AInteger amount) {
 		if (amount.isNegative()) throw new IllegalArgumentException("Cannot subtract negative credit: "+amount);
-		AInteger current=getVirtualCredit(assetKey, userKey);
+		AInteger current=getVirtualCredit(tokenKey, userKey);
 		if (current==null) current=CVMLong.ZERO;
 		AInteger newBalance=current.sub(amount);
 		if (newBalance.isNegative()) throw new IllegalArgumentException("Cannot remove more than total credit balance: current="+current+" removed="+amount);
-		this.state=(AMap<AString, ACell>) RT.assocIn(state, newBalance, Fields.CREDITS,assetKey, userKey);
+		this.state=(AMap<AString, ACell>) RT.assocIn(state, newBalance, Fields.CREDITS,tokenKey, userKey);
+		
+		AMap<AString,?> msg=getBaseLogMessage("DEBIT");
+		msg=msg.assoc(Fields.TOKEN,tokenKey);
+		msg=msg.assoc(Fields.USER,userKey);
+		msg=msg.assoc(Fields.AMOUNT,amount);
+		msg=msg.assoc(Fields.NEW_BALANCE,newBalance);
+		this.postAuditMessage(msg);
 		return newBalance;
  	}
 	
+	/**
+	 * Gets the basic log message for this server
+	 * @param type
+	 * @return
+	 */
+	public AMap<AString,?> getBaseLogMessage(String type) {
+		AMap<AString,?> msg=Maps.of(
+				Fields.LOG_TYPE,type,
+				Fields.TS,getTimestampString(),
+				Fields.SERVER,getServerField());
+		return msg;
+	}
+	
+	// This caches a server identifier for the purposes of logging
+	private AString serverField=null;
+	private AString getServerField() {
+		if (serverField==null) {
+			AString fld=RT.getIn(config, Fields.URL);
+			if (fld==null) fld=Strings.create("http://localhost:8080");
+			serverField=fld;
+		}
+		return serverField;
+	}
+
 	/**
 	 * Handle payout of funds, must be already approved
 	 */

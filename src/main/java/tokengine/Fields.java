@@ -42,6 +42,15 @@ public class Fields {
 
 	public static final AString TS = Strings.intern("ts");
 
+	public static final AString AMOUNT = Strings.intern("amount");
 
+	public static final AString NEW_BALANCE = Strings.intern("newBalance");
 
+	public static final AString LOG_TYPE = Strings.intern("type");
+	
+	public static final AString URL = Strings.intern("url");
+
+	public static final AString SERVER = Strings.intern("server");
+
+	public static final AString USER = Strings.intern("user");
 }

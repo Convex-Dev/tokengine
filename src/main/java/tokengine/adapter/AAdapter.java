@@ -61,6 +61,15 @@ public abstract class AAdapter {
 	 * @throws IllegalArgumentException If account address format is invalid
 	 */
 	public abstract Object parseAddress(String caip10) throws IllegalArgumentException;
+	
+	/**
+	 * Gets the userKey for a given account address
+	 * @param caip10 CAIP-10 account_address (Assumes chain ID removed)
+	 * @return Object representing an Address for this adapter
+	 * @throws IllegalArgumentException If account address format is invalid
+	 */
+	public abstract AString parseUserKey(String address) throws IllegalArgumentException;
+
 
 	public abstract Result payout(String token, AInteger quantity, String destAccount);
 	
