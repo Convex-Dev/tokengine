@@ -35,7 +35,6 @@ import convex.core.crypto.Hashing;
 import convex.core.crypto.InsecureRandom;
 import convex.core.data.Maps;
 import tokengine.adapter.EVMAdapter;
-import tokengine.Fields;
 import convex.core.data.ACell;
 import convex.core.data.AMap;
 import convex.core.data.AString;
@@ -228,6 +227,26 @@ public class EVMTest {
 			}
 		}
 		testKeyDir.delete();
+	}
+	
+	@Test public void testEVMAdapterAlias() throws Exception {
+		// Create a test config with alias
+		AMap<AString, ACell> testConfig = Maps.of(
+			Fields.CHAIN_ID, "eip155:11155111",
+			Fields.ALIAS, "test-sepolia"
+		);
+		
+		// Create EVMAdapter instance
+		EVMAdapter adapter = EVMAdapter.build(testConfig);
+		
+		// Verify the alias is set correctly
+		assertEquals("test-sepolia", adapter.getAliasField().toString(), "Alias should be set correctly");
+		assertEquals("test-sepolia", adapter.getAlias(), "getAlias() should return the correct alias");
+		
+		// Verify toString includes the alias
+		String toString = adapter.toString();
+		assertTrue(toString.contains("test-sepolia"), "toString should include the alias");
+		assertTrue(toString.contains("eip155:11155111"), "toString should include the chain ID");
 	}
 	
     @Test

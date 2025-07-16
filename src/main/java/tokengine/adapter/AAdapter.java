@@ -13,8 +13,16 @@ import tokengine.Fields;
 
 public abstract class AAdapter {
 
+	/** The config map for this adapter */
+	protected final AMap<AString,ACell> config;
+
+	/** The alias for this adapter */
+	protected final AString alias;
+
+
 	protected AAdapter(AMap<AString, ACell> config) {
 		this.config=config;
+		this.alias=RT.ensureString(RT.getIn(config, Fields.ALIAS));
 	}
 
 	public abstract void start() throws Exception;
@@ -25,7 +33,6 @@ public abstract class AAdapter {
 		return RT.getIn(config, Fields.CHAIN_ID);
 	}
 	
-	protected AMap<AString,ACell> config;
 
 	/**
 	 * Get the Config map for this handler
@@ -35,9 +42,17 @@ public abstract class AAdapter {
 		return config;
 	}
 	
+	/**
+	 * Get the alias for this adapter
+	 * @return The alias as AString
+	 */
+	public AString getAliasField() {
+		return alias;
+	}
+	
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName()+" chainID="+getChainID();
+		return this.getClass().getSimpleName()+" chainID="+getChainID()+" alias="+alias;
 				
 	}
 

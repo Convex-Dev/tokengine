@@ -130,8 +130,8 @@ public class Engine {
 			AVector<AMap<AString,ACell>> networks=(AVector<AMap<AString,ACell>>) RT.getIn(config, Fields.NETWORKS);
 			if ((networks==null)||(networks.isEmpty())) {
 				log.warn("No networks specified in config file.");
-			} else for (AMap<AString,ACell> nc: networks) try {
-				AAdapter a=buildAdapter(nc);
+			} else for (AMap<AString,ACell> networkConfig: networks) try {
+				AAdapter a=buildAdapter(networkConfig);
 				addAdapter(a);
 				log.info("Configured adapter: "+a);
 			} catch (Exception e) {
@@ -205,14 +205,22 @@ public class Engine {
 	}
 	
 	/**
-	 * Get adapter for a given chain ID
+	 * Get adapter for a given chain ID or alias
 	 * @param chainID or alias
 	 * @return Adapter, or null if not defined
 	 */
 	public AAdapter getAdapter(String chainID) {
 		AString id=Strings.create(chainID);
 		AAdapter ad= adapters.get(id);
-		return ad;
+		if (ad != null) return ad;
+		
+		// If not found by chain ID, try to find by alias
+		for (AAdapter adapter : adapters.values()) {
+			if (adapter.getAliasField() != null && chainID.equals(adapter.getAliasField().toString())) {
+				return adapter;
+			}
+		}
+		return null;
 	}
 	
 	public AInteger getBalance(String acct, String chainID, String token) throws IOException {

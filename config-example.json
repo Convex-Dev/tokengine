@@ -34,7 +34,8 @@
 				}
 			},
 			"timeout":"300000",
-			"receiver-contract":"0xa752b195b4e7b1af82ca472756edfdb13bc9c79d"
+			"receiver-contract":"0xa752b195b4e7b1af82ca472756edfdb13bc9c79d",
+			"operator-address":"0xa752b195b4e7b1af82ca472756edfdb13bc9c79d"
 		}
 	],
 	
