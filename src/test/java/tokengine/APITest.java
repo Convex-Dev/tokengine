@@ -1,13 +1,11 @@
 package tokengine;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -20,21 +18,20 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 
-import convex.core.Result;
 import convex.core.data.ACell;
 import convex.core.util.JSONUtils;
 import convex.core.util.Utils;
 import convex.java.HTTPClients;
-import tokengine.api.Client;
 
-
+/**
+ * These are basically smoke tests for the API server
+ */
 @TestInstance(Lifecycle.PER_CLASS)
 public class APITest {
 	
 	public static int PORT=8081;
 	
 	private APIServer venueServer;
-
 	private Engine engine;
 
 	@BeforeAll
@@ -46,23 +43,7 @@ public class APITest {
 		venueServer.start(PORT);
 	}
 	
-	@Test public void testAddAsset() throws InterruptedException, ExecutionException {
-		Client client=Client.create(URI.create("http://localhost:"+PORT));
-		
-		Future<Result> r=client.getStatus();
-		
-		Result result=r.get();
-		assertFalse(result.isError(),()->"Bad Result: "+result);
-	}
 	
-	@Test public void testBalance() throws InterruptedException, ExecutionException {
-		Client client=Client.create(URI.create("http://localhost:"+PORT));
-		
-		Future<Result> r=client.getStatus();
-		
-		Result result=r.get();
-		assertFalse(result.isError(),()->"Bad Result: "+result);
-	}
 
 	@Test public void testAPIDoc() throws URISyntaxException, InterruptedException, ExecutionException, TimeoutException {
 		SimpleHttpRequest req=SimpleHttpRequest.create(Method.GET, new URI("http://localhost:"+PORT+"/openapi"));
@@ -77,9 +58,6 @@ public class APITest {
 		SimpleHttpResponse resp=future.get(10000,TimeUnit.MILLISECONDS);
 		assertEquals(200,resp.getCode(),()->"Got error response: "+resp);
 	}
-
-	
-
 	
 	@AfterAll
 	public void shutDown() {

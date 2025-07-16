@@ -1,13 +1,17 @@
 package tokengine.api;
 
 import java.net.URI;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
+import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.core5.http.Method;
 
-import convex.core.Result;
+import convex.core.data.ACell;
+import convex.core.util.JSONUtils;
 import convex.java.ARESTClient;
+import convex.java.HTTPClients;
 
 public class Client extends ARESTClient {
 
@@ -20,9 +24,40 @@ public class Client extends ARESTClient {
 		return new Client(uri);
 	}
 
-	public Future<Result> getStatus() {
+	/**
+	 * Gets the status of the Tokengine server
+	 * @return Future for the status result
+	 */
+	public Future<ACell> getStatus() {
 		SimpleHttpRequest req=SimpleHttpRequest.create(Method.GET, getBaseURI().resolve("status"));
-		Future<Result> resultFuture=super.doRequest(req);
+		Future<ACell> resultFuture=doJSONRequest(req);
 		return resultFuture;
+	}
+	
+	/**
+	 * Gets the config of the Tokengine server
+	 * @return Future for the config data structure
+	 */
+	public Future<ACell> getConfig() {
+		SimpleHttpRequest req=SimpleHttpRequest.create(Method.GET, getBaseURI().resolve("config"));
+		Future<ACell> resultFuture=doJSONRequest(req);
+		return resultFuture;
+	}
+	
+	
+	/**
+	 * Makes a HTTP request as a CompletableFuture
+	 * @param request Request object
+	 * @return Future to be filled with JSON response.
+	 */
+	protected CompletableFuture<ACell> doJSONRequest(SimpleHttpRequest request) {
+		CompletableFuture<SimpleHttpResponse> future=HTTPClients.execute(request);
+		return future.thenApplyAsync(resp->{
+			int code=resp.getCode();
+			if ((code/100)==2) {
+				return JSONUtils.parse(resp.getBodyText());
+			}
+			throw new IllegalStateException("Failed request"); 
+		});
 	}
 }

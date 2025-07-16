@@ -53,4 +53,6 @@ public class Fields {
 	public static final AString SERVER = Strings.intern("server");
 
 	public static final AString USER = Strings.intern("user");
+
+	public static final AString KEY = Strings.intern("key");
 }

@@ -1,8 +1,11 @@
 package tokengine;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.net.URI;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -20,6 +23,7 @@ public class ClientTest {
 	int TEST_PORT=8999;
 	Engine engine=null;
 	APIServer server=null;
+	Client client=null;
 	
 	@BeforeAll public void setup() throws Exception {
 		ACell config=ConfigUtils.readConfig(EngineTest.class.getResourceAsStream("/tokengine/config-test.json"));
@@ -28,13 +32,20 @@ public class ClientTest {
 		
 		server=APIServer.create(engine);
 		server.start(TEST_PORT);
+		
+		client=Client.create(URI.create("http://localhost:"+TEST_PORT));
 	}
 	
-	@Test public void testExampleClient() throws Exception {
-		Client c=Client.create(new URI("http://localhost:"+TEST_PORT));	
+	@Test public void testStatus() throws InterruptedException, ExecutionException {
+		Future<ACell> r=client.getStatus();
+		ACell status=r.get();
+		assertNotNull(status);
 		
-		ACell r=c.getStatus().get();
-		assertNotNull(r);
+	}
+	
+	@Test public void testConfig() throws InterruptedException, ExecutionException {
+		Future<ACell> r=client.getConfig();
+		assertEquals(engine.getConfig(),r.get());
 	}
 	
 	@AfterAll public void shutdown() {

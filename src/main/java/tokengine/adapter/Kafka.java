@@ -21,6 +21,7 @@ import convex.core.data.Vectors;
 import convex.core.lang.RT;
 import convex.core.util.JSONUtils;
 import convex.java.HTTPClients;
+import tokengine.Fields;
 
 public class Kafka {
 	
@@ -59,6 +60,12 @@ public class Kafka {
 		// Construct Kafka message with one record
 		AMap<AString,ACell> record=Maps.of("value",value);
 		AMap<AString,ACell> recs=Maps.of("records",Vectors.of(record));
+		
+		// Populate key if available
+		ACell key=RT.getIn(recs, Fields.KEY);
+		if (key!=null) {
+			recs=recs.assoc(Fields.KEY, key);
+		}
 		
 		String data=JSONUtils.toString(recs);
 		// System.err.println(data);

@@ -33,7 +33,6 @@ import convex.core.lang.RT;
 import convex.core.lang.Reader;
 import convex.core.util.FileUtils;
 import convex.core.util.JSONUtils;
-import convex.core.util.ThreadUtils;
 import convex.etch.EtchStore;
 import convex.peer.API;
 import convex.peer.ConfigException;
@@ -83,6 +82,7 @@ public class Engine {
 		configureAuditService();
 	}
 
+	@SuppressWarnings("unchecked")
 	private void startConvexPeer() throws IOException, LaunchException, InterruptedException, ConfigException {
 		AKeyPair kp=AKeyPair.createSeeded(6756);
 		
@@ -103,7 +103,6 @@ public class Engine {
 				peerConfig.put(Keywords.KEYPAIR, kp);
 			}
 		}
-		
 		
 		server=API.launchPeer(peerConfig);
 		
@@ -127,6 +126,7 @@ public class Engine {
 		if (config==null) {
 			log.warn("No config?");
 		} else {
+			@SuppressWarnings("unchecked")
 			AVector<AMap<AString,ACell>> networks=(AVector<AMap<AString,ACell>>) RT.getIn(config, Fields.NETWORKS);
 			if ((networks==null)||(networks.isEmpty())) {
 				log.warn("No networks specified in config file.");
@@ -388,7 +388,7 @@ public class Engine {
 	/**
 	 * Gets the basic log message for this server
 	 * @param type
-	 * @return
+	 * @return Map suitable as base log record, with standard fields pre-populated
 	 */
 	public AMap<AString,?> getBaseLogMessage(String type) {
 		AMap<AString,?> msg=Maps.of(
