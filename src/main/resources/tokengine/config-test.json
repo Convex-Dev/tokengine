@@ -6,8 +6,9 @@
 			"alias":"convex",                 // Short alias for network (Operator defined)
 		 	"chainID":"convex:test",         // CAIP19 Chain ID
 			"url":"localhost:8080", // RPC / API endpoint
-			"receiver-contract":"#14564",
-			"timeout": "10000" /* Millisecond timeout period */
+			"receiverContract":"#14564",
+			"timeout": "10000", /* Millisecond timeout period */
+			"operatorAddress":"#11"
 		},
 		{
 			"decription": "Ethereum Sepolia test network",
@@ -23,8 +24,8 @@
 				}
 			},
 			"timeout":"300000",
-			"receiver-contract":"0x06eEB4bb0BC58671d097824611F76fe50C5dB075",
-			"operator-address":"0x06eEB4bb0BC58671d097824611F76fe50C5dB075"
+			"receiverContract":"0x06eEB4bb0BC58671d097824611F76fe50C5dB075",
+			"operatorAddress":"0x06eEB4bb0BC58671d097824611F76fe50C5dB075"
 		}
 	],	
 	

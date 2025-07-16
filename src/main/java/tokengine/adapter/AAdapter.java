@@ -66,7 +66,7 @@ public abstract class AAdapter<AddressType extends ACell> {
 	 * Gets the balance of the current operator as an Integer
 	 * @return Balance
 	 */
-	public abstract AInteger getBalance(String asset) throws IOException;
+	public abstract AInteger getOperatorBalance(String asset) throws IOException;
 
 	
 	/**

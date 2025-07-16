@@ -130,7 +130,7 @@ public class EVMAdapter extends AAdapter<AString> {
 	
 
 	@Override
-	public AInteger getBalance(String asset) throws IOException {
+	public AInteger getOperatorBalance(String asset) throws IOException {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -154,7 +154,6 @@ public class EVMAdapter extends AAdapter<AString> {
 	}
 	
 	@Override
-	@SuppressWarnings("unchecked")
 	public AString parseAddress(Object obj) throws IllegalArgumentException {
 		if (obj == null) throw new IllegalArgumentException("Null address");
 		if (obj instanceof AString) {

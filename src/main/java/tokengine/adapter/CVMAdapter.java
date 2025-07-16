@@ -78,17 +78,17 @@ public class CVMAdapter extends AAdapter<Address> {
 	}
 	
 	@Override
-	public AInteger getBalance(String asset, String address) throws IOException {
+	public AInteger getBalance(String capi19, String address) throws IOException {
 		Address addr=parseAddress(address);
-		if (isCVM(asset)) {
+		if (isCVM(capi19)) {
 			try {
-				Long l= convex.getBalance(addr);
+				Long l= convex.getBalance(parseAddress(address));
 				return AInteger.create(l);
 			} catch (Exception e) {
 				throw new IOException(e);
 			}
-		} else if (asset.startsWith("cad29")) {
-			String tokenString=asset.substring(6); // skip 'cad29:' 
+		} else if (capi19.startsWith("cad29")) {
+			String tokenString=capi19.substring(6); // skip 'cad29:' 
 			ACell tokenID=parseTokenID(tokenString);
 			
 			ACell qs=Reader.read("(@convex.asset/balance (quote "+tokenID+") " +addr+")");
@@ -101,19 +101,19 @@ public class CVMAdapter extends AAdapter<Address> {
 			}
 		}
 		
-		throw new UnsupportedOperationException("Asset not supported in CVMAdapter: "+asset);
+		throw new UnsupportedOperationException("Asset not supported in CVMAdapter: "+capi19);
 	}
 	
 	@Override
-	public AInteger getBalance(String asset) throws IOException {
-		// TODO Auto-generated method stub
-		return getBalance(asset,null);
+	public AInteger getOperatorBalance(String caip19) throws IOException {
+		if (operatorAddress==null) throw new IllegalStateException("operator address does not exist");
+		return getBalance(caip19,operatorAddress.toString());
 	}
 	
 	@Override
-	public Result payout(String token, AInteger quantity, String destAccount) {
+	public Result payout(String capi19, AInteger quantity, String destAccount) {
 		Address addr=parseAddress(destAccount);
-		if (isCVM(token)) {
+		if (isCVM(capi19)) {
 			if (!quantity.isLong()) {
 				return Result.error(ErrorCodes.ARGUMENT, "Invalid quantity: "+quantity);
 			}
@@ -125,7 +125,7 @@ public class CVMAdapter extends AAdapter<Address> {
 			}
 			return r;
 		} else {
-			return Result.error(ErrorCodes.TODO, "Asset payout not supported: "+token);
+			return Result.error(ErrorCodes.TODO, "Asset payout not supported: "+capi19);
 		}
 	}
 	
@@ -166,17 +166,18 @@ public class CVMAdapter extends AAdapter<Address> {
 	}
 	
 	@Override
-	@SuppressWarnings("unchecked")
 	public Address parseAddress(Object obj) throws IllegalArgumentException {
 		if (obj == null) throw new IllegalArgumentException("Null address");
 		if (obj instanceof Address) {
 			return (Address) obj;
 		}
 		if (obj instanceof AString) {
-			return parseAddress(obj.toString());
+			Address a=Address.parse(obj);
+			if (a==null) throw new IllegalArgumentException("Bad Convex address format");
+			return a;
 		}
-		if (obj instanceof String) {
-			return parseAddress((String)obj);
+		if (obj instanceof String s) {
+			return parseAddress(s);
 		}
 		throw new IllegalArgumentException("Cannot parse address from object: " + obj.getClass());
 	}
@@ -186,9 +187,9 @@ public class CVMAdapter extends AAdapter<Address> {
 		throw new UnsupportedOperationException();
 	}
 
-	private boolean isCVM(String asset) {
-		if ("CVM".equals(asset)) return true;
-		return "slip44:864".equals(asset);
+	private boolean isCVM(String caip19) {
+		if ("CVM".equals(caip19)) return true;
+		return "slip44:864".equals(caip19);
 	}
 
 	public Convex getConvex() {

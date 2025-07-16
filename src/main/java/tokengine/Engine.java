@@ -131,7 +131,7 @@ public class Engine {
 			if ((networks==null)||(networks.isEmpty())) {
 				log.warn("No networks specified in config file.");
 			} else for (AMap<AString,ACell> networkConfig: networks) try {
-				AAdapter a=buildAdapter(networkConfig);
+				AAdapter<?> a=buildAdapter(networkConfig);
 				addAdapter(a);
 				log.info("Configured adapter: "+a);
 			} catch (Exception e) {
@@ -216,7 +216,8 @@ public class Engine {
 		
 		// If not found by chain ID, try to find by alias
 		for (AAdapter<?> adapter : adapters.values()) {
-			if (adapter.getAliasField() != null && chainID.equals(adapter.getAliasField().toString())) {
+			AString alias=adapter.getAliasField();
+			if (alias != null && id.equals(alias)) {
 				return adapter;
 			}
 		}
@@ -224,7 +225,7 @@ public class Engine {
 	}
 	
 	public AInteger getBalance(String acct, String chainID, String token) throws IOException {
-		AAdapter ad=getAdapter(chainID);
+		AAdapter<?> ad=getAdapter(chainID);
 		if (ad==null) throw new IllegalStateException("Chain ID not valid: "+chainID);
 		return ad.getBalance(token, acct);
 	}
@@ -426,7 +427,7 @@ public class Engine {
 	
 	
 	public Result makePayout(String target, String asset, AAdapter<?> adapter, AInteger quantity) throws IOException {
-		AInteger current=adapter.getBalance(asset);
+		AInteger current=adapter.getOperatorBalance(asset);
 		if (RT.lt(new ACell[] {current,quantity}).booleanValue()) {
 			return Result.error(ErrorCodes.FUNDS, "Insuffient payout balance: "+current);
 		}

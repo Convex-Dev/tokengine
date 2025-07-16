@@ -124,7 +124,7 @@ public class RestAPI extends ATokengineAPI {
 		ACell network=src.get(Fields.NETWORK);
 		if (network==null) throw new BadRequestResponse("Expected 'network' property for source");
 		String chainID=RT.str(network).toString();
-		AAdapter adapter=engine.getAdapter(chainID);
+		AAdapter<?> adapter=engine.getAdapter(chainID);
 		if (adapter==null) throw new BadRequestResponse("Can't find network: "+chainID);
 		try {
 			String token=RT.str(src.get(Fields.TOKEN)).toString();
@@ -161,7 +161,7 @@ public class RestAPI extends ATokengineAPI {
 		ACell network=src.get(Fields.NETWORK);
 		if (network==null) throw new BadRequestResponse("Expected 'network' property for source");
 		String chainID=RT.str(network).toString();
-		AAdapter adapter=engine.getAdapter(chainID);
+		AAdapter<?> adapter=engine.getAdapter(chainID);
 		if (adapter==null) throw new BadRequestResponse("Can't find network: "+chainID);
 		try {
 			String token=RT.str(src.get(Fields.TOKEN)).toString();
@@ -219,7 +219,7 @@ public class RestAPI extends ATokengineAPI {
 		ACell network=src.get(Strings.create("network"));
 		if (network==null) throw new BadRequestResponse("Expected 'network' property for source");
 		String chainID=RT.str(network).toString();
-		AAdapter adapter=engine.getAdapter(chainID);
+		AAdapter<?> adapter=engine.getAdapter(chainID);
 		if (adapter==null) throw new BadRequestResponse("Can't find network: "+chainID);
 		
 		String token=RT.str(src.get(Strings.create("token"))).toString();
@@ -256,7 +256,7 @@ public class RestAPI extends ATokengineAPI {
 		ACell network=src.get(Fields.NETWORK);
 		if (network==null) throw new BadRequestResponse("Expected 'network' property for source");
 		String chainID=RT.str(network).toString();
-		AAdapter adapter=engine.getAdapter(chainID);
+		AAdapter<?> adapter=engine.getAdapter(chainID);
 		if (adapter==null) throw new BadRequestResponse("Can't find network: "+chainID);
 		
 		String token=RT.str(src.get(Fields.TOKEN)).toString();
@@ -315,7 +315,7 @@ public class RestAPI extends ATokengineAPI {
 		ACell network = src.get(Strings.create("network"));
 		if (network == null) throw new BadRequestResponse("Expected 'network' property for source");
 		String chainID = RT.str(network).toString();
-		AAdapter adapter = engine.getAdapter(chainID);
+		AAdapter<?> adapter = engine.getAdapter(chainID);
 		if (adapter == null) throw new BadRequestResponse("Can't find network: " + chainID);
 		
 		// Validate token
