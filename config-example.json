@@ -3,6 +3,8 @@
   
   If you want to change this path it can be provided as a single command line argument to tokengine.jar
   e.g. java -jar tokengine.jar my-config-file.json
+  
+  Tokengine permits JSON5 config files so you can use comments etc.
 */
 {
 	/* Server URL */
