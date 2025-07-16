@@ -54,6 +54,8 @@ public class EVMAdapter extends AAdapter<AString> {
 
     public static final String TRANSFER_SIGNATURE = EventEncoder.encode(TRANSFER_EVENT);
 
+	private AString operatorAddress = null;
+
 	protected EVMAdapter(AMap<AString, ACell> nc) {
 		super(nc);
 	}
@@ -72,7 +74,21 @@ public class EVMAdapter extends AAdapter<AString> {
 	@Override
 	public void start() {
 		web3 = Web3j.build(new HttpService("https://sepolia.drpc.org"));
-		
+
+		// Load operator address from config
+		ACell opAddrCell = RT.getIn(config, Fields.OPERATOR_ADDRESS);
+		if (opAddrCell != null) {
+			try {
+				operatorAddress = parseAddress(opAddrCell.toString());
+			} catch (Exception e) {
+				log.warn("Failed to parse operator-address from config: {}", opAddrCell);
+				operatorAddress = null;
+			}
+		} else {
+			log.warn("No operator-address specified in config for EVMAdapter");
+			operatorAddress = null;
+		}
+
 		// Load wallets from config-specified directory
 		try {
 			loadWalletsFromConfig();
@@ -162,8 +178,11 @@ public class EVMAdapter extends AAdapter<AString> {
 
 	@Override
 	public AString getOperatorAddress() {
-		// TODO fill with real address
-		return Strings.create("a752b195b4e7b1af82ca472756edfdb13bc9c79d");
+		if (operatorAddress == null) {
+			log.warn("operatorAddress is null in getOperatorAddress()");
+			throw new IllegalStateException("operatorAddress is not set for this adapter");
+		}
+		return operatorAddress;
 	}
 	
 	@Override

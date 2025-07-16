@@ -55,4 +55,6 @@ public class Fields {
 	public static final AString USER = Strings.intern("user");
 
 	public static final AString KEY = Strings.intern("key");
+
+	public static final AString OPERATOR_ADDRESS = Strings.intern("operator-address");
 }

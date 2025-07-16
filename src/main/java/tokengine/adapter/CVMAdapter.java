@@ -30,6 +30,8 @@ public class CVMAdapter extends AAdapter<Address> {
 
 	protected Convex convex;
 	
+	private Address operatorAddress = null;
+	
 	public CVMAdapter(AMap<AString, ACell> nc) {
 		super(nc);
 	}
@@ -47,6 +49,20 @@ public class CVMAdapter extends AAdapter<Address> {
 
 	public void start() throws Exception {
 		convex=Convex.connect(getHost());
+
+		// Load operator address from config
+		ACell opAddrCell = RT.getIn(config, Fields.OPERATOR_ADDRESS);
+		if (opAddrCell != null) {
+			try {
+				operatorAddress = parseAddress(opAddrCell.toString());
+			} catch (Exception e) {
+				log.warn("Failed to parse operator-address from config: {}", opAddrCell);
+				operatorAddress = null;
+			}
+		} else {
+			log.warn("No operator-address specified in config for CVMAdapter");
+			operatorAddress = null;
+		}
 	}
 
 	@Override
@@ -188,7 +204,10 @@ public class CVMAdapter extends AAdapter<Address> {
 
 	@Override
 	public Address getOperatorAddress() {
-		return Address.create(100);
+		if (operatorAddress == null) {
+			log.warn("operatorAddress is null in getOperatorAddress()");
+		}
+		return operatorAddress;
 	}
 
 	@Override
