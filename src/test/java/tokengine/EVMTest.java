@@ -6,6 +6,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.util.Arrays;
 
 import org.junit.jupiter.api.Test;
@@ -83,6 +86,10 @@ public class EVMTest {
             error.printStackTrace();
         });
     }
+	
+	@Test public void testEVMWallet() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException {
+		ECKeyPair keyPair = Keys.createEcKeyPair(new InsecureRandom(64566754));
+	}
 	
     @Test
     public void testPersonalSignatureVerification() throws Exception {

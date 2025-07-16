@@ -12,6 +12,7 @@ import convex.core.data.ACell;
 import convex.core.util.JSONUtils;
 import convex.java.ARESTClient;
 import convex.java.HTTPClients;
+import tokengine.exception.ResponseException;
 
 public class Client extends ARESTClient {
 
@@ -19,13 +20,17 @@ public class Client extends ARESTClient {
 		super(host,"/api/v1/");
 	}
 
+	/**
+	 * Create a client instance for the given host
+	 * @param uri Host URI e.g. URI.create("https://foo.org")
+	 * @return New client instance
+	 */
 	public static Client create(URI uri) {
-	
 		return new Client(uri);
 	}
 
 	/**
-	 * Gets the status of the Tokengine server
+	 * Gets the status of the TokEngine server
 	 * @return Future for the status result
 	 */
 	public Future<ACell> getStatus() {
@@ -35,7 +40,7 @@ public class Client extends ARESTClient {
 	}
 	
 	/**
-	 * Gets the config of the Tokengine server
+	 * Gets the config of the TokEngine server
 	 * @return Future for the config data structure
 	 */
 	public Future<ACell> getConfig() {
@@ -57,7 +62,7 @@ public class Client extends ARESTClient {
 			if ((code/100)==2) {
 				return JSONUtils.parse(resp.getBodyText());
 			}
-			throw new IllegalStateException("Failed request"); 
+			throw new ResponseException("Failed request",resp); 
 		});
 	}
 }

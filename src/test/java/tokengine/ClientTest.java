@@ -40,7 +40,6 @@ public class ClientTest {
 		Future<ACell> r=client.getStatus();
 		ACell status=r.get();
 		assertNotNull(status);
-		
 	}
 	
 	@Test public void testConfig() throws InterruptedException, ExecutionException {
