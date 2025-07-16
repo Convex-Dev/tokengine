@@ -84,21 +84,7 @@ public abstract class AAdapter<AddressType extends ACell> {
 	 * @return AddressType in normalized form
 	 * @throws IllegalArgumentException if the object cannot be parsed
 	 */
-	@SuppressWarnings("unchecked")
-	public AddressType parseAddress(Object obj) throws IllegalArgumentException {
-		if (obj == null) throw new IllegalArgumentException("Null address");
-		if (obj instanceof ACell && this.getClass().getTypeParameters().length > 0 && ((ACell)obj).getClass().equals(this.getClass().getTypeParameters()[0].getGenericDeclaration())) {
-			return (AddressType) obj;
-		}
-		if (obj instanceof ACell) {
-			// If it's an ACell but not the right type, try toString
-			return parseAddress(obj.toString());
-		}
-		if (obj instanceof String) {
-			return parseAddress((String)obj);
-		}
-		throw new IllegalArgumentException("Cannot parse address from object: " + obj.getClass());
-	}
+	public abstract AddressType parseAddress(Object obj) throws IllegalArgumentException;
 
 	/**
 	 * Gets the userKey for a given account address

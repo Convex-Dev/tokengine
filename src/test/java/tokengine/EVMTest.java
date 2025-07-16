@@ -315,4 +315,65 @@ public class EVMTest {
 		AString addr5 = adapter.parseAddress(addr1);
 		assertEquals(hex, addr5.toString());
 	}
+	
+	@Test
+	public void testEVMAdapterParseAddressFailureCases() {
+		EVMAdapter adapter = EVMAdapter.build(Maps.of(Fields.CHAIN_ID, "eip155:11155111"));
+		
+		// Test with invalid hex string (odd length)
+		try {
+			adapter.parseAddress("a752b195b4e7b1af82ca472756edfdb13bc9c79");
+			assertTrue(false, "Should throw IllegalArgumentException for odd length hex");
+		} catch (IllegalArgumentException e) {
+			// Expected
+		}
+		
+		// Test with invalid hex string (non-hex characters)
+		try {
+			adapter.parseAddress("a752b195b4e7b1af82ca472756edfdb13bc9c79g");
+			assertTrue(false, "Should throw IllegalArgumentException for non-hex characters");
+		} catch (IllegalArgumentException e) {
+			// Expected
+		}
+		
+		// Test with too short address (less than 20 bytes)
+		try {
+			adapter.parseAddress("a752b195b4e7b1af82ca472756edfdb13bc9c");
+			assertTrue(false, "Should throw IllegalArgumentException for too short address");
+		} catch (IllegalArgumentException e) {
+			// Expected
+		}
+		
+		// Test with too long address (more than 20 bytes)
+		try {
+			adapter.parseAddress("a752b195b4e7b1af82ca472756edfdb13bc9c79d123456");
+			assertTrue(false, "Should throw IllegalArgumentException for too long address");
+		} catch (IllegalArgumentException e) {
+			// Expected
+		}
+		
+		// Test with empty string
+		try {
+			adapter.parseAddress("");
+			assertTrue(false, "Should throw IllegalArgumentException for empty string");
+		} catch (IllegalArgumentException e) {
+			// Expected
+		}
+		
+		// Test with null
+		try {
+			adapter.parseAddress(null);
+			assertTrue(false, "Should throw IllegalArgumentException for null");
+		} catch (IllegalArgumentException e) {
+			// Expected
+		}
+		
+		// Test with invalid object type
+		try {
+			adapter.parseAddress(123);
+			assertTrue(false, "Should throw IllegalArgumentException for invalid object type");
+		} catch (IllegalArgumentException e) {
+			// Expected
+		}
+	}
 }

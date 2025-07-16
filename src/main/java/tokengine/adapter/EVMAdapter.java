@@ -126,13 +126,33 @@ public class EVMAdapter extends AAdapter<AString> {
 
 	@Override
 	public AString parseAddress(String caip10) throws IllegalArgumentException {
+		if (caip10 == null) throw new IllegalArgumentException("Null address");
 		String s = caip10.trim();
+		if (s.isEmpty()) throw new IllegalArgumentException("Empty address");
 		if (s.startsWith("0x") || s.startsWith("0X")) s = s.substring(2);
 		s = s.toLowerCase();
 		if (s.length() != 40) throw new IllegalArgumentException("Invalid hex length for EVM Adapter: " + s);
 		// Validate hex
 		if (!s.matches("[0-9a-f]{40}")) throw new IllegalArgumentException("Invalid hex address for EVM Adapter: " + s);
 		return convex.core.data.Strings.create(s);
+	}
+	
+	@Override
+	@SuppressWarnings("unchecked")
+	public AString parseAddress(Object obj) throws IllegalArgumentException {
+		if (obj == null) throw new IllegalArgumentException("Null address");
+		if (obj instanceof AString) {
+			// Normalize the AString by parsing it as a string
+			return parseAddress(obj.toString());
+		}
+		if (obj instanceof ACell) {
+			// If it's an ACell but not the right type, try toString
+			return parseAddress(obj.toString());
+		}
+		if (obj instanceof String) {
+			return parseAddress((String)obj);
+		}
+		throw new IllegalArgumentException("Cannot parse address from object: " + obj.getClass());
 	}
 
 	@Override

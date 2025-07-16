@@ -76,6 +76,58 @@ public class ConvexTest {
 		assertEquals(addr, parsed3);
 	}
 	
+	@Test
+	public void testCVMAdapterParseAddressFailureCases() {
+		CVMAdapter adapter = new CVMAdapter(convex.core.data.Maps.empty());
+		
+		// Test with invalid address format (non-numeric)
+		try {
+			adapter.parseAddress("#abc");
+			assertTrue(false, "Should throw IllegalArgumentException for non-numeric address");
+		} catch (IllegalArgumentException e) {
+			// Expected
+		}
+		
+		// Test with empty string
+		try {
+			adapter.parseAddress("");
+			assertTrue(false, "Should throw IllegalArgumentException for empty string");
+		} catch (IllegalArgumentException e) {
+			// Expected
+		}
+		
+		// Test with null
+		try {
+			adapter.parseAddress(null);
+			assertTrue(false, "Should throw IllegalArgumentException for null");
+		} catch (IllegalArgumentException e) {
+			// Expected
+		}
+		
+		// Test with invalid object type
+		try {
+			adapter.parseAddress(123);
+			assertTrue(false, "Should throw IllegalArgumentException for invalid object type");
+		} catch (IllegalArgumentException e) {
+			// Expected
+		}
+		
+		// Test with negative address (as integer string)
+		try {
+			adapter.parseAddress("-123");
+			assertTrue(false, "Should throw IllegalArgumentException for negative address");
+		} catch (IllegalArgumentException e) {
+			// Expected
+		}
+		// Test with negative address (as # string)
+		try {
+			adapter.parseAddress("#-123");
+			assertTrue(false, "Should throw IllegalArgumentException for negative address");
+		} catch (IllegalArgumentException e) {
+			// Expected
+		}
+	}
+	
 	@AfterAll
 	public void finish() {
 		if (engine!=null) engine.close();

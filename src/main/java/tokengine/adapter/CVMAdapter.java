@@ -125,7 +125,44 @@ public class CVMAdapter extends AAdapter<Address> {
 	
 	@Override
 	public Address parseAddress(String addr) throws IllegalArgumentException {
-		return Address.parse(addr);
+		if (addr == null) throw new IllegalArgumentException("Null address");
+		addr = addr.trim();
+		if (addr.isEmpty()) throw new IllegalArgumentException("Empty address");
+
+		// Accept non-negative integer as valid address
+		try {
+			long l = Long.parseLong(addr);
+			if (l < 0) throw new IllegalArgumentException("Negative address not allowed: " + addr);
+			return Address.create(l);
+		} catch (NumberFormatException e) {
+			// Not a plain integer, fall through
+		}
+
+		// Accept #12345 format
+		if (!addr.startsWith("#")) {
+			throw new IllegalArgumentException("Invalid address format - must be non-negative integer or start with #: " + addr);
+		}
+		Address result = Address.parse(addr);
+		if (result == null) {
+			throw new IllegalArgumentException("Invalid address format: " + addr);
+		}
+		return result;
+	}
+	
+	@Override
+	@SuppressWarnings("unchecked")
+	public Address parseAddress(Object obj) throws IllegalArgumentException {
+		if (obj == null) throw new IllegalArgumentException("Null address");
+		if (obj instanceof Address) {
+			return (Address) obj;
+		}
+		if (obj instanceof AString) {
+			return parseAddress(obj.toString());
+		}
+		if (obj instanceof String) {
+			return parseAddress((String)obj);
+		}
+		throw new IllegalArgumentException("Cannot parse address from object: " + obj.getClass());
 	}
 	
 	@Override
