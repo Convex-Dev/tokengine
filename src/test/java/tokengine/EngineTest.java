@@ -3,6 +3,7 @@ package tokengine;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -53,5 +54,8 @@ public class EngineTest {
 		assertEquals(DEPOSIT.sub(WITHDRAWAL),e.getVirtualCredit(assetKey, userKey));
 	}
 	
+	@AfterAll public void shutdown() {
+		engine.close();
+	}
 
 }

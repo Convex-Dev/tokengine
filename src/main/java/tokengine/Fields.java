@@ -27,6 +27,9 @@ public class Fields {
 
 	public static final AString DESCRIPTION = Strings.intern("description");
 	
+	/**
+	 * Field specifying virtual credit balances in the TokEngine state
+	 */
 	public static final AString CREDITS = Strings.intern("credits");
 
 	public static final AString CONFIG = Strings.intern("config");
@@ -37,7 +40,6 @@ public class Fields {
 	
 	public static final AString KAFKA = Strings.intern("kafka");
 
-	public static final AString BALANCES = Strings.intern("balances");
 
 
 }
