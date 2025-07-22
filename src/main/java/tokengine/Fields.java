@@ -57,4 +57,16 @@ public class Fields {
 	public static final AString KEY = Strings.intern("key");
 
 	public static final AString OPERATOR_ADDRESS = Strings.intern("operatorAddress");
+
+	public static final AString LOG_DIR = Strings.intern("log-dir");
+	
+	public static final AString KEY_DIR = Strings.intern("key-dir");
+
+	public static final AString LOG_CONFIG_FILE = Strings.intern("log-config-file");
+
+	public static final AString ADAPTERS = Strings.intern("adapters");
+
+	public static final AString LOCAL_CONVEX = Strings.intern("local-convex");
+
+	public static final AString ETCH_FILE = Strings.intern("etch-file");
 }

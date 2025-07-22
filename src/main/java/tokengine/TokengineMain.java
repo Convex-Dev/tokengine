@@ -57,7 +57,7 @@ public class TokengineMain {
 		context.reset();
 		
 		String logdir="${user.home}/.tokengine/logs";
-		ACell logPath=RT.getIn(config,"operations","log-dir");
+		ACell logPath=RT.getIn(config,Fields.OPERATIONS,Fields.LOG_DIR);
 		if (logPath!=null) {
 			logdir=RT.toString(logPath);
 		}
@@ -73,7 +73,7 @@ public class TokengineMain {
 		configurator.setContext(context);
 		
 		// configure logging if specified
-		ACell logFile=RT.getIn(config,"operations","log-config-file");
+		ACell logFile=RT.getIn(config,Fields.OPERATIONS,Fields.LOG_CONFIG_FILE);
 		if (logFile instanceof AString) {
 			File logConfigFile=FileUtils.getFile(logFile.toString());
 			if (logConfigFile.exists()) {

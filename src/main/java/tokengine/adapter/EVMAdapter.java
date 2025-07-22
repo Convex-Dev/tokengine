@@ -85,7 +85,7 @@ public class EVMAdapter extends AAdapter<AString> {
 				operatorAddress = null;
 			}
 		} else {
-			log.warn("No operator-address specified in config for EVMAdapter");
+			log.warn("No operatorAddress specified in config for EVMAdapter");
 			operatorAddress = null;
 		}
 
@@ -179,7 +179,7 @@ public class EVMAdapter extends AAdapter<AString> {
 	public AString getOperatorAddress() {
 		if (operatorAddress == null) {
 			log.warn("operatorAddress is null in getOperatorAddress()");
-			throw new IllegalStateException("operatorAddress is not set for this adapter");
+			throw new IllegalStateException("operatorAddress is not set for this adapter ("+getAlias()+")");
 		}
 		return operatorAddress;
 	}

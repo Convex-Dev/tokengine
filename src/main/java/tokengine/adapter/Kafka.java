@@ -43,7 +43,7 @@ public class Kafka {
 	/**
 	 * Log a value to Kafka. Can be any JSON value
 	 * @param value
-	 * @return
+	 * @return true if successfully submitted
 	 */
 	public boolean log(ACell value) {
 		executor.submit(()->{

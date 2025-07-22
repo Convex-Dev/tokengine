@@ -124,7 +124,7 @@ public class Engine {
 	private void configureAdapters() {
 		// Set up adapters
 		if (config==null) {
-			log.warn("No config?");
+			log.warn("No config provided?");
 		} else {
 			@SuppressWarnings("unchecked")
 			AVector<AMap<AString,ACell>> networks=(AVector<AMap<AString,ACell>>) RT.getIn(config, Fields.NETWORKS);
@@ -142,7 +142,7 @@ public class Engine {
 
 	private void startEtch() throws IOException {
 		// Etch file for Tokengine
-		AString etchFile=RT.ensureString(RT.getIn(config, "operations","etch-file"));
+		AString etchFile=RT.ensureString(RT.getIn(config, Fields.OPERATIONS,Fields.ETCH_FILE));
 		if (etchFile==null) {
 			etchFile=Strings.create("~/.tokengine/etch.db");
 		} 
@@ -297,8 +297,8 @@ public class Engine {
 
 	public ACell getStatus() {
 		AMap<AString,ACell> status=Maps.empty();
-		status=status.assoc(Strings.create("adapters"), Vectors.of(getHandlers().toArray()));
-		status=status.assoc(Strings.create("local-convex"), Strings.create(server.getHostAddress().toString()));
+		status=status.assoc(Fields.ADAPTERS, Vectors.of(getHandlers().toArray()));
+		status=status.assoc(Fields.LOCAL_CONVEX, Strings.create(server.getHostAddress().toString()));
 		return status;
 	}
 

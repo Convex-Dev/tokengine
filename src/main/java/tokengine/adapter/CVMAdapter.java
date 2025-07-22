@@ -168,11 +168,11 @@ public class CVMAdapter extends AAdapter<Address> {
 	@Override
 	public Address parseAddress(Object obj) throws IllegalArgumentException {
 		if (obj == null) throw new IllegalArgumentException("Null address");
-		if (obj instanceof Address) {
-			return (Address) obj;
+		if (obj instanceof Address addr) {
+			return addr;
 		}
-		if (obj instanceof AString) {
-			Address a=Address.parse(obj);
+		if (obj instanceof AString as) {
+			Address a=Address.parse(as);
 			if (a==null) throw new IllegalArgumentException("Bad Convex address format");
 			return a;
 		}
@@ -199,7 +199,7 @@ public class CVMAdapter extends AAdapter<Address> {
 	@Override
 	public AString getDescription() {
 		AString desc=super.getDescription();
-		if (desc==null) return Strings.create("Undescribed Convex Network");
+		if (desc==null) return Strings.create("Undescribed Convex Network at "+getHost());
 		return desc;
 	}
 

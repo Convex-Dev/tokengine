@@ -92,7 +92,7 @@ public abstract class AAdapter<AddressType extends ACell> {
 	 * @return Object representing an Address for this adapter
 	 * @throws IllegalArgumentException If account address format is invalid
 	 */
-	public abstract AString parseUserKey(String address) throws IllegalArgumentException;
+	public abstract AString parseUserKey(String caip10) throws IllegalArgumentException;
 
 
 	public abstract Result payout(String token, AInteger quantity, String destAccount);
@@ -120,7 +120,7 @@ public abstract class AAdapter<AddressType extends ACell> {
 
 	/**
 	 * Gets the operator address as an adapter-defined type as returned from parseAddress
-	 * @return
+	 * @return AddressType instance
 	 */
 	public abstract AddressType getOperatorAddress();
 
