@@ -302,9 +302,10 @@ public class Engine {
 		return status;
 	}
 
-	public boolean makeDeposit(AAdapter<?> adapter, AString tx) {
+	public boolean makeDeposit(AAdapter<?> adapter, String token, String address, AMap<AString,ACell> depositProof) {
 		// Check transaction is Valid: TODO: confirm fields
-		boolean ok=adapter.checkTransaction(tx);
+		AString tx=RT.ensureString(RT.getIn(depositProof, Fields.TX));
+		boolean ok=adapter.checkTransaction(address,tx);
 		return ok;
 	}
 	

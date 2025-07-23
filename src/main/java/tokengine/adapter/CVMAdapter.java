@@ -252,7 +252,7 @@ public class CVMAdapter extends AAdapter<Address> {
 	}
 
 	@Override
-	public boolean checkTransaction(AString tx) {
+	public boolean checkTransaction(String address, AString tx) {
 		log.warn("CVM transaction not checked: "+tx);
 		return false;
 	}

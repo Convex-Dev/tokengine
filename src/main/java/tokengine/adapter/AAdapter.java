@@ -124,7 +124,7 @@ public abstract class AAdapter<AddressType extends ACell> {
 	 */
 	public abstract AddressType getOperatorAddress();
 
-	public abstract boolean checkTransaction(AString tx);
+	public abstract boolean checkTransaction(String address, AString tx);
 
 
 

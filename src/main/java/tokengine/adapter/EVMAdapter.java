@@ -228,12 +228,16 @@ public class EVMAdapter extends AAdapter<AString> {
 	}
 
 	@Override
-	public boolean checkTransaction(AString tx) {
+	public boolean checkTransaction(String address,AString tx) {
+		AString addr=parseAddress(address);
+		
 		try {
 			String txS=tx.toString();
 			TransactionReceipt receipt = web3.ethGetTransactionReceipt(txS).send().getTransactionReceipt().orElse(null);
 			// String status=receipt.getStatus();
 			// if (status.equals("0x1")) return true;
+			AString from = parseAddress(receipt.getFrom());
+			if (!addr.equals(from)) throw new IllegalArgumentException("Expected address "+addr+" but transaction was from "+from);
 			if (receipt.isStatusOK()) {
                 return true;
             }

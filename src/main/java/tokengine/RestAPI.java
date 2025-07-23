@@ -320,28 +320,20 @@ public class RestAPI extends ATokengineAPI {
 		
 		// Validate token
 		AString tokenAS=RT.ensureString(src.get(Fields.TOKEN));
-		if (tokenAS == null) throw new BadRequestResponse("Expected 'source/token' value specifying token");
+		if (tokenAS == null) throw new BadRequestResponse("Expected 'source.token' value specifying token");
 		String token = tokenAS.toString();
 		
 		// Validate sender address
 		AString addressAS=RT.ensureString(src.get(Fields.ACCOUNT));
-		if (addressAS == null) throw new BadRequestResponse("Expected 'source/account' value specifying account on network "+chainID);
+		if (addressAS == null) throw new BadRequestResponse("Expected 'source.account' value specifying account on network "+chainID);
 		String address = addressAS.toString();
-		
-		// Validate transaction
-		AString txAS=RT.ensureString(dep.get(Fields.TX));
-		if (txAS == null) throw new BadRequestResponse("Expected 'deposit/tx' value specifying transaction on network "+chainID);
-		String tx = txAS.toString();
-		
+			
 		// Check transaction validity
 		try {
-			engine.makeDeposit(adapter,txAS);
+			engine.makeDeposit(adapter,token,address,dep);
 		} catch (Exception e) {
 			throw new PaymentRequiredResponse("Could not confirm deposit: "+e.getMessage());
 		}
-		
-		log.info("Processing deposit on network: " + chainID + " token: " + token + " account: " + address + " tx=" + tx);
-		adapter.verifyPersonalSignature(token, address, tx);
 		
 		// For now, we'll treat deposit similar to a transfer, using the engine's transfer functionality
 		Result r = Result.value(Symbols.FOO);
