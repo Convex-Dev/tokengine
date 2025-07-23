@@ -72,7 +72,12 @@ public class RestAPI extends ATokengineAPI {
 	
 	@OpenApi(path = ROUTE + "status", 
 			methods = HttpMethod.GET, tags = {
-			TOKENGINE_TAG }, summary = "Get a quick TokEngine status report", operationId = "status")
+			TOKENGINE_TAG }, 
+			summary = "Get a quick TokEngine status report", operationId = "status",
+			responses = {
+					@OpenApiResponse(
+							status = "200", 
+							description = "Status returned"),})
 	protected void getStatus(Context ctx) {
 		ctx.header("Content-type", ContentTypes.JSON);
 		ctx.result(JSONUtils.toString(engine.getStatus()));
@@ -81,7 +86,11 @@ public class RestAPI extends ATokengineAPI {
 	
 	@OpenApi(path = ROUTE + "config", 
 			methods = HttpMethod.GET, tags = {
-			TOKENGINE_TAG }, summary = "Get the tokengine configuration", operationId = "config")
+			TOKENGINE_TAG }, summary = "Get the tokengine configuration", operationId = "config",
+					responses = {
+							@OpenApiResponse(
+									status = "200", 
+									description = "Config returned")})
 	protected void getConfig(Context ctx) {
 		ctx.header("Content-type", ContentTypes.JSON);
 		ctx.result(JSON.toString(engine.getConfig()));
@@ -90,7 +99,11 @@ public class RestAPI extends ATokengineAPI {
 	
 	@OpenApi(path = ROUTE + "adapters", 
 			methods = HttpMethod.GET, tags = {
-			TOKENGINE_TAG }, summary = "Get a list of current DLT adapters installed", operationId = "adapters")
+			TOKENGINE_TAG }, summary = "Get a list of current DLT adapters installed", operationId = "adapters",
+					responses = {
+							@OpenApiResponse(
+									status = "200", 
+									description = "Adapters listed"),})
 	protected void getAdapters(Context ctx) {
 		ctx.header("Content-type", ContentTypes.JSON);
 		
@@ -103,20 +116,28 @@ public class RestAPI extends ATokengineAPI {
 	}
 	
 	@OpenApi(path = ROUTE + "balance", 
-			methods = HttpMethod.POST, tags = {
-			TOKENGINE_TAG }, summary = "Queries the on-chain balance of a token", operationId = "balance",
-					requestBody = @OpenApiRequestBody(
-							description = "Balance request, must provide a network (alias or CAIP-2 chainID), token (symbol alias or CAIP-19 token ID) and an address. TokEngine aliases and defined symbols may be used.", 
-							content = {@OpenApiContent(
-											from = BalanceRequest.class,  
-											type = "application/json", 
-											exampleObjects = {
-													@OpenApiExampleProperty(name = "source", objects= {
-															@OpenApiExampleProperty(name = "account", value="#11"),
-															@OpenApiExampleProperty(name = "network", value="convex"),
-															@OpenApiExampleProperty(name = "token", value="CVM")
-													}) })}
-						)		)
+			methods = HttpMethod.POST, 
+			tags = {TOKENGINE_TAG }, 
+			summary = "Queries the on-chain balance of a token", 
+			operationId = "balance",
+			requestBody = @OpenApiRequestBody(
+					description = "Balance request, must provide a network (alias or CAIP-2 chainID), token (symbol alias or CAIP-19 token ID) and an address. TokEngine aliases and defined symbols may be used.", 
+					content = {@OpenApiContent(
+							from = BalanceRequest.class,  
+							type = "application/json", 
+							exampleObjects = {
+									@OpenApiExampleProperty(name = "source", objects= {
+											@OpenApiExampleProperty(name = "account", value="#11"),
+											@OpenApiExampleProperty(name = "network", value="convex"),
+											@OpenApiExampleProperty(name = "token", value="CVM")}) })}
+						),
+			responses = {
+					@OpenApiResponse(
+							status = "200", 
+							description = "Deposit accepted"),
+					@OpenApiResponse(
+							status = "402", 
+							description = "Deposit not accepted, payment required")})
 	protected void getBalance(Context ctx) {
 		AMap<AString,ACell> req=parseRequest(ctx);
 		AMap<AString,ACell> src = RT.ensureMap(req.get(Fields.SOURCE));
@@ -140,20 +161,27 @@ public class RestAPI extends ATokengineAPI {
 	}
 	
 	@OpenApi(path = ROUTE + "credit", 
-			methods = HttpMethod.POST, tags = {
-			TOKENGINE_TAG }, summary = "Queries the virtual balance of a token", operationId = "balance",
-					requestBody = @OpenApiRequestBody(
-							description = "TokEngine virtual Balance request, must provide a token (CAIP-19) and an address. TokEngine aliases and defined symbols may be used.", 
-							content = {@OpenApiContent(
-											from = BalanceRequest.class,  
-											type = "application/json", 
-											exampleObjects = {
-													@OpenApiExampleProperty(name = "source", objects= {
-															@OpenApiExampleProperty(name = "account", value="#11"),
-															@OpenApiExampleProperty(name = "network", value="convex:main"),
-															@OpenApiExampleProperty(name = "token", value="CVM")
-													}) })}
-						)		)
+			methods = HttpMethod.POST, 
+			tags = {TOKENGINE_TAG}, 
+			summary = "Queries the virtual balance of a token", 
+			operationId = "balance",
+			requestBody = @OpenApiRequestBody(
+					description = "TokEngine virtual Balance request, must provide a token (CAIP-19) and an address. TokEngine aliases and defined symbols may be used.", 
+					content = {@OpenApiContent(
+							from = BalanceRequest.class,  
+							type = "application/json", 
+							exampleObjects = {
+									@OpenApiExampleProperty(name = "source", objects= {
+											@OpenApiExampleProperty(name = "account", value="#11"),
+											@OpenApiExampleProperty(name = "network", value="convex:main"),
+											@OpenApiExampleProperty(name = "token", value="CVM")})})}),
+			responses = {
+					@OpenApiResponse(
+							status = "200", 
+							description = "Virtual credit returned"),
+					@OpenApiResponse(
+							status = "400", 
+							description = "Bad request, e.g. badly formatted account")})
 	protected void getCredit(Context ctx) {
 		AMap<AString,ACell> req=parseRequest(ctx);
 		AMap<AString,ACell> src = RT.ensureMap(req.get(Fields.SOURCE));
@@ -173,9 +201,7 @@ public class RestAPI extends ATokengineAPI {
 		} catch (IOException e) {
 			throw new BadRequestResponse(e.getMessage());
 		}
-
 	}
-	
 	
 	private AMap<AString,ACell> parseRequest(Context ctx) {
 		try {
@@ -246,7 +272,17 @@ public class RestAPI extends ATokengineAPI {
 															@OpenApiExampleProperty(name = "token", value="CVM")
 													}),
 													@OpenApiExampleProperty(name = "quantity", value = "1000000") })}
-						))
+						),
+					responses = {
+							@OpenApiResponse(
+									status = "200", 
+									description = "Payout succeeded"),
+							@OpenApiResponse(
+									status = "401", 
+									description = "Payout not authorised"),
+							@OpenApiResponse(
+									status = "400", 
+									description = "Payout failed, e.g. insufficient virtual balance")})
 	protected void postPayout(Context ctx) {
 		AMap<AString,ACell> req=parseRequest(ctx);
 		AMap<AString,ACell> src = RT.ensureMap(req.get(Fields.DESTINATION));

@@ -128,7 +128,7 @@ public abstract class AAdapter<AddressType extends ACell> {
 	public abstract boolean checkTransaction(String address, Blob tx);
 
 	/**
-	 * Parse a transaction ID, returning a Blob
+	 * Parse a transaction ID, returning a canonical Blob. This should be unique for any distinct transaction
 	 * @param tx Transaction ID as a string
 	 * @return Blob containing transaction ID, or null if not valid
 	 */
