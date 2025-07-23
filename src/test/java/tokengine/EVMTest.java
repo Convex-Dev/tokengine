@@ -180,6 +180,7 @@ public class EVMTest {
 		// Create a test config with key-dir
 		AMap<AString, ACell> testConfig = Maps.of(
 			Fields.CHAIN_ID, "eip155:11155111",
+			Fields.URL,"https://sepolia.drpc.org",
 			Fields.OPERATIONS, Maps.of("key-dir", "~/.tokengine/test-keys")
 		);
 		

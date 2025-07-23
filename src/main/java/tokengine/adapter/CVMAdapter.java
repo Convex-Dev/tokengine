@@ -252,7 +252,7 @@ public class CVMAdapter extends AAdapter<Address> {
 	}
 
 	@Override
-	public boolean checkTransaction(String address, Blob tx) {
+	public boolean checkTransaction(String address, String tokenID, Blob tx) {
 		log.warn("CVM transaction not checked: "+tx);
 		return false;
 	}
@@ -264,11 +264,9 @@ public class CVMAdapter extends AAdapter<Address> {
 		return b;
 	}
 
-
-
-
-
-
-
+	@Override
+	public Address getReceiverAddress() {
+		return Address.parse(RT.getIn(config, Fields.RECEIVER_ADDRESS));
+	}
 
 }

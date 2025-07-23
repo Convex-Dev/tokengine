@@ -125,7 +125,7 @@ public abstract class AAdapter<AddressType extends ACell> {
 	 */
 	public abstract AddressType getOperatorAddress();
 
-	public abstract boolean checkTransaction(String address, Blob tx);
+	public abstract boolean checkTransaction(String address, String tokenID, Blob tx);
 
 	/**
 	 * Parse a transaction ID, returning a canonical Blob. This should be unique for any distinct transaction
@@ -133,6 +133,12 @@ public abstract class AAdapter<AddressType extends ACell> {
 	 * @return Blob containing transaction ID, or null if not valid
 	 */
 	public abstract Blob parseTransactionID(AString tx);
+
+	/**
+	 * Gets the address of the TokEngine receiver account
+	 * @return Receiver address, or null if not defined
+	 */
+	public abstract AddressType getReceiverAddress();
 
 
 

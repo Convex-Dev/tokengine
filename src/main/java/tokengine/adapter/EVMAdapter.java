@@ -12,8 +12,10 @@ import java.util.HashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.web3j.abi.EventEncoder;
+import org.web3j.abi.FunctionReturnDecoder;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Event;
+import org.web3j.abi.datatypes.Type;
 import org.web3j.contracts.eip20.generated.ERC20;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.Keys;
@@ -73,7 +75,9 @@ public class EVMAdapter extends AAdapter<AString> {
 	
 	@Override
 	public void start() {
-		web3 = Web3j.build(new HttpService("https://sepolia.drpc.org"));
+		AString url=RT.getIn(config, Fields.URL);
+		if (url==null) throw new IllegalStateException("No Ethereum RPC ndoe speific, should be in networks[..].url");
+		web3 = Web3j.build(new HttpService(url.toString()));
 
 		// Load operator address from config
 		ACell opAddrCell = RT.getIn(config, Fields.OPERATOR_ADDRESS);
@@ -157,7 +161,7 @@ public class EVMAdapter extends AAdapter<AString> {
 	public AString parseAddress(Object obj) throws IllegalArgumentException {
 		if (obj == null) throw new IllegalArgumentException("Null address");
 		if (obj instanceof AString) {
-			// Normalize the AString by parsing it as a string
+			// Normalise the AString by parsing it as a string
 			return parseAddress(obj.toString());
 		}
 		if (obj instanceof ACell) {
@@ -227,9 +231,11 @@ public class EVMAdapter extends AAdapter<AString> {
 		return recoveredAddress.equalsIgnoreCase(pk.toHexString());
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Override
-	public boolean checkTransaction(String address,Blob tx) {
-		AString addr=parseAddress(address);
+	public boolean checkTransaction(String expectedAdress,String tokenID,Blob tx) {
+		AString addr=parseAddress(expectedAdress);
+		AString erc20Contract=parseTokenID(tokenID);
 		
 		try {
 			String txS=tx.toHexString();
@@ -243,12 +249,60 @@ public class EVMAdapter extends AAdapter<AString> {
             }
 			receipt.getBlockNumber();
 			
+			for (org.web3j.protocol.core.methods.response.Log log : receipt.getLogs()) {
+	            // Check if the log is from the expected ERC20 contract
+	            if (!log.getAddress().toLowerCase().equals(erc20Contract.toString())) {
+	                continue;
+	            }
+
+	            // Check if the log corresponds to the Transfer event
+	            if (log.getTopics().get(0).equals(TRANSFER_SIGNATURE)) {
+	                // Decode the indexed parameters (from, to)
+	            	ArrayList<String> topics=new ArrayList<>(log.getTopics());
+	            	ArrayList<Type> indexedTopics=new ArrayList<Type>();
+	            	ArrayList<TypeReference<Type>> params=new ArrayList<>(TRANSFER_EVENT.getIndexedParameters());
+	            	// note the first topic is the event hash, so we can skip it
+	            	for (int i=1; i<topics.size(); i++) {
+	            		Type type=FunctionReturnDecoder.decodeIndexedValue(topics.get(i), params.get(i));
+	            		indexedTopics.add(type);
+	            	}
+	            	
+	                String transferFrom = indexedTopics.get(0).getValue().toString().toLowerCase();
+	                String transferTo = indexedTopics.get(1).getValue().toString().toLowerCase();
+
+	                // Decode the non-indexed parameter (value)
+	                List<Type> nonIndexedValues = FunctionReturnDecoder.decode(
+	                        log.getData(), TRANSFER_EVENT.getNonIndexedParameters());
+	                String value = nonIndexedValues.get(0).getValue().toString();
+
+	                // Validate the Transfer event
+	                if (addr.equals(parseAddress(transferFrom)) && parseAddress(transferTo).equals(getReceiverAddress())) {
+	                    System.out.println("Valid ERC20 Transfer found:");
+	                    System.out.println("  From: " + from);
+	                    System.out.println("  To: " + transferTo);
+	                    System.out.println("  Token Amount: " + value + " (in wei)");
+	                }
+	            }
+	        }
+			
 		} catch (Exception e) {
 			return false;
 		}
 		return false;
 	}
 
+
+	private AString parseTokenID(String tokenID) {
+		if (tokenID.startsWith("erc20:")) {
+			return parseAddress(tokenID.substring(6));
+		}
+		throw new IllegalArgumentException("Invalid CAIP-19 tokenID: "+tokenID);
+	}
+
+	@Override
+	public AString getReceiverAddress() {
+		return RT.getIn(config,Fields.RECEIVER_ADDRESS);
+	}
 
 	@Override
 	public AString parseUserKey(String address) throws IllegalArgumentException {

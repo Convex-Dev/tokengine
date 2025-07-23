@@ -57,7 +57,8 @@ public class Fields {
 	public static final AString KEY = Strings.intern("key");
 
 	public static final AString OPERATOR_ADDRESS = Strings.intern("operatorAddress");
-
+	public static final AString RECEIVER_ADDRESS = Strings.intern("receiverAddress");
+	
 	public static final AString LOG_DIR = Strings.intern("log-dir");
 	
 	public static final AString KEY_DIR = Strings.intern("key-dir");
