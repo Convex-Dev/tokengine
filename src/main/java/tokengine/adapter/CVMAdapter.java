@@ -1,7 +1,6 @@
 package tokengine.adapter;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeoutException;
 
 import org.slf4j.Logger;
@@ -20,8 +19,10 @@ import convex.core.data.Blob;
 import convex.core.data.Strings;
 import convex.core.data.prim.AInteger;
 import convex.core.data.prim.CVMLong;
+import convex.core.exceptions.ParseException;
 import convex.core.lang.RT;
 import convex.core.lang.Reader;
+import tokengine.CAIP19;
 import tokengine.Fields;
 
 public class CVMAdapter extends AAdapter<Address> {
@@ -111,9 +112,9 @@ public class CVMAdapter extends AAdapter<Address> {
 	}
 	
 	@Override
-	public Result payout(String capi19, AInteger quantity, String destAccount) {
+	public Result payout(String caip19, AInteger quantity, String destAccount) {
 		Address addr=parseAddress(destAccount);
-		if (isCVM(capi19)) {
+		if (isCVM(caip19)) {
 			if (!quantity.isLong()) {
 				return Result.error(ErrorCodes.ARGUMENT, "Invalid quantity: "+quantity);
 			}
@@ -125,19 +126,18 @@ public class CVMAdapter extends AAdapter<Address> {
 			}
 			return r;
 		} else {
-			return Result.error(ErrorCodes.TODO, "Asset payout not supported: "+capi19);
+			ACell tokenID=parseTokenID(caip19);
+			Result r;
+			try {
+				r = convex.transactSync("(@convex.asset/transfer "+addr+" [(quote "+tokenID+") "+quantity+"]");
+			} catch (InterruptedException e) {
+				return Result.fromException(e);
+			}
+			return r;
 		}
 	}
 	
-	private ACell parseTokenID(String tokenString) {
-		String decoded=java.net.URLDecoder.decode(tokenString, StandardCharsets.UTF_8);
-		ACell v=Reader.read(decoded);
-		if (v instanceof CVMLong iv) {
-			v=Address.create(iv.longValue());
-		}
-		if (v==null) throw new IllegalArgumentException("null token ID from String [" +decoded+"]");
-		return v;
-	}
+
 	
 	@Override
 	public Address parseAddress(String addr) throws IllegalArgumentException {
@@ -190,6 +190,30 @@ public class CVMAdapter extends AAdapter<Address> {
 	private boolean isCVM(String caip19) {
 		if ("CVM".equals(caip19)) return true;
 		return "slip44:864".equals(caip19);
+	}
+	
+	/**
+	 * Gets the asset ID for a CAD29 token
+	 * @param caip19
+	 * @return
+	 */
+	private ACell parseTokenID(String caip19) {
+		if (isCVM(caip19)) return null;
+		String[] ss=caip19.split(":");
+		if (ss[0].equals("cad29")) try {
+			ACell assetID=Reader.read(CAIP19.urlDecode(ss[1]));
+			if (assetID instanceof CVMLong cvl) {
+				assetID=Address.create(cvl.longValue());
+			}
+			if (assetID==null) {
+				throw new IllegalArgumentException("Invalid CAIP19 asset ID for Convex: "+ss[1]);
+			}
+
+			return assetID;
+		} catch (ParseException | IndexOutOfBoundsException e) {
+			throw new IllegalArgumentException("Invalid CAIP19 asset for Convex: "+caip19,e);
+		}
+		throw new IllegalArgumentException("Only CAD29 assets currently supported on Convex, but CAIP19 code was: "+caip19);
 	}
 
 	public Convex getConvex() {

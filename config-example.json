@@ -18,6 +18,7 @@
 		 	"chainID":"convex:main",          // CAIP19 Chain ID
 			"url":"https://peer.convex.live", // RPC / API endpoint
 			"receiverContract":"#14564",
+			"operatorAddress":"#11",
 			"timeout": "10000" /* Millisecond timeout period */
 		},
 		{

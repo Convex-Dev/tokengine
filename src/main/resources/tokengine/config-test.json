@@ -60,13 +60,13 @@
 		"USDC": {
 			"convex" : {
 				"symbol":"USDC",
-				"assetID":"convex:main:#1234",
+				"assetID":"convex:main/1234",
 				"recieve":true,
 				"payout":true
 			},
 			"sepolia": {
 				"symbol":"USDC",
-				"assetID":"eip155:11155111:0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+				"assetID":"erc20:0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
 				"treasuryID":"0x06eEB4bb0BC58671d097824611F76fe50C5dB075",
 				"recieve":true,
 				"payout":true
@@ -76,13 +76,13 @@
 		"WereCoin": {
 			"convex" : {
 				"symbol":"CWRC",
-				"assetID":"convex:main:#1234",
+				"assetID":"convex:main/1234",
 				"recieve":true,
 				"payout":true
 			},
 			"sepolia": {
 				"symbol":"LWRC",
-				"assetID":"eip155:11155111:0xc62eeb332708f9199d0c6e6f2e76286d79d9311e",
+				"assetID":"erc20:0xc62eeb332708f9199d0c6e6f2e76286d79d9311e",
 				"treasuryID":"0x06eEB4bb0BC58671d097824611F76fe50C5dB075",
 				"recieve":true,
 				"payout":true
@@ -92,13 +92,13 @@
 		"CVM": {
 			"convex" : {
 				"symbol":"CVM",
-				"assetID":"convex:main:#1234",
+				"assetID":"slip44:864",
 				"recieve":true,
 				"payout":true
 			},
 			"sepolia": {
 				"symbol":"CVM",
-				"assetID":"eip155:11155111:0xc62eeb332708f9199d0c6e6f2e76286d79d9311e",
+				"assetID":"erc20:0xc62eeb332708f9199d0c6e6f2e76286d79d9311e",
 				"treasuryID":"0x06eEB4bb0BC58671d097824611F76fe50C5dB075",
 				"recieve":true,
 				"payout":true
