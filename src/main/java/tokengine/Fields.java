@@ -70,4 +70,6 @@ public class Fields {
 	public static final AString LOCAL_CONVEX = Strings.intern("local-convex");
 
 	public static final AString ETCH_FILE = Strings.intern("etch-file");
+
+	public static final AString TEST = Strings.intern("test");
 }

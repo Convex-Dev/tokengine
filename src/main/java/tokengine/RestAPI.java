@@ -154,7 +154,7 @@ public class RestAPI extends ATokengineAPI {
 			AInteger bal=adapter.getBalance(token,address);
 			log.info("Querying balance on network: "+chainID +" token: "+token+" account: "+address + " bal="+bal);
 			prepareResult(ctx,Result.value(bal));
-		} catch (IOException e) {
+		} catch (IOException | IllegalArgumentException | UnsupportedOperationException e) {
 			throw new BadRequestResponse(e.toString());
 		}
 

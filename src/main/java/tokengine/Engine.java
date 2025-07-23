@@ -52,6 +52,7 @@ public class Engine {
 	Server server;
 	EtchStore etch=null;
 	Kafka kafka;
+	boolean testMode=false;
 	
 	final ACell config;	
 	
@@ -88,7 +89,7 @@ public class Engine {
 		AKeyPair kp=AKeyPair.createSeeded(6756);
 		
 		ACell convexConfig=RT.getIn(config, "convex");
-
+		testMode=RT.bool(RT.getIn(config, Fields.OPERATIONS,Fields.TEST));
 
 		Map<Keyword, Object> peerConfig;
 		if (convexConfig==null) {
@@ -149,7 +150,10 @@ public class Engine {
 		} 
 		if ("temp".equals(etchFile.toString())) {
 			etch=EtchStore.createTemp();
-			log.warn("Temp Etch file created: "+etch.getFileName());
+			if (!testMode) {
+				// WARN IF USING A TEMP FILE OUTSIDE TEST MODE
+				log.warn("Temp Etch file created: "+etch.getFileName());
+			}
 		} else {
 			etch=EtchStore.create(FileUtils.getFile(etchFile.toString()));
 		}

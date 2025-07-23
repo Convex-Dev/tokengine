@@ -112,6 +112,9 @@
 		"key-dir": "~/.tokengine/keys",
 
 		/* REST API port */
-		"api-port": 8080
+		"api-port": 8080,
+		
+		/** Test flag. Set to true for testing, false for production mode */
+		"test":false
 	}
 }

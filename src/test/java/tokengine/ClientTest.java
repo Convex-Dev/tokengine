@@ -78,12 +78,22 @@ public class ClientTest {
 	}
 
 	@Test
-	public void testGetBalanceFailsWithFictitiousToken() {
-		CompletableFuture<AInteger> balanceFuture = client.getBalance("convex", "notatoken", "#11");
-		ExecutionException thrown = org.junit.jupiter.api.Assertions.assertThrows(ExecutionException.class, () -> {
-			balanceFuture.get(5000, TimeUnit.MILLISECONDS);
-		});
-		assertNotNull(thrown.getCause());
+	public void testGetBalanceFailsWithFictitiousTokens() {
+		{ // bad token ID format for Convex
+			CompletableFuture<AInteger> balanceFuture = client.getBalance("convex", "notatoken", "#11");
+			ExecutionException thrown = org.junit.jupiter.api.Assertions.assertThrows(ExecutionException.class, () -> {
+				balanceFuture.get(5000, TimeUnit.MILLISECONDS);
+			});
+			assertNotNull(thrown.getCause());
+		}
+		
+		{ // cad29 token ID, but non-existent asset
+			CompletableFuture<AInteger> balanceFuture = client.getBalance("convex", "cad29:9999999", "#11");
+			ExecutionException thrown = org.junit.jupiter.api.Assertions.assertThrows(ExecutionException.class, () -> {
+				balanceFuture.get(5000, TimeUnit.MILLISECONDS);
+			});
+			assertNotNull(thrown.getCause());
+		}
 	}
 	
 	@AfterAll public void shutdown() {

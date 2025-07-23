@@ -57,7 +57,7 @@ public class CVMAdapter extends AAdapter<Address> {
 			try {
 				operatorAddress = parseAddress(opAddrCell.toString());
 			} catch (Exception e) {
-				log.warn("Failed to parse operator-address from config: {}", opAddrCell);
+				log.warn("Failed to parse "+Fields.OPERATOR_ADDRESS+" from config: {}", opAddrCell);
 				operatorAddress = null;
 			}
 		} else {
@@ -102,7 +102,7 @@ public class CVMAdapter extends AAdapter<Address> {
 			}
 		}
 		
-		throw new UnsupportedOperationException("Asset not supported in CVMAdapter: "+capi19);
+		throw new UnsupportedOperationException("Asset type not supported in CVMAdapter: "+capi19);
 	}
 	
 	@Override
