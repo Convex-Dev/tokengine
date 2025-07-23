@@ -57,15 +57,16 @@ public class Client extends ARESTClient {
 	
 	/**
 	 * Gets the balance of a token for a holder
+	 * @param network The DLT network to query. Can be a network alias or a canonical Chain ID e.g. "eip155:11155111"
 	 * @param holder The account address to query
-	 * @param assetId The token/asset identifier
+	 * @param assetId The token/asset identifier in CAIP19 format
 	 * @return Future for the balance as AInteger
 	 */
 	public CompletableFuture<AInteger> getBalance(String network, String assetId, String holder) {
 		// Create the request body structure
 		AMap<AString, ACell> source = Maps.of(
 			Strings.create("account"), Strings.create(holder),
-			Strings.create("network"), Strings.create(network), // Default network, could be parameterized
+			Strings.create("network"), Strings.create(network), // Default network, could be parameterised
 			Strings.create("token"), Strings.create(assetId)
 		);
 		AMap<AString, ACell> requestBody = Maps.of(
@@ -87,7 +88,7 @@ public class Client extends ARESTClient {
 					AMap<AString, ACell> resultMap = (AMap<AString, ACell>) result;
 					ACell value = resultMap.get(Strings.create("value"));
 					if (value instanceof AInteger) {
-						return (AInteger) value;
+						return (AInteger)value;
 					}
 				}
 				throw new ResponseException("Unexpected response format", resp);

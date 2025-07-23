@@ -58,6 +58,33 @@ public class ClientTest {
 		assertNotNull(balance);
 		assertTrue(balance.isPositive(), "Balance should be greater than zero");
 	}
+
+	@Test
+	public void testGetBalanceFailsWithFictitiousNetwork() {
+		CompletableFuture<AInteger> balanceFuture = client.getBalance("notanetwork", "CVM", "#11");
+		ExecutionException thrown = org.junit.jupiter.api.Assertions.assertThrows(ExecutionException.class, () -> {
+			balanceFuture.get(5000, TimeUnit.MILLISECONDS);
+		});
+		assertNotNull(thrown.getCause());
+	}
+
+	@Test
+	public void testGetBalanceFailsWithGarbageAccount() {
+		CompletableFuture<AInteger> balanceFuture = client.getBalance("convex", "CVM", "notanaccount");
+		ExecutionException thrown = org.junit.jupiter.api.Assertions.assertThrows(ExecutionException.class, () -> {
+			balanceFuture.get(5000, TimeUnit.MILLISECONDS);
+		});
+		assertNotNull(thrown.getCause());
+	}
+
+	@Test
+	public void testGetBalanceFailsWithFictitiousToken() {
+		CompletableFuture<AInteger> balanceFuture = client.getBalance("convex", "notatoken", "#11");
+		ExecutionException thrown = org.junit.jupiter.api.Assertions.assertThrows(ExecutionException.class, () -> {
+			balanceFuture.get(5000, TimeUnit.MILLISECONDS);
+		});
+		assertNotNull(thrown.getCause());
+	}
 	
 	@AfterAll public void shutdown() {
 		server.close();
