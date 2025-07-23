@@ -60,7 +60,7 @@
 		"USDC": {
 			"convex" : {
 				"symbol":"USDC",
-				"assetID":"convex:main/1234",
+				"assetID":"cad29:12345",
 				"recieve":true,
 				"payout":true
 			},
@@ -76,7 +76,7 @@
 		"WereCoin": {
 			"convex" : {
 				"symbol":"CWRC",
-				"assetID":"convex:main/1234",
+				"assetID":"cad29:1234",
 				"recieve":true,
 				"payout":true
 			},

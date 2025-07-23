@@ -2,10 +2,14 @@ package tokengine;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.net.URI;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -14,6 +18,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 import convex.core.data.ACell;
+import convex.core.data.prim.AInteger;
 import convex.core.util.ConfigUtils;
 import tokengine.api.Client;
 
@@ -45,6 +50,13 @@ public class ClientTest {
 	@Test public void testConfig() throws InterruptedException, ExecutionException {
 		Future<ACell> r=client.getConfig();
 		assertEquals(engine.getConfig(),r.get());
+	}
+	
+	@Test public void testGetBalance() throws InterruptedException, ExecutionException, TimeoutException {
+		CompletableFuture<AInteger> balanceFuture = client.getBalance("convex", "CVM","#11");
+		AInteger balance = balanceFuture.get(10000, TimeUnit.MILLISECONDS);
+		assertNotNull(balance);
+		assertTrue(balance.isPositive(), "Balance should be greater than zero");
 	}
 	
 	@AfterAll public void shutdown() {

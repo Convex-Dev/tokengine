@@ -133,7 +133,7 @@ public class RestAPI extends ATokengineAPI {
 			log.info("Querying balance on network: "+chainID +" token: "+token+" account: "+address + " bal="+bal);
 			prepareResult(ctx,Result.value(bal));
 		} catch (IOException e) {
-			throw new BadRequestResponse(e.getMessage());
+			throw new BadRequestResponse(e.toString());
 		}
 
 	}

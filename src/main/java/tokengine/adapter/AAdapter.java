@@ -58,7 +58,7 @@ public abstract class AAdapter<AddressType extends ACell> {
 
 	/**
 	 * Gets the balance of the given address account as an Integer
-	 * @return Balance
+	 * @return Balance as an integer, or null if the target address does not exist
 	 */
 	public abstract AInteger getBalance(String asset,String address) throws IOException;
 
