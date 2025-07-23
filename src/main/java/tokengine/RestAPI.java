@@ -105,14 +105,14 @@ public class RestAPI extends ATokengineAPI {
 			methods = HttpMethod.POST, tags = {
 			TOKENGINE_TAG }, summary = "Queries the on-chain balance of a token", operationId = "balance",
 					requestBody = @OpenApiRequestBody(
-							description = "Balance request, must provide a token (CAIP-19) and an address. TokEngine aliases and defined symbols may be used.", 
+							description = "Balance request, must provide a network (alias or CAIP-2 chainID), token (symbol alias or CAIP-19 token ID) and an address. TokEngine aliases and defined symbols may be used.", 
 							content = {@OpenApiContent(
 											from = BalanceRequest.class,  
 											type = "application/json", 
 											exampleObjects = {
 													@OpenApiExampleProperty(name = "source", objects= {
 															@OpenApiExampleProperty(name = "account", value="#11"),
-															@OpenApiExampleProperty(name = "network", value="convex:main"),
+															@OpenApiExampleProperty(name = "network", value="convex"),
 															@OpenApiExampleProperty(name = "token", value="CVM")
 													}) })}
 						)		)
@@ -199,12 +199,12 @@ public class RestAPI extends ATokengineAPI {
 											exampleObjects = {
 													@OpenApiExampleProperty(name = "source", objects= {
 															@OpenApiExampleProperty(name = "account", value="#11"),
-															@OpenApiExampleProperty(name = "network", value="convex:main"),
+															@OpenApiExampleProperty(name = "network", value="convex"),
 															@OpenApiExampleProperty(name = "token", value="CVM")
 													}),
 													@OpenApiExampleProperty(name = "destination", objects= {
 															@OpenApiExampleProperty(name = "account", value="#12"),
-															@OpenApiExampleProperty(name = "network", value="convex:main"),
+															@OpenApiExampleProperty(name = "network", value="convex"),
 															@OpenApiExampleProperty(name = "token", value="WCVM")
 													}),
 													@OpenApiExampleProperty(name = "quantity", value = "1000") })}
