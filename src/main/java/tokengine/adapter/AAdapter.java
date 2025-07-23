@@ -125,7 +125,15 @@ public abstract class AAdapter<AddressType extends ACell> {
 	 */
 	public abstract AddressType getOperatorAddress();
 
-	public abstract boolean checkTransaction(String address, String tokenID, Blob tx) throws IOException;
+	/**
+	 * Check a transaction for valid receipt of a token
+	 * @param address Address of sender of funds
+	 * @param tokenID Token ID in CAIP-19 tokenID format
+	 * @param tx Transaction ID
+	 * @return amount received from the Token transfer, or null if not a valid transaction
+	 * @throws IOException
+	 */
+	public abstract AInteger checkTransaction(String address, String tokenID, Blob tx) throws IOException;
 
 	/**
 	 * Parse a transaction ID, returning a canonical Blob. This should be unique for any distinct transaction

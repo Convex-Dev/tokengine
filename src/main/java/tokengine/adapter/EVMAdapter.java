@@ -39,6 +39,7 @@ import convex.core.data.Blob;
 import convex.core.data.Hash;
 import convex.core.data.Strings;
 import convex.core.data.prim.AInteger;
+import convex.core.data.prim.CVMLong;
 import convex.core.lang.RT;
 import convex.core.util.FileUtils;
 import tokengine.Fields;
@@ -233,61 +234,62 @@ public class EVMAdapter extends AAdapter<AString> {
 
 	@SuppressWarnings("rawtypes")
 	@Override
-	public boolean checkTransaction(String expectedAdress,String tokenID,Blob tx) throws IOException {
+	public AInteger checkTransaction(String expectedAdress,String tokenID,Blob tx) throws IOException {
 		AString addr=parseAddress(expectedAdress);
 		AString erc20Contract=parseTokenID(tokenID);
 		
-		 {
-			String txS="0x"+tx.toHexString(); // 0x needed in transaction hash for RPC
-			TransactionReceipt receipt = getWeb3().ethGetTransactionReceipt(txS).send().getTransactionReceipt().orElse(null);
-			// String status=receipt.getStatus();
-			// if (status.equals("0x1")) return true;
-			AString from = parseAddress(receipt.getFrom());
-			if (!addr.equals(from)) throw new IllegalArgumentException("Expected address "+addr+" but transaction was from "+from);
-			if (!receipt.isStatusOK()) {
-                return false;
+		String txS="0x"+tx.toHexString(); // 0x needed in transaction hash for RPC
+		TransactionReceipt receipt = getWeb3().ethGetTransactionReceipt(txS).send().getTransactionReceipt().orElse(null);
+		// String status=receipt.getStatus();
+		// if (status.equals("0x1")) return true;
+		AString from = parseAddress(receipt.getFrom());
+		if (!addr.equals(from)) throw new IllegalArgumentException("Expected address "+addr+" but transaction was from "+from);
+		if (!receipt.isStatusOK()) {
+            return null;
+        }
+		System.out.println(receipt);
+		
+		AInteger received=CVMLong.ZERO;
+		for (org.web3j.protocol.core.methods.response.Log log : receipt.getLogs()) {
+            // System.out.println(log);
+            if (!log.getAddress().toLowerCase().equals("0x"+erc20Contract.toString())) {
+                continue;
             }
-			System.out.println(receipt);
-			
-			for (org.web3j.protocol.core.methods.response.Log log : receipt.getLogs()) {
-	            // System.out.println(log);
-	            if (!log.getAddress().toLowerCase().equals("0x"+erc20Contract.toString())) {
-	                continue;
-	            }
 
-	            // Check if the log corresponds to the Transfer event
-	            if (log.getTopics().get(0).equals(TRANSFER_SIGNATURE)) {
-	                // Decode the indexed parameters (from, to)
-	            	ArrayList<String> topics=new ArrayList<>(log.getTopics());
-	            	ArrayList<Type> indexedTopics=new ArrayList<Type>();
-	            	ArrayList<TypeReference<Type>> params=new ArrayList<>(TRANSFER_EVENT.getIndexedParameters());
-	            	// note the first topic is the event hash, so we can skip it
-	            	for (int i=0; i<params.size(); i++) {
-	            		Type type=FunctionReturnDecoder.decodeIndexedValue(topics.get(i+1), params.get(i));
-	            		indexedTopics.add(type);
-	            	}
-	            	
-	                String transferFrom = indexedTopics.get(0).getValue().toString().toLowerCase();
-	                String transferTo = indexedTopics.get(1).getValue().toString().toLowerCase();
+            // Check if the log corresponds to the Transfer event
+            if (log.getTopics().get(0).equals(TRANSFER_SIGNATURE)) {
+                // Decode the indexed parameters (from, to)
+            	ArrayList<String> topics=new ArrayList<>(log.getTopics());
+            	ArrayList<Type> indexedTopics=new ArrayList<Type>();
+            	ArrayList<TypeReference<Type>> params=new ArrayList<>(TRANSFER_EVENT.getIndexedParameters());
+            	// note the first topic is the event hash, so we can skip it
+            	for (int i=0; i<params.size(); i++) {
+            		Type type=FunctionReturnDecoder.decodeIndexedValue(topics.get(i+1), params.get(i));
+            		indexedTopics.add(type);
+            	}
+            	
+                String transferFrom = indexedTopics.get(0).getValue().toString().toLowerCase();
+                String transferTo = indexedTopics.get(1).getValue().toString().toLowerCase();
 
-	                // Decode the non-indexed parameter (value)
-	                List<Type> nonIndexedValues = FunctionReturnDecoder.decode(
-	                        log.getData(), TRANSFER_EVENT.getNonIndexedParameters());
-	                String value = nonIndexedValues.get(0).getValue().toString();
-	                System.out.println("Found value in Transfer: "+value);
+                // Decode the non-indexed parameter (value)
+                List<Type> nonIndexedValues = FunctionReturnDecoder.decode(
+                        log.getData(), TRANSFER_EVENT.getNonIndexedParameters());
+                String value = nonIndexedValues.get(0).getValue().toString();
 
-	                // Validate the Transfer event
-	                if (addr.equals(parseAddress(transferFrom)) && parseAddress(transferTo).equals(getReceiverAddress())) {
-	                    System.out.println("Valid ERC20 Transfer found:");
-	                    System.out.println("  From: " + from);
-	                    System.out.println("  To: " + transferTo);
-	                    System.out.println("  Token Amount: " + value + " (in wei)");
-	                }
-	            }
-	        }
-			
-		} 
-		return false;
+                // Validate the Transfer event
+                if (addr.equals(parseAddress(transferFrom)) && parseAddress(transferTo).equals(getReceiverAddress())) {
+                    AInteger rec=AInteger.parse(value);
+                    if (!rec.isNatural()) throw new IllegalStateException("Negative transfer found in transaction");
+                    received=received.add(rec);
+//                    System.out.println("Valid ERC20 Transfer found:");
+//                    System.out.println("  From: " + from);
+//                    System.out.println("  To: " + transferTo);
+//                    System.out.println("  Token Amount: " + value + " (in wei)");
+                }
+            }
+        }
+		
+		return received;
 	}
 
 

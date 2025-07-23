@@ -308,8 +308,8 @@ public class Engine {
 		AString tx=RT.ensureString(RT.getIn(depositProof, Fields.TX));
 		Blob txID=adapter.parseTransactionID(tx);
 		if (txID==null) throw new IllegalArgumentException("Unable to parse transaction ID: "+tx);
-		boolean ok=adapter.checkTransaction(address,token,txID); 
-		return ok;
+		AInteger received=adapter.checkTransaction(address,token,txID); 
+		return false;
 	}
 	
 	/**

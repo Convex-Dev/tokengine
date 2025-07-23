@@ -252,9 +252,9 @@ public class CVMAdapter extends AAdapter<Address> {
 	}
 
 	@Override
-	public boolean checkTransaction(String address, String tokenID, Blob tx) {
+	public AInteger checkTransaction(String address, String tokenID, Blob tx) {
 		log.warn("CVM transaction not checked: "+tx);
-		return false;
+		return null;
 	}
 
 	@Override
