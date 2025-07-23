@@ -28,6 +28,7 @@ import io.javalin.openapi.OpenApi;
 import io.javalin.openapi.OpenApiContent;
 import io.javalin.openapi.OpenApiExampleProperty;
 import io.javalin.openapi.OpenApiRequestBody;
+import io.javalin.openapi.OpenApiResponse;
 import tokengine.adapter.AAdapter;
 import tokengine.model.BalanceRequest;
 import tokengine.model.DepositRequest;
@@ -300,8 +301,14 @@ public class RestAPI extends ATokengineAPI {
 													@OpenApiExampleProperty(name = "msg", value="\u0019Ethereum Signed Message:\nHello"),
 													@OpenApiExampleProperty(name = "sig", value="0xdd48188b1647010d908e9fed4b6726cebd0d65e20f412b8b9ff4868386f05b0a28a9c0e35885c95e2322c2c670743edd07b0e1450ae65c3f6708b61bb3e582371c")
 											}) 
-									})}
-				))
+									})}),
+			responses = {
+					@OpenApiResponse(
+							status = "200", 
+							description = "Deposit accepted"),
+					@OpenApiResponse(
+							status = "402", 
+							description = "Deposit not accepted, payment required")})
 	protected void postDeposit(Context ctx) {
 		AMap<AString,ACell> req = parseRequest(ctx);
 		AMap<AString,ACell> src = RT.ensureMap(req.get(Strings.create("source")));

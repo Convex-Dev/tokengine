@@ -6,6 +6,7 @@ import convex.core.Result;
 import convex.core.data.ACell;
 import convex.core.data.AMap;
 import convex.core.data.AString;
+import convex.core.data.Blob;
 import convex.core.data.prim.AInteger;
 import convex.core.lang.RT;
 import convex.core.util.Utils;
@@ -124,7 +125,15 @@ public abstract class AAdapter<AddressType extends ACell> {
 	 */
 	public abstract AddressType getOperatorAddress();
 
-	public abstract boolean checkTransaction(String address, AString tx);
+	public abstract boolean checkTransaction(String address, Blob tx);
+
+	/**
+	 * Parse a transaction ID, returning a Blob
+	 * @param tx Transaction ID as a string
+	 * @return Blob containing transaction ID, or null if not valid
+	 */
+	public abstract Blob parseTransactionID(AString tx);
+
 
 
 

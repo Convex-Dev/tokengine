@@ -228,11 +228,11 @@ public class EVMAdapter extends AAdapter<AString> {
 	}
 
 	@Override
-	public boolean checkTransaction(String address,AString tx) {
+	public boolean checkTransaction(String address,Blob tx) {
 		AString addr=parseAddress(address);
 		
 		try {
-			String txS=tx.toString();
+			String txS=tx.toHexString();
 			TransactionReceipt receipt = web3.ethGetTransactionReceipt(txS).send().getTransactionReceipt().orElse(null);
 			// String status=receipt.getStatus();
 			// if (status.equals("0x1")) return true;
@@ -332,7 +332,12 @@ public class EVMAdapter extends AAdapter<AString> {
 		return new ArrayList<>(loadedWallets);
 	}
 
-	
+	@Override
+	public Blob parseTransactionID(AString tx) {
+		Blob b=Blob.parse(tx.toString());
+		if (b.count()!=32) return null;
+		return b;
+	}
 }
 
 

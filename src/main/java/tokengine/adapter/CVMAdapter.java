@@ -252,9 +252,16 @@ public class CVMAdapter extends AAdapter<Address> {
 	}
 
 	@Override
-	public boolean checkTransaction(String address, AString tx) {
+	public boolean checkTransaction(String address, Blob tx) {
 		log.warn("CVM transaction not checked: "+tx);
 		return false;
+	}
+
+	@Override
+	public Blob parseTransactionID(AString tx) {
+		Blob b=Blob.parse(tx.toString());
+		if (b.count()!=32) return null;
+		return b;
 	}
 
 

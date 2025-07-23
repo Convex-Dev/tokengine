@@ -22,6 +22,7 @@ import convex.core.data.ACell;
 import convex.core.data.AMap;
 import convex.core.data.AString;
 import convex.core.data.AVector;
+import convex.core.data.Blob;
 import convex.core.data.Keyword;
 import convex.core.data.Maps;
 import convex.core.data.Strings;
@@ -305,7 +306,9 @@ public class Engine {
 	public boolean makeDeposit(AAdapter<?> adapter, String token, String address, AMap<AString,ACell> depositProof) {
 		// Check transaction is Valid: TODO: confirm fields
 		AString tx=RT.ensureString(RT.getIn(depositProof, Fields.TX));
-		boolean ok=adapter.checkTransaction(address,tx);
+		Blob txID=adapter.parseTransactionID(tx);
+		if (txID==null) throw new IllegalArgumentException("Unable to parse transaction ID: "+tx);
+		boolean ok=adapter.checkTransaction(address,txID); 
 		return ok;
 	}
 	
