@@ -85,6 +85,7 @@ public class Client extends ARESTClient {
 				ACell result = JSONUtils.parse(resp.getBodyText());
 				// The API returns a Result.value(balance), so we need to extract the AInteger
 				if (result instanceof AMap) {
+					@SuppressWarnings("unchecked")
 					AMap<AString, ACell> resultMap = (AMap<AString, ACell>) result;
 					ACell value = resultMap.get(Strings.create("value"));
 					if (value instanceof AInteger) {

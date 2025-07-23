@@ -108,7 +108,7 @@ public class EVMAdapter extends AAdapter<AString> {
 	@Override 
 	public AInteger getBalance(String asset, String address) throws IOException {
 		if (isEth(asset)) {
-			EthGetBalance balanceResponse = web3.ethGetBalance(address, DefaultBlockParameterName.LATEST).send(); 
+			EthGetBalance balanceResponse = getWeb3().ethGetBalance(address, DefaultBlockParameterName.LATEST).send(); 
 			if (balanceResponse.hasError()) {
 				throw new IllegalStateException("Can't get ETH balance");
 			} else {
@@ -120,7 +120,7 @@ public class EVMAdapter extends AAdapter<AString> {
 			
 			Credentials cred=Credentials.create("0x0", address);
 			
-			ERC20 contract = ERC20.load(contractAddress, web3, cred, new DefaultGasProvider());
+			ERC20 contract = ERC20.load(contractAddress, getWeb3(), cred, new DefaultGasProvider());
 			try {
 				BigInteger bi=contract.balanceOf(address).send();
 				return AInteger.create(bi);
@@ -233,25 +233,25 @@ public class EVMAdapter extends AAdapter<AString> {
 
 	@SuppressWarnings("rawtypes")
 	@Override
-	public boolean checkTransaction(String expectedAdress,String tokenID,Blob tx) {
+	public boolean checkTransaction(String expectedAdress,String tokenID,Blob tx) throws IOException {
 		AString addr=parseAddress(expectedAdress);
 		AString erc20Contract=parseTokenID(tokenID);
 		
-		try {
-			String txS=tx.toHexString();
-			TransactionReceipt receipt = web3.ethGetTransactionReceipt(txS).send().getTransactionReceipt().orElse(null);
+		 {
+			String txS="0x"+tx.toHexString(); // 0x needed in transaction hash for RPC
+			TransactionReceipt receipt = getWeb3().ethGetTransactionReceipt(txS).send().getTransactionReceipt().orElse(null);
 			// String status=receipt.getStatus();
 			// if (status.equals("0x1")) return true;
 			AString from = parseAddress(receipt.getFrom());
 			if (!addr.equals(from)) throw new IllegalArgumentException("Expected address "+addr+" but transaction was from "+from);
-			if (receipt.isStatusOK()) {
-                return true;
+			if (!receipt.isStatusOK()) {
+                return false;
             }
-			receipt.getBlockNumber();
+			System.out.println(receipt);
 			
 			for (org.web3j.protocol.core.methods.response.Log log : receipt.getLogs()) {
-	            // Check if the log is from the expected ERC20 contract
-	            if (!log.getAddress().toLowerCase().equals(erc20Contract.toString())) {
+	            // System.out.println(log);
+	            if (!log.getAddress().toLowerCase().equals("0x"+erc20Contract.toString())) {
 	                continue;
 	            }
 
@@ -262,8 +262,8 @@ public class EVMAdapter extends AAdapter<AString> {
 	            	ArrayList<Type> indexedTopics=new ArrayList<Type>();
 	            	ArrayList<TypeReference<Type>> params=new ArrayList<>(TRANSFER_EVENT.getIndexedParameters());
 	            	// note the first topic is the event hash, so we can skip it
-	            	for (int i=1; i<topics.size(); i++) {
-	            		Type type=FunctionReturnDecoder.decodeIndexedValue(topics.get(i), params.get(i));
+	            	for (int i=0; i<params.size(); i++) {
+	            		Type type=FunctionReturnDecoder.decodeIndexedValue(topics.get(i+1), params.get(i));
 	            		indexedTopics.add(type);
 	            	}
 	            	
@@ -274,6 +274,7 @@ public class EVMAdapter extends AAdapter<AString> {
 	                List<Type> nonIndexedValues = FunctionReturnDecoder.decode(
 	                        log.getData(), TRANSFER_EVENT.getNonIndexedParameters());
 	                String value = nonIndexedValues.get(0).getValue().toString();
+	                System.out.println("Found value in Transfer: "+value);
 
 	                // Validate the Transfer event
 	                if (addr.equals(parseAddress(transferFrom)) && parseAddress(transferTo).equals(getReceiverAddress())) {
@@ -285,14 +286,13 @@ public class EVMAdapter extends AAdapter<AString> {
 	            }
 	        }
 			
-		} catch (Exception e) {
-			return false;
-		}
+		} 
 		return false;
 	}
 
 
 	private AString parseTokenID(String tokenID) {
+		tokenID=tokenID.toLowerCase();
 		if (tokenID.startsWith("erc20:")) {
 			return parseAddress(tokenID.substring(6));
 		}
@@ -391,6 +391,14 @@ public class EVMAdapter extends AAdapter<AString> {
 		Blob b=Blob.parse(tx.toString());
 		if (b.count()!=32) return null;
 		return b;
+	}
+
+
+	/**
+	 * @return the web3
+	 */
+	public Web3j getWeb3() {
+		return web3;
 	}
 }
 

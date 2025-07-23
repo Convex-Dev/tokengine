@@ -125,7 +125,7 @@ public abstract class AAdapter<AddressType extends ACell> {
 	 */
 	public abstract AddressType getOperatorAddress();
 
-	public abstract boolean checkTransaction(String address, String tokenID, Blob tx);
+	public abstract boolean checkTransaction(String address, String tokenID, Blob tx) throws IOException;
 
 	/**
 	 * Parse a transaction ID, returning a canonical Blob. This should be unique for any distinct transaction

@@ -10,20 +10,22 @@ import java.math.BigInteger;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
-import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.web3j.abi.EventEncoder;
 import org.web3j.abi.TypeReference;
-import org.web3j.abi.datatypes.*;
+import org.web3j.abi.datatypes.Address;
+import org.web3j.abi.datatypes.Event;
+import org.web3j.abi.datatypes.Int;
+import org.web3j.crypto.CipherException;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.crypto.Keys;
 import org.web3j.crypto.Sign;
 import org.web3j.crypto.WalletUtils;
-import org.web3j.crypto.CipherException;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.request.EthFilter;
@@ -33,28 +35,48 @@ import org.web3j.utils.Numeric;
 
 import convex.core.crypto.Hashing;
 import convex.core.crypto.InsecureRandom;
-import convex.core.data.Maps;
-import tokengine.adapter.EVMAdapter;
 import convex.core.data.ACell;
 import convex.core.data.AMap;
 import convex.core.data.AString;
+import convex.core.data.Blob;
+import convex.core.data.Maps;
+import tokengine.adapter.EVMAdapter;
 
 public class EVMTest {
 
-    static String nodeUrl = "https://sepolia.drpc.org";
+    static String RPC_NODE_URL = "https://sepolia.drpc.org";
 	
+	@SuppressWarnings("unused")
 	public static void main(String[] args) throws IOException {
-        Web3j web3j = Web3j.build(new HttpService(nodeUrl));
-        
-        
-        String txHash = "0x9d3a3663d32b9ff5cf2d393e433b7b31489d13b398133a35c4bb6e2085bd8e83"; // Replace with your transaction hash
-        TransactionReceipt receipt = web3j.ethGetTransactionReceipt(txHash).send().getTransactionReceipt().orElse(null);
-        
-        System.out.println(receipt);
+		try {
+			AMap<AString, ACell> testConfig = Maps.of(
+					Fields.CHAIN_ID, "eip155:11155111",
+					Fields.URL,RPC_NODE_URL,
+					Fields.OPERATIONS, Maps.of("key-dir", "~/.tokengine/test-keys"),
+					Fields.RECEIVER_ADDRESS, "0x5fbe74a283f7954f10aa04c2edf55578811aeb03"
+			);
+				
+				// Create EVMAdapter instance
+			EVMAdapter adapter = EVMAdapter.build(testConfig);
+			adapter.start();
+	        String txHash = "0x9d3a3663d32b9ff5cf2d393e433b7b31489d13b398133a35c4bb6e2085bd8e83"; // Replace with your transaction hash
+	        
+	        // Web3j web3j = adapter.getWeb3();
+	        // TransactionReceipt receipt = web3j.ethGetTransactionReceipt(txHash).send().getTransactionReceipt().orElse(null);
+	        TransactionReceipt receipt=null;
+	        //System.out.println(receipt);
+	        
+	        System.out.println(EVMAdapter.TRANSFER_SIGNATURE);
+	        Blob txID=Blob.parse(txHash);
+	        Object r=adapter.checkTransaction("0xa72018ba06475aca284ed98ab0ce0e07878521a3", "erc20:0x1c7d4b196cb0c7b01d743fbc6116a902379c7238", txID);
+	        System.out.println(r);
+		} finally {
+			System.exit(0);
+		}
 	}
 	
 	public static void temp() {
-        Web3j web3j = Web3j.build(new HttpService(nodeUrl));
+        Web3j web3j = Web3j.build(new HttpService(RPC_NODE_URL));
         
         // Token contract address
         String contractAddress = "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238"; // Replace with token contract address
@@ -180,7 +202,7 @@ public class EVMTest {
 		// Create a test config with key-dir
 		AMap<AString, ACell> testConfig = Maps.of(
 			Fields.CHAIN_ID, "eip155:11155111",
-			Fields.URL,"https://sepolia.drpc.org",
+			Fields.URL,RPC_NODE_URL,
 			Fields.OPERATIONS, Maps.of("key-dir", "~/.tokengine/test-keys")
 		);
 		

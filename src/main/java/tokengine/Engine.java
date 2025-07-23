@@ -303,7 +303,7 @@ public class Engine {
 		return status;
 	}
 
-	public boolean makeDeposit(AAdapter<?> adapter, String token, String address, AMap<AString,ACell> depositProof) {
+	public boolean makeDeposit(AAdapter<?> adapter, String token, String address, AMap<AString,ACell> depositProof) throws IOException {
 		// Check transaction is Valid: TODO: confirm fields
 		AString tx=RT.ensureString(RT.getIn(depositProof, Fields.TX));
 		Blob txID=adapter.parseTransactionID(tx);
