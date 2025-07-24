@@ -19,8 +19,9 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 import convex.core.data.ACell;
-import convex.core.util.JSONUtils;
-import convex.core.util.Utils;
+import convex.core.data.AMap;
+import convex.core.data.AString;
+import convex.core.util.ConfigUtils;
 import convex.java.HTTPClients;
 
 /**
@@ -36,7 +37,7 @@ public class APITest {
 
 	@BeforeAll
 	public void setupServer() throws Exception {
-		ACell config=JSONUtils.parseJSON5(Utils.readResourceAsString("/tokengine/config-test.json"));
+		AMap<AString,ACell> config=ConfigUtils.readConfig(APITest.class.getResourceAsStream("/tokengine/config-test.json"));
 		engine=new Engine(config);
 		engine.start();
 		venueServer=APIServer.create(engine);

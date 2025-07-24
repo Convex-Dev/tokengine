@@ -11,6 +11,7 @@ import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.joran.spi.JoranException;
 import convex.core.data.ACell;
+import convex.core.data.AMap;
 import convex.core.data.AString;
 import convex.core.lang.RT;
 import convex.core.util.ConfigUtils;
@@ -25,7 +26,7 @@ public class TokengineMain {
 		try {
 			// File path for config file
 			String cpath=(args.length==0)?"~/.tokengine/config.json":args[0];
-			ACell config = loadConfig(cpath);
+			AMap<AString,ACell> config = loadConfig(cpath);
 			if ((config==null)) {
 				if (args.length>0) {
 					log.error("Config file does not exist: "+cpath);
@@ -98,8 +99,8 @@ public class TokengineMain {
 	 * @return Config value or null if file does not exist
 	 * @throws IOException
 	 */
-	private static ACell loadConfig(String cpath) throws IOException {
-		ACell config;
+	private static AMap<AString, ACell> loadConfig(String cpath) throws IOException {
+		AMap<AString, ACell> config;
 		try {
 			config=ConfigUtils.readConfigFile(cpath);
 		} catch (FileNotFoundException ex) {

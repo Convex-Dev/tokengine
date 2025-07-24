@@ -32,6 +32,7 @@ import convex.core.lang.RT;
 import convex.core.lang.Reader;
 import convex.core.util.FileUtils;
 import convex.core.util.JSONUtils;
+import convex.core.util.Utils;
 import convex.etch.EtchStore;
 import convex.lattice.ACursor;
 import convex.lattice.Cursors;
@@ -63,12 +64,17 @@ public class Engine {
 	Kafka kafka;
 	boolean testMode=false;
 	
-	final ACell config;	
+	final AMap<AString,ACell> config;	
 	
 	/**
 	 * Root lattice cursor
 	 */
 	ACursor<ACell> latticeCursor;
+	
+	/**
+	 * Tokens
+	 */
+	AMap<AString,AMap<AString,ACell>> tokens=Maps.empty();
 	
 	/**
 	 * stateCursor tracks the tokengine state, stored in the TokEngine etch
@@ -77,7 +83,7 @@ public class Engine {
 	
 	protected final Map<AString,AAdapter<?>> adapters=new HashMap<>();
 	
-	public Engine(ACell config)  {
+	public Engine(AMap<AString,ACell> config)  {
 		this.config=config;
 		this.latticeCursor=Cursors.of(null);
 		this.stateCursor=latticeCursor.path(Keywords.APP, Fields.TOKENGINE);
@@ -89,12 +95,28 @@ public class Engine {
 		
 		startEtch(); // open Etch db and load lattice cursor
 		
+		loadTokens();
+		
 		startConvexPeer();
 		
 		configureAdapters();
 		startAdapters();
 		
 		configureAuditService();
+	}
+
+	private void loadTokens() {
+		AVector<AMap<AString,ACell>> configTokens=RT.ensureVector(config.get(Fields.TOKENS));
+		if (configTokens==null) {
+			log.warn("No tokens configured. Tokengine not allow any transfers.");
+		}
+		int n=configTokens.size();
+		for (int i=0; i<n; i++) {
+			AMap<AString,ACell> token=configTokens.get(i);
+			AString alias=RT.ensureString(token.get(Fields.ALIAS));
+			if (alias==null) throw new IllegalArgumentException("Token in config did not specify an alias: "+token);
+			tokens=tokens.assoc(alias,token);
+		}
 	}
 
 	@SuppressWarnings("unchecked")
@@ -306,7 +328,7 @@ public class Engine {
 		return config;
 	} 
 
-	public static Engine launch(ACell config) throws Exception {
+	public static Engine launch(AMap<AString, ACell> config) throws Exception {
 		Engine engine=new Engine(config);
 		engine.start();
 		return engine;

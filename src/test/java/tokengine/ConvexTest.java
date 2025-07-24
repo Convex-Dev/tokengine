@@ -14,10 +14,11 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 import convex.core.crypto.AKeyPair;
 import convex.core.crypto.ASignature;
 import convex.core.data.ACell;
+import convex.core.data.AMap;
+import convex.core.data.AString;
 import convex.core.data.AccountKey;
 import convex.core.data.Blob;
-import convex.core.json.JSON5Reader;
-import convex.core.util.Utils;
+import convex.core.util.ConfigUtils;
 import tokengine.adapter.CVMAdapter;
 
 @TestInstance(Lifecycle.PER_CLASS)
@@ -28,7 +29,7 @@ public class ConvexTest {
 	@BeforeAll
 	public void setup() throws Exception {
 		String resourcePath="/tokengine/config-test.json";
-		ACell config=JSON5Reader.read(Utils.getResourceAsStream(resourcePath));
+		AMap<AString,ACell> config=ConfigUtils.readConfig(ConvexTest.class.getResourceAsStream(resourcePath));
 		engine = Engine.launch(config); // default config
 
 	}

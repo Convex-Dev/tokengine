@@ -145,7 +145,8 @@ public abstract class AAdapter<AddressType extends ACell> {
 	public abstract AInteger checkTransaction(String address, String tokenID, Blob tx) throws IOException;
 
 	/**
-	 * Parse a transaction ID, returning a canonical Blob. This should be unique for any distinct transaction
+	 * Parse a transaction ID, returning a canonical Blob. This should be unique for any distinct valid transaction
+	 * on any given DLT
 	 * @param tx Transaction ID as a string
 	 * @return Blob containing transaction ID, or null if not valid
 	 */

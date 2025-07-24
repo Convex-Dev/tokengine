@@ -13,6 +13,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 import convex.core.data.ACell;
+import convex.core.data.AMap;
 import convex.core.data.AString;
 import convex.core.data.Maps;
 import convex.core.data.prim.*;
@@ -31,7 +32,7 @@ public class EngineTest {
 	Engine engine=null;
 	
 	@BeforeAll public void setup() throws Exception {
-		ACell config=ConfigUtils.readConfig(EngineTest.class.getResourceAsStream("/tokengine/config-test.json"));
+		AMap<AString,ACell> config=ConfigUtils.readConfig(EngineTest.class.getResourceAsStream("/tokengine/config-test.json"));
 		if (config==null) throw new IllegalStateException("Can't have null config for tests");
 		engine = Engine.launch(config); // default config
 	}

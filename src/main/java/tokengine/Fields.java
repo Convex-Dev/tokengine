@@ -79,5 +79,7 @@ public class Fields {
 
 	public static final AString DEPOSIT = Strings.intern("deposit");
 
+	public static final AString TOKENS =  Strings.intern("tokens");
+
 
 }

@@ -18,6 +18,8 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 import convex.core.data.ACell;
+import convex.core.data.AMap;
+import convex.core.data.AString;
 import convex.core.data.prim.AInteger;
 import convex.core.util.ConfigUtils;
 import tokengine.client.Client;
@@ -31,7 +33,7 @@ public class ClientTest {
 	Client client=null;
 	
 	@BeforeAll public void setup() throws Exception {
-		ACell config=ConfigUtils.readConfig(EngineTest.class.getResourceAsStream("/tokengine/config-test.json"));
+		AMap<AString,ACell> config=ConfigUtils.readConfig(EngineTest.class.getResourceAsStream("/tokengine/config-test.json"));
 		if (config==null) throw new IllegalStateException("Can't have null config for tests");
 		engine = Engine.launch(config); // default config
 		
