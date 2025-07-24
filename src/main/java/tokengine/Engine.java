@@ -22,6 +22,7 @@ import convex.core.data.AString;
 import convex.core.data.AVector;
 import convex.core.data.Blob;
 import convex.core.data.Keyword;
+import convex.core.data.MapEntry;
 import convex.core.data.Maps;
 import convex.core.data.Strings;
 import convex.core.data.Vectors;
@@ -32,7 +33,6 @@ import convex.core.lang.RT;
 import convex.core.lang.Reader;
 import convex.core.util.FileUtils;
 import convex.core.util.JSONUtils;
-import convex.core.util.Utils;
 import convex.etch.EtchStore;
 import convex.lattice.ACursor;
 import convex.lattice.Cursors;
@@ -81,6 +81,7 @@ public class Engine {
 	 */
 	ACursor<AMap<AString,ACell>> stateCursor;
 	
+	/** Map of network aliases to adapters instance */
 	protected final Map<AString,AAdapter<?>> adapters=new HashMap<>();
 	
 	public Engine(AMap<AString,ACell> config)  {
@@ -91,24 +92,22 @@ public class Engine {
 	}
 
 	public synchronized void start() throws Exception {
-		close();
-		
+		close(); // ensure everything empty / unconfigured
 		startEtch(); // open Etch db and load lattice cursor
-		
-		loadTokens();
-		
-		startConvexPeer();
+		startConvexPeer();	
 		
 		configureAdapters();
-		startAdapters();
+		loadTokens(); // load tokens and transfer maps once adapters are started
 		
+		startAdapters();	
 		configureAuditService();
 	}
 
 	private void loadTokens() {
 		AVector<AMap<AString,ACell>> configTokens=RT.ensureVector(config.get(Fields.TOKENS));
 		if (configTokens==null) {
-			log.warn("No tokens configured. Tokengine not allow any transfers.");
+			log.warn("No 'tokens' configured in config: should be an array of token info maps. Tokengine will not allow any transfers.");
+			return;
 		}
 		int n=configTokens.size();
 		for (int i=0; i<n; i++) {
@@ -117,6 +116,45 @@ public class Engine {
 			if (alias==null) throw new IllegalArgumentException("Token in config did not specify an alias: "+token);
 			tokens=tokens.assoc(alias,token);
 		}
+		
+		AMap<AString,AMap<AString,ACell>> configTransfers=RT.ensureMap(config.get(Fields.TRANSFERS));
+		if (configTransfers==null) {
+			log.warn("No 'tranfsers' in config: should be an array of transfer maps. Tokengine will not allow any transfers.");
+			return;
+		}
+		
+		int tn=configTransfers.size();
+		if (n!=tn) log.warn("Number of 'tranfers' doesnot equal the number of 'tokens'. This is probably a mistake?");
+		for (int i=0; i<n; i++) {
+			MapEntry<AString, AMap<AString, ACell>> transfer=configTransfers.get(i);
+			AString tokenAlias=transfer.getKey();
+			
+			if (tokens.containsKey(tokenAlias)) {
+				AMap<AString, ACell> tnets=transfer.getValue();
+				int tcount=tnets.size();
+				for (int j=0; j<tcount; j++) {
+					MapEntry<AString,ACell> me=tnets.get(j);
+					AString netAlias=RT.ensureString(me.getKey());
+					AString chainID=lookupChainID(netAlias);
+					if (chainID==null) {
+						log.warn("Could not find network '"+netAlias+"' for token '"+tokenAlias+"', transfer mapping wil be ignored in "+me);
+						continue;
+					}
+				}
+			} else {
+				log.warn("Transfers configured for non-existent token alias '"+tokenAlias+"', these will be ignored.");
+			}
+		}
+
+	}
+
+	AString lookupChainID(AString networkAlias) {
+		for (Map.Entry<AString, AAdapter<?>> me: adapters.entrySet()) {
+			AAdapter<?> adapter=me.getValue();
+			if (adapter.getAliasField().equals(networkAlias)) return adapter.getChainID();
+			if (adapter.getChainID().equals(networkAlias)) return networkAlias;
+		}
+		return null;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -244,8 +282,8 @@ public class Engine {
 	 * @param chainID or alias
 	 * @return Adapter, or null if not defined
 	 */
-	public AAdapter<?> getAdapter(String chainID) {
-		AString id=Strings.create(chainID);
+	public AAdapter<?> getAdapter(AString chainID) {
+		AString id=chainID;
 		AAdapter<?> ad= adapters.get(id);
 		if (ad != null) return ad;
 		
@@ -259,7 +297,7 @@ public class Engine {
 		return null;
 	}
 	
-	public AInteger getBalance(String acct, String chainID, String token) throws IOException {
+	public AInteger getBalance(String acct, AString chainID, String token) throws IOException {
 		AAdapter<?> ad=getAdapter(chainID);
 		if (ad==null) throw new IllegalStateException("Chain ID not valid: "+chainID);
 		return ad.getBalance(token, acct);

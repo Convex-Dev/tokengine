@@ -147,16 +147,15 @@ public class RestAPI extends ATokengineAPI {
 		AMap<AString,ACell> src = RT.ensureMap(req.get(Fields.SOURCE));
 		if (src==null) throw new BadRequestResponse("Expected 'source' object specifying token");
 		
-		ACell network=src.get(Fields.NETWORK);
+		AString network=RT.ensureString(src.get(Fields.NETWORK));
 		if (network==null) throw new BadRequestResponse("Expected 'network' property for source");
-		String chainID=RT.str(network).toString();
-		AAdapter<?> adapter=engine.getAdapter(chainID);
-		if (adapter==null) throw new BadRequestResponse("Can't find network: "+chainID);
+		AAdapter<?> adapter=engine.getAdapter(network);
+		if (adapter==null) throw new BadRequestResponse("Can't find network: "+network);
 		try {
 			String token=RT.str(src.get(Fields.TOKEN)).toString();
 			String address=RT.str(src.get(Fields.ACCOUNT)).toString();
 			AInteger bal=adapter.getBalance(token,address);
-			log.info("Querying balance on network: "+chainID +" token: "+token+" account: "+address + " bal="+bal);
+			log.info("Querying balance on network: "+network +" token: "+token+" account: "+address + " bal="+bal);
 			prepareResult(ctx,Result.value(bal));
 		} catch (IOException | IllegalArgumentException | UnsupportedOperationException e) {
 			throw new BadRequestResponse(e.toString());
@@ -193,7 +192,7 @@ public class RestAPI extends ATokengineAPI {
 		
 		ACell network=src.get(Fields.NETWORK);
 		if (network==null) throw new BadRequestResponse("Expected 'network' property for source");
-		String chainID=RT.str(network).toString();
+		AString chainID=RT.str(network);
 		AAdapter<?> adapter=engine.getAdapter(chainID);
 		if (adapter==null) throw new BadRequestResponse("Can't find network: "+chainID);
 		try {
@@ -249,7 +248,7 @@ public class RestAPI extends ATokengineAPI {
 		
 		ACell network=src.get(Strings.create("network"));
 		if (network==null) throw new BadRequestResponse("Expected 'network' property for source");
-		String chainID=RT.str(network).toString();
+		AString chainID=RT.str(network);
 		AAdapter<?> adapter=engine.getAdapter(chainID);
 		if (adapter==null) throw new BadRequestResponse("Can't find network: "+chainID);
 		
@@ -296,7 +295,7 @@ public class RestAPI extends ATokengineAPI {
 		
 		ACell network=src.get(Fields.NETWORK);
 		if (network==null) throw new BadRequestResponse("Expected 'network' property for source");
-		String chainID=RT.str(network).toString();
+		AString chainID=RT.str(network);
 		AAdapter<?> adapter=engine.getAdapter(chainID);
 		if (adapter==null) throw new BadRequestResponse("Can't find network: "+chainID);
 		
@@ -364,7 +363,7 @@ public class RestAPI extends ATokengineAPI {
 
 		ACell network = src.get(Fields.NETWORK);
 		if (network == null) throw new BadRequestResponse("Expected 'source.network' property");
-		String chainID = RT.str(network).toString();
+		AString chainID = RT.str(network);
 		AAdapter<?> adapter = engine.getAdapter(chainID);
 		if (adapter == null) throw new BadRequestResponse("Can't find network: " + chainID);
 		

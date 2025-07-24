@@ -18,6 +18,7 @@ import convex.core.data.AMap;
 import convex.core.data.AString;
 import convex.core.data.AccountKey;
 import convex.core.data.Blob;
+import convex.core.data.Strings;
 import convex.core.util.ConfigUtils;
 import tokengine.adapter.CVMAdapter;
 
@@ -37,7 +38,7 @@ public class ConvexTest {
 	
 	
 	@Test public void testCVMSignatures() {
-		CVMAdapter ca=(CVMAdapter) engine.getAdapter("convex:test");
+		CVMAdapter ca=(CVMAdapter) engine.getAdapter(Strings.create("convex:test"));
 		assertNotNull(ca);
 		
 		AKeyPair kp=AKeyPair.create("5FE2D4E23E8F04E5FF74006A905F989A1C17A0474A7BCB5CF09A73AFF418A605");

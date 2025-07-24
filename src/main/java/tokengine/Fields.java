@@ -81,5 +81,7 @@ public class Fields {
 
 	public static final AString TOKENS =  Strings.intern("tokens");
 
+	public static final AString TRANSFERS =  Strings.intern("transfers");
+
 
 }
