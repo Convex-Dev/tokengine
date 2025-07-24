@@ -83,5 +83,7 @@ public class Fields {
 
 	public static final AString TRANSFERS =  Strings.intern("transfers");
 
+	public static final AString ASSET_ID = Strings.intern("assetID");
+
 
 }

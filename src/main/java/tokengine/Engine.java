@@ -129,17 +129,35 @@ public class Engine {
 			MapEntry<AString, AMap<AString, ACell>> transfer=configTransfers.get(i);
 			AString tokenAlias=transfer.getKey();
 			
+			// Loop over configured equivalent token classes
 			if (tokens.containsKey(tokenAlias)) {
 				AMap<AString, ACell> tnets=transfer.getValue();
 				int tcount=tnets.size();
+				
+				// Loop over network mappings
 				for (int j=0; j<tcount; j++) {
 					MapEntry<AString,ACell> me=tnets.get(j);
+					AMap<AString,ACell> tnet=RT.ensureMap(me.getValue());
+					if (tnet==null) {
+						log.warn("Value not a map in network mapping "+me);
+						continue;
+					}
+					AString assetID=RT.ensureString(tnet.get(Fields.ASSET_ID));
+					if (assetID==null) {
+						log.warn("No assetID for token '"+tokenAlias+"', transfer mapping wil be ignored in "+tnet);
+						continue;
+					}
 					AString netAlias=RT.ensureString(me.getKey());
 					AString chainID=lookupChainID(netAlias);
 					if (chainID==null) {
-						log.warn("Could not find network '"+netAlias+"' for token '"+tokenAlias+"', transfer mapping wil be ignored in "+me);
+						log.warn("Could not find network '"+netAlias+"' for token '"+tokenAlias+"', transfer mapping wil be ignored in "+tnet);
 						continue;
 					}
+					AAdapter<?> adapter=getAdapter(chainID);
+					if (adapter==null) throw new Error("Adapter not found for chainID: "+chainID);
+					
+					// check assetID is valid
+					adapter.addTokenMapping(tokenAlias,assetID,tnet);
 				}
 			} else {
 				log.warn("Transfers configured for non-existent token alias '"+tokenAlias+"', these will be ignored.");
@@ -462,7 +480,7 @@ public class Engine {
 	}
 	
 	/**
-	 * Add virtual credit into the tokengine state
+	 * Add virtual credit into the TokEngine state
 	 * @param tokenKey
 	 * @param userKey
 	 * @param amount

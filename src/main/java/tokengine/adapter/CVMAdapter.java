@@ -200,6 +200,19 @@ public class CVMAdapter extends AAdapter<Address> {
 		return "slip44:864".equals(caip19);
 	}
 	
+	@Override
+	public ACell parseAssetID(AString assetID) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	@Override
+	public AString toAssetID(ACell asset) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	
 	/**
 	 * Gets the asset ID for a CAD29 token
 	 * @param caip19
@@ -276,5 +289,8 @@ public class CVMAdapter extends AAdapter<Address> {
 	public Address getReceiverAddress() {
 		return Address.parse(RT.getIn(config, Fields.RECEIVER_ADDRESS));
 	}
+
+
+
 
 }

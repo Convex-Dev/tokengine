@@ -158,6 +158,31 @@ public abstract class AAdapter<AddressType extends ACell> {
 	 */
 	public abstract AddressType getReceiverAddress();
 
+	/**
+	 * Parse a CAIP-19 asset ID into the canonical form for this adapter
+	 * @param assetID CAIP-19 asset ID (may omit chain ID, e.g. "cad29:567" )
+	 * @return Asset identifier specific for this chain e.g. [#567 :foo] 
+	 */
+	public abstract ACell parseAssetID(AString assetID);
+	
+	/**
+	 * Convert a chain-specific asset identifier to a CAIP-19 asset ID
+	 * @param asset Chain-specific asset identifier e.g. the Vector [#567 3]
+	 * @return CAIP19 asset ID e.g. cad29:567-3
+	 */
+	public abstract AString toAssetID(ACell asset);
+
+	/**
+	 * Adds a token mapping for this network
+	 * @param tokenAlias Cross-chain alias name e.g. "CVM". Must be precise.
+	 * @param assetID CAIP-19 asset ID (may omit chain ID). 
+	 * @param tnet Mapping information record as per config file.
+	 */
+	public void addTokenMapping(AString tokenAlias, AString assetID, AMap<AString, ACell> tnet) {
+		ACell asset=parseAssetID(assetID);
+		// if (asset==null) throw new IllegalArgumentException("Unable to parse asset ID "+assetID+" for DLT "+getChainID());
+	}
+
 
 
 

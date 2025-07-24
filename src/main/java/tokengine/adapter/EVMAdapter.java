@@ -120,7 +120,7 @@ public class EVMAdapter extends AAdapter<AString> {
 		} else if (asset.startsWith("erc20")) {
 			String contractAddress=asset.substring(6); // skip 'erc20:'
 			
-			Credentials cred=Credentials.create("0x0", address);
+			Credentials cred=Credentials.create("0x0", address); // 0x0 = no private key, not needed
 			
 			ERC20 contract = ERC20.load(contractAddress, getWeb3(), cred, new DefaultGasProvider());
 			try {
@@ -165,6 +165,18 @@ public class EVMAdapter extends AAdapter<AString> {
 		// Validate hex
 		if (!s.matches("[0-9a-f]{40}")) throw new IllegalArgumentException("Invalid hex address for EVM Adapter: " + caip10);
 		return convex.core.data.Strings.create(s);
+	}
+	
+	@Override
+	public ACell parseAssetID(AString assetID) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	@Override
+	public AString toAssetID(ACell asset) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 	
 	@Override
@@ -411,6 +423,12 @@ public class EVMAdapter extends AAdapter<AString> {
 	public Web3j getWeb3() {
 		return web3;
 	}
+
+
+
+
+
+
 }
 
 
