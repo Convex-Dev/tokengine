@@ -17,6 +17,7 @@ import convex.core.data.ACell;
 import convex.core.data.AMap;
 import convex.core.data.AString;
 import convex.core.data.Maps;
+import convex.core.data.Strings;
 import convex.core.data.Vectors;
 import convex.core.lang.RT;
 import convex.core.util.JSONUtils;
@@ -24,15 +25,23 @@ import convex.java.HTTPClients;
 import tokengine.Fields;
 
 public class Kafka {
-	
-	private URI uri;
-
-	public Kafka(URI topicURI) {
-		this.uri=topicURI;
-	}
-	
 	protected static final Logger log=LoggerFactory.getLogger(Kafka.class);
+	
+	private URI uri=null; // URI can be null if audit logging disabled / unavailable
 
+	/**
+	 * Create a kafka logging instance
+	 * @param kafkaLoc
+	 */
+	public Kafka(AString kafkaLoc) {
+		try {
+			this.uri=(kafkaLoc==null)?null:new URI(kafkaLoc.toString());
+		} catch (URISyntaxException e) {
+			log.warn("Unable to parse Kafka URL: "+kafkaLoc,e);
+		}
+	}
+
+	/** Content type for Kafka logs */
 	ContentType CONTENT_TYPE=ContentType.create("application/vnd.kafka.json.v2+json");
 	
 	/**
@@ -47,6 +56,7 @@ public class Kafka {
 	 */
 	public boolean log(ACell value) {
 		executor.submit(()->{
+			if (uri==null) return; // TDO: maybe print one warning?
 			try {
 				doLog(value);
 			} catch (Exception e) {
@@ -62,7 +72,7 @@ public class Kafka {
 		AMap<AString,ACell> recs=Maps.of("records",Vectors.of(record));
 		
 		// Populate key if available
-		ACell key=RT.getIn(recs, Fields.KEY);
+		ACell key=RT.getIn(record, Fields.KEY);
 		if (key!=null) {
 			recs=recs.assoc(Fields.KEY, key);
 		}
@@ -78,6 +88,7 @@ public class Kafka {
 			future.whenCompleteAsync((r,e)->{
 				if (e!=null) {
 					log.warn("Kafka send failed for "+data,e);
+					return;
 				}
 				int code=r.getCode();
 				if (code>=300) {
@@ -93,7 +104,7 @@ public class Kafka {
 	}
 	
 	public static void main(String[] args) throws URISyntaxException {
-		Kafka k=new Kafka(new URI("https://kfk.walledchannel.net/topics/audit"));
+		Kafka k=new Kafka(Strings.create("https://kfk.walledchannel.net/topics/test"));
 		k.log(JSONUtils.parse("{\"test\":true,\"id\":\"12456\"}"));
 	}
 

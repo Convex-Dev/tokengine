@@ -77,5 +77,7 @@ public class Fields {
 
 	public static final AString TOKENGINE = Strings.intern("tokengine");
 
+	public static final AString DEPOSIT = Strings.intern("deposit");
+
 
 }

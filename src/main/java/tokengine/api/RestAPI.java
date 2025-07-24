@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 
 import convex.api.ContentTypes;
 import convex.core.Result;
-import convex.core.cvm.Symbols;
 import convex.core.data.ACell;
 import convex.core.data.AMap;
 import convex.core.data.AString;
@@ -20,9 +19,9 @@ import convex.core.lang.RT;
 import convex.core.util.JSONUtils;
 import convex.java.JSON;
 import io.javalin.Javalin;
-import io.javalin.http.PaymentRequiredResponse;
 import io.javalin.http.BadRequestResponse;
 import io.javalin.http.Context;
+import io.javalin.http.PaymentRequiredResponse;
 import io.javalin.openapi.HttpMethod;
 import io.javalin.openapi.OpenApi;
 import io.javalin.openapi.OpenApiContent;
@@ -348,20 +347,23 @@ public class RestAPI extends ATokengineAPI {
 							status = "200", 
 							description = "Deposit accepted"),
 					@OpenApiResponse(
+							status = "400", 
+							description = "Bad request, see message for reason(s)"),
+					@OpenApiResponse(
 							status = "402", 
 							description = "Deposit not accepted, verified payment required")})
 	protected void postDeposit(Context ctx) {
 		AMap<AString,ACell> req = parseRequest(ctx);
-		AMap<AString,ACell> src = RT.ensureMap(req.get(Strings.create("source")));
-		if (src == null) throw new BadRequestResponse("Expected 'source' object specifying token");
+		AMap<AString,ACell> src = RT.ensureMap(req.get(Fields.SOURCE));
+		if (src == null) throw new BadRequestResponse("Expected 'source' object specifying incoming token");
 		//AInteger q = AInteger.parse(req.get(Strings.create("quantity")));
 		//if (q == null) throw new BadRequestResponse("Expected 'quantity' as valid integer amount");
 		
-		AMap<AString,ACell> dep = RT.ensureMap(req.get(Strings.create("deposit")));
+		AMap<AString,ACell> dep = RT.ensureMap(req.get(Fields.DEPOSIT));
 		if (dep == null) throw new BadRequestResponse("Expected 'deposit' object specifying transaction proof");
 
-		ACell network = src.get(Strings.create("network"));
-		if (network == null) throw new BadRequestResponse("Expected 'network' property for source");
+		ACell network = src.get(Fields.NETWORK);
+		if (network == null) throw new BadRequestResponse("Expected 'source.network' property");
 		String chainID = RT.str(network).toString();
 		AAdapter<?> adapter = engine.getAdapter(chainID);
 		if (adapter == null) throw new BadRequestResponse("Can't find network: " + chainID);

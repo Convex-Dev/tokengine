@@ -130,12 +130,7 @@ public class Engine {
 
 	private void configureAuditService() {
 		AString kafkaLoc=RT.getIn(config, Fields.OPERATIONS, Fields.KAFKA);
-		if (kafkaLoc==null) return;
-		try {
-			kafka=new Kafka(new URI(kafkaLoc.toString()));
-		} catch (URISyntaxException e) {
-			e.printStackTrace();
-		}
+		kafka=new Kafka(kafkaLoc);
 	}
 
 	private void configureAdapters() {
@@ -472,16 +467,12 @@ public class Engine {
 	}
 
 	/**
-	 * Handle payout of funds, must be already approved
+	 * Handle payout of funds
 	 */
-	public void processOutgiong(ACell txKey, AString assetAlias, AInteger Amount) {
-		
-	}
-	
-	
 	public Result makePayout(String target, String asset, AAdapter<?> adapter, AInteger quantity) throws IOException {
 		AInteger current=adapter.getOperatorBalance(asset);
 		if (RT.lt(new ACell[] {current,quantity}).booleanValue()) {
+			log.warn("Attempted payout but insufficent operator balance available!");
 			return Result.error(ErrorCodes.FUNDS, "Insuffient payout balance: "+current);
 		}
 		
