@@ -1,9 +1,9 @@
-package tokengine.model;
+package tokengine.api.model;
 
 import io.javalin.openapi.OpenApiByFields;
 
 @OpenApiByFields
-public class DepositRequest {
+public class BalanceRequest {
 	public TokenSpec source;
-	public DepositSpec deposit;
+	public String address;
 }

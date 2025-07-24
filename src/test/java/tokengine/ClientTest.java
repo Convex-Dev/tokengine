@@ -20,7 +20,7 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 import convex.core.data.ACell;
 import convex.core.data.prim.AInteger;
 import convex.core.util.ConfigUtils;
-import tokengine.api.Client;
+import tokengine.client.Client;
 
 @TestInstance(Lifecycle.PER_CLASS)
 public class ClientTest {

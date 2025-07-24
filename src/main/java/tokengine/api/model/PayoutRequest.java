@@ -1,10 +1,9 @@
-package tokengine.model;
+package tokengine.api.model;
 
 import io.javalin.openapi.OpenApiByFields;
 
 @OpenApiByFields
-public class TransferRequest {
-	public TokenSpec source;
+public class PayoutRequest {
 	public TokenSpec destination;
 	public String quantity;
 }

@@ -1,4 +1,4 @@
-package tokengine.api;
+package tokengine.client;
 
 import java.net.URI;
 import java.util.concurrent.CompletableFuture;

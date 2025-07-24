@@ -16,6 +16,7 @@ import io.javalin.openapi.JsonSchemaResource;
 import io.javalin.openapi.plugin.DefinitionConfiguration;
 import io.javalin.openapi.plugin.OpenApiPlugin;
 import io.javalin.openapi.plugin.swagger.SwaggerPlugin;
+import tokengine.api.RestAPI;
 
 public class APIServer {
 	

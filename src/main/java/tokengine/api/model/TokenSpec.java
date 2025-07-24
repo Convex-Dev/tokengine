@@ -1,4 +1,4 @@
-package tokengine.model;
+package tokengine.api.model;
 import io.javalin.openapi.OpenApiByFields;
 
 @OpenApiByFields

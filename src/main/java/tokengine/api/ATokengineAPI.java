@@ -1,4 +1,4 @@
-package tokengine;
+package tokengine.api;
 
 import static j2html.TagCreator.head;
 import static j2html.TagCreator.link;

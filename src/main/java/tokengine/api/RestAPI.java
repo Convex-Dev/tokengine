@@ -1,4 +1,4 @@
-package tokengine;
+package tokengine.api;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -29,11 +29,13 @@ import io.javalin.openapi.OpenApiContent;
 import io.javalin.openapi.OpenApiExampleProperty;
 import io.javalin.openapi.OpenApiRequestBody;
 import io.javalin.openapi.OpenApiResponse;
+import tokengine.Engine;
+import tokengine.Fields;
 import tokengine.adapter.AAdapter;
-import tokengine.model.BalanceRequest;
-import tokengine.model.DepositRequest;
-import tokengine.model.PayoutRequest;
-import tokengine.model.TransferRequest;
+import tokengine.api.model.BalanceRequest;
+import tokengine.api.model.DepositRequest;
+import tokengine.api.model.PayoutRequest;
+import tokengine.api.model.TransferRequest;
 
 public class RestAPI extends ATokengineAPI {
 	
@@ -134,10 +136,13 @@ public class RestAPI extends ATokengineAPI {
 			responses = {
 					@OpenApiResponse(
 							status = "200", 
-							description = "Deposit accepted"),
+							description = "Balance returned"),
 					@OpenApiResponse(
-							status = "402", 
-							description = "Deposit not accepted, payment required")})
+							status = "400", 
+							description = "Unable to query balance"),
+					@OpenApiResponse(
+							status = "503", 
+							description = "DLT network unavailable for balance query")})
 	protected void getBalance(Context ctx) {
 		AMap<AString,ACell> req=parseRequest(ctx);
 		AMap<AString,ACell> src = RT.ensureMap(req.get(Fields.SOURCE));
@@ -344,7 +349,7 @@ public class RestAPI extends ATokengineAPI {
 							description = "Deposit accepted"),
 					@OpenApiResponse(
 							status = "402", 
-							description = "Deposit not accepted, payment required")})
+							description = "Deposit not accepted, verified payment required")})
 	protected void postDeposit(Context ctx) {
 		AMap<AString,ACell> req = parseRequest(ctx);
 		AMap<AString,ACell> src = RT.ensureMap(req.get(Strings.create("source")));
@@ -353,7 +358,7 @@ public class RestAPI extends ATokengineAPI {
 		//if (q == null) throw new BadRequestResponse("Expected 'quantity' as valid integer amount");
 		
 		AMap<AString,ACell> dep = RT.ensureMap(req.get(Strings.create("deposit")));
-		if (dep == null) throw new BadRequestResponse("Expected 'deposit' object specifying transaction");
+		if (dep == null) throw new BadRequestResponse("Expected 'deposit' object specifying transaction proof");
 
 		ACell network = src.get(Strings.create("network"));
 		if (network == null) throw new BadRequestResponse("Expected 'network' property for source");
