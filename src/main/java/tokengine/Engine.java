@@ -1,8 +1,6 @@
 package tokengine;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -130,7 +128,7 @@ public class Engine {
 
 	private void configureAuditService() {
 		AString kafkaLoc=RT.getIn(config, Fields.OPERATIONS, Fields.KAFKA);
-		kafka=new Kafka(kafkaLoc);
+		this.kafka=new Kafka(kafkaLoc);
 	}
 
 	private void configureAdapters() {
@@ -187,12 +185,12 @@ public class Engine {
 	
 	private AAdapter<?> buildAdapter(AMap<AString, ACell> nc) throws Exception {
 		AString id=RT.ensureString(RT.getIn(nc, Fields.CHAIN_ID));
-		if (id==null) throw new IllegalStateException("No chainID in network config: "+nc);
+		if (id==null) throw new IllegalArgumentException("No chainID in network config: "+nc);
 		String[] caip2=id.toString().split(":");
 		String type=caip2[0];
-		if ("convex".equals(type)) return CVMAdapter.build(nc);
-		else if ("eip155".equals(type)) return EVMAdapter.build(nc);
-		else throw new IllegalStateException("Unrecognised chain type: "+type);
+		if ("convex".equals(type)) return CVMAdapter.build(this,nc);
+		else if ("eip155".equals(type)) return EVMAdapter.build(this,nc);
+		else throw new IllegalArgumentException("Unrecognised chain type: "+type);
 	}
 
 	public Convex getConvex() {
@@ -258,10 +256,14 @@ public class Engine {
 		etch=null;
 		if (server!=null) server.close();
 		server=null;
+
+		closeAdapters();
+
 		if (convex!=null) convex.close();
 		convex=null;
-		
-		closeAdapters();
+		// shut down audit logging last, just in case
+		if (kafka!=null) kafka.close();
+		kafka=null;
 	}
 	
 	private void persistState() throws IOException {
@@ -384,8 +386,7 @@ public class Engine {
 	 */
 	public boolean postAuditMessage(AMap<?,?> message) {
 		if (kafka==null) return false;
-		kafka.log(message);
-		return true;
+		return kafka.log(message);
 	}
 	
 	/**

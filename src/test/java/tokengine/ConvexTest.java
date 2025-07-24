@@ -59,7 +59,7 @@ public class ConvexTest {
 	
 	@Test
 	public void testCVMAdapterParseAddress() {
-		CVMAdapter adapter = new CVMAdapter(convex.core.data.Maps.empty());
+		CVMAdapter adapter = new CVMAdapter(null,convex.core.data.Maps.empty());
 		String addrStr = "#12345";
 		convex.core.cvm.Address addr = convex.core.cvm.Address.parse(addrStr);
 		
@@ -78,7 +78,7 @@ public class ConvexTest {
 	
 	@Test
 	public void testCVMAdapterParseAddressFailureCases() {
-		CVMAdapter adapter = new CVMAdapter(convex.core.data.Maps.empty());
+		CVMAdapter adapter = new CVMAdapter(null,convex.core.data.Maps.empty());
 		
 		// Test with invalid address format (non-numeric)
 		try {

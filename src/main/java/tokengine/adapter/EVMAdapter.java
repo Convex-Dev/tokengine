@@ -42,6 +42,7 @@ import convex.core.data.prim.AInteger;
 import convex.core.data.prim.CVMLong;
 import convex.core.lang.RT;
 import convex.core.util.FileUtils;
+import tokengine.Engine;
 import tokengine.Fields;
 
 public class EVMAdapter extends AAdapter<AString> {
@@ -59,15 +60,15 @@ public class EVMAdapter extends AAdapter<AString> {
 
 	private AString operatorAddress = null;
 
-	protected EVMAdapter(AMap<AString, ACell> nc) {
-		super(nc);
+	protected EVMAdapter(Engine engine, AMap<AString, ACell> nc) {
+		super(engine,nc);
 	}
 
 	Web3j web3;
 	List<Credentials> loadedWallets = new ArrayList<>();
 	
-	public static EVMAdapter build(AMap<AString, ACell> nc) {
-		EVMAdapter a= new EVMAdapter(nc);
+	public static EVMAdapter build(Engine engine, AMap<AString, ACell> nc) {
+		EVMAdapter a= new EVMAdapter(engine, nc);
 		AString chainID=RT.getIn(nc, Fields.CHAIN_ID);
 		if (chainID==null) throw new IllegalArgumentException("No EVM chain ID: "+nc);
 		return a;
@@ -150,11 +151,19 @@ public class EVMAdapter extends AAdapter<AString> {
 		if (caip10 == null) throw new IllegalArgumentException("Null address");
 		String s = caip10.trim();
 		if (s.isEmpty()) throw new IllegalArgumentException("Empty address");
+		
+		int colon=s.indexOf(":");
+		if (colon>=0) {
+			String[] ss=s.split(":");
+			if (!ss[0].equals(getChainIDString())) throw new IllegalArgumentException("Wrong chain ID for this adapter: "+ss[0]);
+			s=ss[1]; // take the part after the colon
+		}
+	
 		if (s.startsWith("0x") || s.startsWith("0X")) s = s.substring(2);
 		s = s.toLowerCase();
-		if (s.length() != 40) throw new IllegalArgumentException("Invalid hex length for EVM Adapter: " + s);
+		if (s.length() != 40) throw new IllegalArgumentException("Invalid hex length for EVM Adapter: " + caip10);
 		// Validate hex
-		if (!s.matches("[0-9a-f]{40}")) throw new IllegalArgumentException("Invalid hex address for EVM Adapter: " + s);
+		if (!s.matches("[0-9a-f]{40}")) throw new IllegalArgumentException("Invalid hex address for EVM Adapter: " + caip10);
 		return convex.core.data.Strings.create(s);
 	}
 	

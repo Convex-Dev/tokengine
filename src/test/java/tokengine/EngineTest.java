@@ -1,6 +1,8 @@
 package tokengine;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -36,11 +38,11 @@ public class EngineTest {
 	
 	@Test public void testExampleEngine() throws Exception {
 		Engine e = engine;
-		assertEquals(2,e.getAdapters().size());
-		e.close();			
+		assertEquals(2,e.getAdapters().size());		
 	}
 	
 	@Test public void testAuditMessage() {
+		assertNotNull(engine.kafka);
 		assertTrue(engine.postAuditMessage(Maps.of("test-run",engine.getTimestampString())));
 	}
 	
@@ -67,6 +69,7 @@ public class EngineTest {
 	
 	@AfterAll public void shutdown() {
 		engine.close();
+		assertFalse(engine.postAuditMessage(Maps.of("test-run",engine.getTimestampString())));
 	}
 
 }

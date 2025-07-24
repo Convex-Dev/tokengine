@@ -10,6 +10,7 @@ import convex.core.data.Blob;
 import convex.core.data.prim.AInteger;
 import convex.core.lang.RT;
 import convex.core.util.Utils;
+import tokengine.Engine;
 import tokengine.Fields;
 
 public abstract class AAdapter<AddressType extends ACell> {
@@ -20,8 +21,10 @@ public abstract class AAdapter<AddressType extends ACell> {
 	/** The alias for this adapter */
 	protected final AString alias;
 
-
-	protected AAdapter(AMap<AString, ACell> config) {
+	protected final Engine engine;
+	
+	protected AAdapter(Engine engine,AMap<AString, ACell> config) {
+		this.engine=engine;
 		this.config=config;
 		this.alias=RT.ensureString(RT.getIn(config, Fields.ALIAS));
 	}
@@ -30,8 +33,14 @@ public abstract class AAdapter<AddressType extends ACell> {
 	
 	public abstract void close();
 
+	/** Get the canonical Chain ID of this adapter, in CAIP-2 format */
 	public AString getChainID() {
 		return RT.getIn(config, Fields.CHAIN_ID);
+	}
+	
+	/** Get the chain ID as a Java String */
+	protected String getChainIDString() {
+		return getChainID().toString();
 	}
 	
 

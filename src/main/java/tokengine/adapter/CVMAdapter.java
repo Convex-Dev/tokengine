@@ -23,6 +23,7 @@ import convex.core.exceptions.ParseException;
 import convex.core.lang.RT;
 import convex.core.lang.Reader;
 import tokengine.CAIP19;
+import tokengine.Engine;
 import tokengine.Fields;
 
 public class CVMAdapter extends AAdapter<Address> {
@@ -33,12 +34,12 @@ public class CVMAdapter extends AAdapter<Address> {
 	
 	private Address operatorAddress = null;
 	
-	public CVMAdapter(AMap<AString, ACell> nc) {
-		super(nc);
+	public CVMAdapter(Engine engine, AMap<AString, ACell> nc) {
+		super(engine,nc);
 	}
 	
-	public static CVMAdapter build(AMap<AString, ACell> nc) throws IOException, TimeoutException, InterruptedException {
-		CVMAdapter a= new CVMAdapter(nc);
+	public static CVMAdapter build(Engine engine, AMap<AString, ACell> nc) throws IOException, TimeoutException, InterruptedException {
+		CVMAdapter a= new CVMAdapter(engine,nc);
 		AString chainID=RT.getIn(nc, Fields.CHAIN_ID);
 		if (chainID==null) throw new IllegalArgumentException("No CVM chain ID: "+nc);
 		return a;
@@ -140,31 +141,38 @@ public class CVMAdapter extends AAdapter<Address> {
 
 	
 	@Override
-	public Address parseAddress(String addr) throws IllegalArgumentException {
-		if (addr == null) throw new IllegalArgumentException("Null address");
-		addr = addr.trim();
-		if (addr.isEmpty()) throw new IllegalArgumentException("Empty address");
+	public Address parseAddress(String caip10) throws IllegalArgumentException {
+		if (caip10 == null) throw new IllegalArgumentException("Null address");
+		String s= caip10.trim();
+		if (s.isEmpty()) throw new IllegalArgumentException("Empty address");
+
+		int colon=s.indexOf(":");
+		if (colon>=0) {
+			String[] ss=s.split(":");
+			if (!ss[0].equals(getChainIDString())) throw new IllegalArgumentException("Wrong chain ID for this adapter: "+ss[0]);
+			s=ss[1]; // take the part after the colon
+		}
 
 		// Accept non-negative integer as valid address
 		try {
-			long l = Long.parseLong(addr);
-			if (l < 0) throw new IllegalArgumentException("Negative address not allowed: " + addr);
+			long l = Long.parseLong(s);
+			if (l < 0) throw new IllegalArgumentException("Negative address not allowed: " + caip10);
 			return Address.create(l);
 		} catch (NumberFormatException e) {
 			// Not a plain integer, fall through
 		}
 
 		// Accept #12345 format
-		if (!addr.startsWith("#")) {
-			throw new IllegalArgumentException("Invalid address format - must be non-negative integer or start with #: " + addr);
+		if (!s.startsWith("#")) {
+			throw new IllegalArgumentException("Invalid address format - must be non-negative integer or start with #: " + caip10);
 		}
-		Address result = Address.parse(addr);
+		Address result = Address.parse(s);
 		if (result == null) {
-			throw new IllegalArgumentException("Invalid address format: " + addr);
+			throw new IllegalArgumentException("Invalid address format: " + caip10);
 		}
 		return result;
 	}
-	
+
 	@Override
 	public Address parseAddress(Object obj) throws IllegalArgumentException {
 		if (obj == null) throw new IllegalArgumentException("Null address");

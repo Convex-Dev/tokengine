@@ -57,7 +57,7 @@ public class EVMTest {
 			);
 				
 				// Create EVMAdapter instance
-			EVMAdapter adapter = EVMAdapter.build(testConfig);
+			EVMAdapter adapter = EVMAdapter.build(null,testConfig);
 			adapter.start();
 	        String txHash = "0x9d3a3663d32b9ff5cf2d393e433b7b31489d13b398133a35c4bb6e2085bd8e83"; // Replace with your transaction hash
 	        
@@ -151,7 +151,7 @@ public class EVMTest {
 	
 	@Test public void testLoadWalletsFromDirectory() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, IOException, CipherException {
 		// Create EVMAdapter instance
-		EVMAdapter adapter = EVMAdapter.build(Maps.of(Fields.CHAIN_ID, "eip155:11155111"));
+		EVMAdapter adapter = EVMAdapter.build(null,Maps.of(Fields.CHAIN_ID, "eip155:11155111"));
 		
 		// Create a temporary directory for multiple wallets
 		File tempDir = new File(System.getProperty("java.io.tmpdir"), "test-multiple-wallets");
@@ -208,7 +208,7 @@ public class EVMTest {
 		);
 		
 		// Create EVMAdapter instance
-		EVMAdapter adapter = EVMAdapter.build(testConfig);
+		EVMAdapter adapter = EVMAdapter.build(null,testConfig);
 		
 		// Create test wallet directory
 		File testKeyDir = new File(System.getProperty("user.home"), ".tokengine/test-keys/.evm-wallets");
@@ -261,7 +261,7 @@ public class EVMTest {
 		);
 		
 		// Create EVMAdapter instance
-		EVMAdapter adapter = EVMAdapter.build(testConfig);
+		EVMAdapter adapter = EVMAdapter.build(null,testConfig);
 		
 		// Verify the alias is set correctly
 		assertEquals("test-sepolia", adapter.getAliasField().toString(), "Alias should be set correctly");
@@ -275,7 +275,7 @@ public class EVMTest {
 	
     @Test
     public void testPersonalSignatureVerification() throws Exception {
-    	EVMAdapter ea=EVMAdapter.build(Maps.of(Fields.CHAIN_ID,"foo")); // chainID doesn't matter etc.
+    	EVMAdapter ea=EVMAdapter.build(null,Maps.of(Fields.CHAIN_ID,"foo")); // chainID doesn't matter etc.
     	
     	assertEquals("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",EVMAdapter.TRANSFER_SIGNATURE);
     	
@@ -314,7 +314,7 @@ public class EVMTest {
 
 	@Test
 	public void testEVMAdapterParseAddress() {
-		EVMAdapter adapter = EVMAdapter.build(Maps.of(Fields.CHAIN_ID, "eip155:11155111"));
+		EVMAdapter adapter = EVMAdapter.build(null,Maps.of(Fields.CHAIN_ID, "eip155:11155111"));
 		String hex = "a752b195b4e7b1af82ca472756edfdb13bc9c79d";
 		String hex0x = "0xa752b195b4e7b1af82ca472756edfdb13bc9c79d";
 		String upperHex = "A752B195B4E7B1AF82CA472756EDFDB13BC9C79D";
@@ -342,7 +342,7 @@ public class EVMTest {
 	
 	@Test
 	public void testEVMAdapterParseAddressFailureCases() {
-		EVMAdapter adapter = EVMAdapter.build(Maps.of(Fields.CHAIN_ID, "eip155:11155111"));
+		EVMAdapter adapter = EVMAdapter.build(null,Maps.of(Fields.CHAIN_ID, "eip155:11155111"));
 		
 		// Test with invalid hex string (odd length)
 		try {

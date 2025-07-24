@@ -56,7 +56,7 @@ public class Kafka {
 	 */
 	public boolean log(ACell value) {
 		executor.submit(()->{
-			if (uri==null) return; // TDO: maybe print one warning?
+			if (uri==null) return; // TODO: maybe print one warning?
 			try {
 				doLog(value);
 			} catch (Exception e) {
@@ -110,5 +110,10 @@ public class Kafka {
 
 	public URI getURI() {
 		return uri;
+	}
+	
+	public void close() {
+		executor.shutdown();
+		uri=null;
 	}
 }
