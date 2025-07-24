@@ -35,6 +35,8 @@ import convex.core.lang.Reader;
 import convex.core.util.FileUtils;
 import convex.core.util.JSONUtils;
 import convex.etch.EtchStore;
+import convex.lattice.ACursor;
+import convex.lattice.Cursors;
 import convex.peer.API;
 import convex.peer.ConfigException;
 import convex.peer.LaunchException;
@@ -44,6 +46,15 @@ import tokengine.adapter.CVMAdapter;
 import tokengine.adapter.EVMAdapter;
 import tokengine.adapter.Kafka;
 
+/**
+ * Engine is the core application class for TokEngine
+ * 
+ * It implements transitions on the lattice data structure as follows:
+ * :app
+ *   "tokengine": app-specific key for tokengine state
+ *     "credits": -> User Key -> Token Key (AString, e.g. "CVM") -> Credit balance (AInteger, >=0) 
+ *     "receipts": -> Chain ID (AString e.g. "convex:protonet") -> TX ID (Blob, typically the transaction Hash) -> amount
+ */
 public class Engine {
 	
 	protected static final Logger log=LoggerFactory.getLogger("tokengine.Engine");
@@ -57,24 +68,28 @@ public class Engine {
 	final ACell config;	
 	
 	/**
-	 * State is the tokengine state, stored in the TokEngine etch
-	 * 
-	 * State contains:
-	 *  "credits" -> Asset Key -> User Key - > Credit balance (AInteger) 
+	 * Root lattice cursor
 	 */
-	AMap<AString,ACell> state=null;
+	ACursor<ACell> latticeCursor;
+	
+	/**
+	 * stateCursor tracks the tokengine state, stored in the TokEngine etch
+	 */
+	ACursor<AMap<AString,ACell>> stateCursor;
 	
 	protected final Map<AString,AAdapter<?>> adapters=new HashMap<>();
 	
 	public Engine(ACell config)  {
 		this.config=config;
-	
+		this.latticeCursor=Cursors.of(null);
+		this.stateCursor=latticeCursor.path(Keywords.APP, Fields.TOKENGINE);
+		
 	}
 
 	public synchronized void start() throws Exception {
 		close();
 		
-		startEtch();
+		startEtch(); // open Etch db and load lattice cursor
 		
 		startConvexPeer();
 		
@@ -171,7 +186,7 @@ public class Engine {
 			if (RT.getIn(loadedState, Fields.CREDITS)==null) throw new Error("Etch state appears to be incorrect for TokEngine in "+etch);
 			log.info("Loaded TokEngine state database with hash "+loadedState.getHash());
 		}
-		this.state=loadedState;
+		this.latticeCursor.set(loadedState);
 		persistState();
 	}
 	
@@ -255,7 +270,7 @@ public class Engine {
 	}
 	
 	private void persistState() throws IOException {
-		etch.setRootData(state);
+		etch.setRootData(latticeCursor.get());
 		etch.flush();
 	}
 
@@ -292,7 +307,7 @@ public class Engine {
 
 	public ACell getConfig() {
 		return config;
-	}
+	} 
 
 	public static Engine launch(ACell config) throws Exception {
 		Engine engine=new Engine(config);
@@ -307,15 +322,66 @@ public class Engine {
 		return status;
 	}
 
-	public boolean makeDeposit(AAdapter<?> adapter, String token, String address, AMap<AString,ACell> depositProof) throws IOException {
+	/**
+	 * MAkes a deposit given a unique deposit proof
+	 * @param adapter
+	 * @param token
+	 * @param address Address of user
+	 * @param depositProof
+	 * @throws IOException
+	 */
+	public AInteger makeDeposit(AAdapter<?> adapter, String token, String address, AMap<AString,ACell> depositProof) throws IOException {
 		// Check transaction is Valid: TODO: confirm fields
 		AString tx=RT.ensureString(RT.getIn(depositProof, Fields.TX));
 		Blob txID=adapter.parseTransactionID(tx);
 		if (txID==null) throw new IllegalArgumentException("Unable to parse transaction ID: "+tx);
 		AInteger received=adapter.checkTransaction(address,token,txID); 
-		return false;
-	}
+		if (received==null) {
+			return received; // null = failed to verify
+		} 
+		
+		AString tokenKey=getTokenKey(adapter,token);
+		if (tokenKey==null) throw new IllegalArgumentException("Token not supported on this DLT: "+token);
+		
+		AString userKey=adapter.parseUserKey(address);
+		if (userKey==null) throw new IllegalArgumentException("Invalid user account: "+address);
+
+		if (received.isZero()) {
+			log.warn("Deposit amount of zero by "+address);
+		} else if (received.isNegative()) {
+			String msg="Negative seposit quantity? From "+address+ " in "+depositProof;
+			log.warn(msg);
+			throw new IllegalArgumentException("Negative seposit quantity");
+		}
+		
+		// We do this atomically, since it needs to update balances and log deposit
+		stateCursor.updateAndGet(state->{
+			ACell existingTx=RT.getIn(state, adapter.getChainID(),txID);
+			if (existingTx==null) throw new IllegalStateException("Deposit already made for transaction "+txID);
+			
+			AInteger existingBalance=RT.getIn(state, Fields.CREDITS, userKey, tokenKey);
+			if (existingBalance==null) {
+				existingBalance=CVMLong.ZERO;
+			}
+			AInteger newBalance=existingBalance.add(received);
+			state=RT.assocIn(state, newBalance, Fields.CREDITS, userKey, tokenKey);
+			state=RT.assocIn(state, received, Fields.DEPOSITS, txID);
+			return state;
+		});
+		return received; // success case with positive deposit
+	} 
 	
+	/**
+	 * Get the canonical token Key
+	 * @param adapter Any DLT adapter
+	 * @param token Token identifier
+	 * @return
+	 */
+	private AString getTokenKey(AAdapter<?> adapter, String token) {
+		// TODO Auto-generated method stub
+		return null;
+	} 
+
 	/**
 	 * Posts a message to the audit log.
 	 * @param message
@@ -329,51 +395,30 @@ public class Engine {
 	
 	/**
 	 * Handle incoming funds, must be already confirmed TX
-	 * Balance: 
-	 */
-	public synchronized void processIncoming(ACell txKey, AString netID,AString assetID, AInteger amount,  ACell userKey) {
-		AMap<AString,ACell> state=this.state;
-		
-		// Precondition checks
-		if (amount.isNegative()) {
-			throw new IllegalArgumentException("Negative deposit amount");
-		}
-		
-		// Increment balance in "deposits"-> network ID -> asset ID -> User Key
-		AInteger balance=RT.getIn(state, Fields.CREDITS,assetID,userKey);
-		if (balance==null) balance=CVMLong.ZERO;
-		balance=balance.add(amount);
-		
-		// Record incoming transaction in "receipts"-> network ID -> tx ID
-		AVector<?> existingTX=RT.getIn(state, Fields.RECEIPTS,netID,txKey);
-		if (existingTX!=null) throw new IllegalStateException("Attempt to deposit twice from same transaction");
-		AVector<?> txRec=Vectors.of(netID, txKey, assetID, amount);
-		
-		// Update state iff successful
-		state=RT.ensureMap(RT.assocIn(state, balance,  Fields.CREDITS,assetID,userKey));
-		state=RT.ensureMap(RT.assocIn(state, txRec,  Fields.RECEIPTS,netID,txKey));
-		this.state=state;
-	}
-	
-	/**
-	 * Handle incoming funds, must be already confirmed TX
 	 * @return Virtual balance, or null if the asset / user pair has no virtual balance
 	 */
-	public synchronized AInteger getVirtualCredit(AString assetKey, ACell userKey) {
-		AMap<AString,ACell> state=this.state;
+	public synchronized AInteger getVirtualCredit(AString assetKey, AString userKey) {
+		AMap<AString,ACell> state=this.stateCursor.get();
 		
 		// Increment balance in "deposits"-> network ID -> asset ID -> User Key
-		AInteger balance=RT.getIn(state, Fields.CREDITS,assetKey,userKey);
+		AInteger balance=RT.getIn(state, Fields.CREDITS,userKey,assetKey);
 		return balance;
 	}
 	
+	/**
+	 * Add virtual credit into the tokengine state
+	 * @param tokenKey
+	 * @param userKey
+	 * @param amount
+	 * @return Updated balance
+	 */
 	@SuppressWarnings("unchecked")
 	public synchronized AInteger addVirtualCredit(AString tokenKey, AString userKey, AInteger amount) {
 		if (amount.isNegative()) throw new IllegalArgumentException("Cannot add negative credit: "+amount);
 		AInteger current=getVirtualCredit(tokenKey, userKey);
 		if (current==null) current=CVMLong.ZERO;
 		AInteger newBalance=current.add(amount);
-		this.state=(AMap<AString, ACell>) RT.assocIn(state, newBalance, Fields.CREDITS,tokenKey, userKey);
+		this.stateCursor.update(state->(AMap<AString,ACell>)RT.assocIn(state, newBalance, Fields.CREDITS,userKey,tokenKey));
 		
 		AMap<AString,?> msg=getBaseLogMessage("CREDIT");
 		msg=msg.assoc(Fields.TOKEN,tokenKey);
@@ -391,7 +436,7 @@ public class Engine {
 		if (current==null) current=CVMLong.ZERO;
 		AInteger newBalance=current.sub(amount);
 		if (newBalance.isNegative()) throw new IllegalArgumentException("Cannot remove more than total credit balance: current="+current+" removed="+amount);
-		this.state=(AMap<AString, ACell>) RT.assocIn(state, newBalance, Fields.CREDITS,tokenKey, userKey);
+		this.stateCursor.update(state->(AMap<AString, ACell>) RT.assocIn(state, newBalance, Fields.CREDITS,userKey,tokenKey));
 		
 		AMap<AString,?> msg=getBaseLogMessage("DEBIT");
 		msg=msg.assoc(Fields.TOKEN,tokenKey);
@@ -449,7 +494,7 @@ public class Engine {
 	 * @return State data structure
 	 */
 	public ACell getStateSnapshot() {
-		return state;
+		return stateCursor.get();
 	}
 
 	public String getTimestampString() {

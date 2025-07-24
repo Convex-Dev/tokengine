@@ -378,13 +378,16 @@ public class RestAPI extends ATokengineAPI {
 			
 		// Check transaction validity
 		try {
-			engine.makeDeposit(adapter,token,address,dep);
+			AInteger deposited=engine.makeDeposit(adapter,token,address,dep);
+			if (deposited==null) {
+				throw new PaymentRequiredResponse("Failed to validate deposit: "+dep);
+			}
+			// For now, we'll treat deposit similar to a transfer, using the engine's transfer functionality
+			Result r = Result.value(deposited);
+			prepareResult(ctx, r);
 		} catch (Exception e) {
 			throw new PaymentRequiredResponse("Could not confirm deposit: "+e.getMessage());
 		}
 		
-		// For now, we'll treat deposit similar to a transfer, using the engine's transfer functionality
-		Result r = Result.value(Symbols.FOO);
-		prepareResult(ctx, r);
 	}
 }

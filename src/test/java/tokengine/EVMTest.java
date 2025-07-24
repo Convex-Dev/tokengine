@@ -203,7 +203,8 @@ public class EVMTest {
 		AMap<AString, ACell> testConfig = Maps.of(
 			Fields.CHAIN_ID, "eip155:11155111",
 			Fields.URL,RPC_NODE_URL,
-			Fields.OPERATIONS, Maps.of("key-dir", "~/.tokengine/test-keys")
+			Fields.OPERATIONS, Maps.of("key-dir", "~/.tokengine/test-keys"),
+			Fields.OPERATOR_ADDRESS, "0x5fbe74a283f7954f10aa04c2edf55578811aeb03" // needed to stop warning on start()
 		);
 		
 		// Create EVMAdapter instance

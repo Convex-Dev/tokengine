@@ -35,6 +35,8 @@ public class Fields {
 	public static final AString CONFIG = Strings.intern("config");
 
 	public static final AString RECEIPTS = Strings.intern("receipts");
+	
+	public static final AString DEPOSITS = Strings.intern("deposits");
 
 	public static final AString OPERATIONS = Strings.intern("operations");
 	
@@ -72,4 +74,8 @@ public class Fields {
 	public static final AString ETCH_FILE = Strings.intern("etch-file");
 
 	public static final AString TEST = Strings.intern("test");
+
+	public static final AString TOKENGINE = Strings.intern("tokengine");
+
+
 }

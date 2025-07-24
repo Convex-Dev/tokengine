@@ -88,9 +88,9 @@ public abstract class AAdapter<AddressType extends ACell> {
 	public abstract AddressType parseAddress(Object obj) throws IllegalArgumentException;
 
 	/**
-	 * Gets the userKey for a given account address
+	 * Gets the canonical userKey for a given account address
 	 * @param caip10 CAIP-10 account_address (Assumes chain ID removed)
-	 * @return Object representing an Address for this adapter
+	 * @return String representing an Address for this adapter
 	 * @throws IllegalArgumentException If account address format is invalid
 	 */
 	public abstract AString parseUserKey(String caip10) throws IllegalArgumentException;
@@ -131,7 +131,7 @@ public abstract class AAdapter<AddressType extends ACell> {
 	 * @param tokenID Token ID in CAIP-19 tokenID format
 	 * @param tx Transaction ID
 	 * @return amount received from the Token transfer, or null if not a valid transaction
-	 * @throws IOException
+	 * @throws IOException in case of DLT connection failure
 	 */
 	public abstract AInteger checkTransaction(String address, String tokenID, Blob tx) throws IOException;
 
@@ -147,6 +147,8 @@ public abstract class AAdapter<AddressType extends ACell> {
 	 * @return Receiver address, or null if not defined
 	 */
 	public abstract AddressType getReceiverAddress();
+
+
 
 
 

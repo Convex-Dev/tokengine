@@ -86,7 +86,7 @@ public class EVMAdapter extends AAdapter<AString> {
 			try {
 				operatorAddress = parseAddress(opAddrCell.toString());
 			} catch (Exception e) {
-				log.warn("Failed to parse operator-address from config: {}", opAddrCell);
+				log.warn("Failed to parse {} from config: {}", Fields.OPERATOR_ADDRESS, opAddrCell);
 				operatorAddress = null;
 			}
 		} else {
