@@ -106,7 +106,7 @@
 			},
 			"sepolia": {
 				"symbol":"CVM",
-				"assetID":"erc20:0xc62eeb332708f9199d0c6e6f2e76286d79d9311e",
+				"assetID":"erc20:0xcafebabe00000000000000000000000000000000",
 				"treasuryID":"0x06eEB4bb0BC58671d097824611F76fe50C5dB075",
 				"recieve":true,
 				"payout":true

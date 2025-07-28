@@ -2,11 +2,15 @@ package tokengine.adapter;
 
 import java.io.IOException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import convex.core.Result;
 import convex.core.data.ACell;
 import convex.core.data.AMap;
 import convex.core.data.AString;
 import convex.core.data.Blob;
+import convex.core.data.Index;
 import convex.core.data.prim.AInteger;
 import convex.core.lang.RT;
 import convex.core.util.Utils;
@@ -15,8 +19,19 @@ import tokengine.Fields;
 
 public abstract class AAdapter<AddressType extends ACell> {
 
+	protected static final Logger log = LoggerFactory.getLogger(AAdapter.class.getName());
+	
 	/** The config map for this adapter */
 	protected final AMap<AString,ACell> config;
+	
+	/** The tokens map for this adapter 
+	 * CAIP Asset ID -> Token record
+	 * 
+	 * Where:
+	 * - CAIP asset ID like "slip44:840" or "erc20:0x0123456789012345678901234567890123456789"
+	 * - Token Record provided from config and transformed by addTokenMapping
+	 */
+	protected Index<AString,AMap<AString,ACell>> tokens=Index.none();
 
 	/** The alias for this adapter */
 	protected final AString alias;
@@ -181,12 +196,18 @@ public abstract class AAdapter<AddressType extends ACell> {
 	public void addTokenMapping(AString tokenAlias, AString assetID, AMap<AString, ACell> tnet) {
 		ACell asset;
 		if (assetID.startsWith("cad29:test")) {
-			asset= deployTestAsset(tnet);
+			asset=deployTestAsset(tnet);
+			assetID=toAssetID(asset);
 		} else {
 			asset=parseAssetID(assetID.toString());
 			if (asset==null) throw new IllegalArgumentException("Unable to parse asset ID "+assetID+" for DLT "+getChainID());
 		}
 		
+		AMap<AString, ACell> trec=tnet;
+		
+		if (tokens.containsKey(assetID)) throw new IllegalStateException("Trying to add duplicate asset: "+assetID);
+		tokens=tokens.assoc(assetID, trec);
+		log.warn("Added asset "+tokenAlias+" on network "+getChainID()+" with Asset ID "+assetID);
 	}
 
 	/**
