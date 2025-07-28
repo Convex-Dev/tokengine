@@ -18,11 +18,9 @@ import convex.core.data.AccountKey;
 import convex.core.data.Blob;
 import convex.core.data.Strings;
 import convex.core.data.prim.AInteger;
-import convex.core.data.prim.CVMLong;
-import convex.core.exceptions.ParseException;
 import convex.core.lang.RT;
 import convex.core.lang.Reader;
-import tokengine.CAIP19;
+import convex.core.util.CAIP;
 import tokengine.Engine;
 import tokengine.Fields;
 
@@ -80,18 +78,18 @@ public class CVMAdapter extends AAdapter<Address> {
 	}
 	
 	@Override
-	public AInteger getBalance(String capi19, String address) throws IOException {
+	public AInteger getBalance(String caip19, String address) throws IOException {
 		Address addr=parseAddress(address);
-		if (isCVM(capi19)) {
+		if ("CVM".equals(caip19)||CAIP.isCVM(caip19)) {
 			try {
 				Long l= convex.getBalance(parseAddress(address));
 				return AInteger.create(l);
 			} catch (Exception e) {
 				throw new IOException(e);
 			}
-		} else if (capi19.startsWith("cad29")) {
-			String tokenString=capi19.substring(6); // skip 'cad29:' 
-			ACell tokenID=parseTokenID(tokenString);
+		} else if (caip19.startsWith("cad29")) {
+			String tokenString=caip19.substring(6); // skip 'cad29:' 
+			ACell tokenID=CAIP.parseTokenID(tokenString);
 			
 			ACell qs=Reader.read("(@convex.asset/balance (quote "+tokenID+") " +addr+")");
 			Result r=convex.query(qs).join();
@@ -103,7 +101,7 @@ public class CVMAdapter extends AAdapter<Address> {
 			}
 		}
 		
-		throw new UnsupportedOperationException("Asset type not supported in CVMAdapter: "+capi19);
+		throw new UnsupportedOperationException("Asset type not supported in CVMAdapter: "+caip19);
 	}
 	
 	@Override
@@ -115,7 +113,7 @@ public class CVMAdapter extends AAdapter<Address> {
 	@Override
 	public Result payout(String caip19, AInteger quantity, String destAccount) {
 		Address addr=parseAddress(destAccount);
-		if (isCVM(caip19)) {
+		if ("CVM".equals(caip19)||CAIP.isCVM(caip19)) {
 			if (!quantity.isLong()) {
 				return Result.error(ErrorCodes.ARGUMENT, "Invalid quantity: "+quantity);
 			}
@@ -127,7 +125,7 @@ public class CVMAdapter extends AAdapter<Address> {
 			}
 			return r;
 		} else {
-			ACell tokenID=parseTokenID(caip19);
+			ACell tokenID=CAIP.parseTokenID(caip19);
 			Result r;
 			try {
 				r = convex.transactSync("(@convex.asset/transfer "+addr+" [(quote "+tokenID+") "+quantity+"]");
@@ -195,10 +193,6 @@ public class CVMAdapter extends AAdapter<Address> {
 		throw new UnsupportedOperationException();
 	}
 
-	private boolean isCVM(String caip19) {
-		if ("CVM".equals(caip19)) return true;
-		return "slip44:864".equals(caip19);
-	}
 	
 	@Override
 	public ACell parseAssetID(AString assetID) {
@@ -213,29 +207,7 @@ public class CVMAdapter extends AAdapter<Address> {
 	}
 
 	
-	/**
-	 * Gets the asset ID for a CAD29 token
-	 * @param caip19
-	 * @return
-	 */
-	private ACell parseTokenID(String caip19) {
-		if (isCVM(caip19)) return null;
-		String[] ss=caip19.split(":");
-		if (ss[0].equals("cad29")) try {
-			ACell assetID=Reader.read(CAIP19.urlDecode(ss[1]));
-			if (assetID instanceof CVMLong cvl) {
-				assetID=Address.create(cvl.longValue());
-			}
-			if (assetID==null) {
-				throw new IllegalArgumentException("Invalid CAIP19 asset ID for Convex: "+ss[1]);
-			}
 
-			return assetID;
-		} catch (ParseException | IndexOutOfBoundsException e) {
-			throw new IllegalArgumentException("Invalid CAIP19 asset for Convex: "+caip19,e);
-		}
-		throw new IllegalArgumentException("Only CAD29 assets currently supported on Convex, but CAIP19 code was: "+caip19);
-	}
 
 	public Convex getConvex() {
 		return convex;
