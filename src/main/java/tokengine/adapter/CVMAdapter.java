@@ -18,6 +18,8 @@ import convex.core.data.AccountKey;
 import convex.core.data.Blob;
 import convex.core.data.Strings;
 import convex.core.data.prim.AInteger;
+import convex.core.data.prim.CVMLong;
+import convex.core.exceptions.ResultException;
 import convex.core.lang.RT;
 import convex.core.lang.Reader;
 import convex.core.util.CAIP;
@@ -195,9 +197,9 @@ public class CVMAdapter extends AAdapter<Address> {
 
 	
 	@Override
-	public ACell parseAssetID(AString assetID) {
-		// TODO Auto-generated method stub
-		return null;
+	public ACell parseAssetID(String assetID) {
+		
+		return CAIP.parseAssetID(Strings.create(assetID));
 	}
 	
 	@Override
@@ -262,7 +264,23 @@ public class CVMAdapter extends AAdapter<Address> {
 		return Address.parse(RT.getIn(config, Fields.RECEIVER_ADDRESS));
 	}
 
-
-
+	@Override
+	protected ACell deployTestAsset(AMap<AString, ACell> tnet)  {
+		AInteger decimals=RT.ensureInteger(RT.getIn(tnet, Fields.DECIMALS));
+		if (decimals==null) decimals = CVMLong.ZERO; // TODO: look up standard token decimals?
+		ACell code=Reader.read("(deploy (@convex.fungible/build-token {:supply 1000000000000 :decimals "+decimals+"}))");
+		Result r;
+		try {
+			r = engine.getConvex().transactSync(code);
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new IllegalStateException("Unable to deploy test asset due to interrupt");
+		}
+		if (r.isError()) {
+			throw new IllegalStateException("Unable to deploy test asset",new ResultException(r));
+		} else {
+			return r.getValue();
+		}
+	}
 
 }

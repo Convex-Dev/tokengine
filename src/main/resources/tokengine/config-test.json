@@ -48,16 +48,22 @@
 		{
 			"alias": "CVM", /* must match transfers category exactly */
 			"symbol" : "CVM",
-			"name" : "Werecoin"
+			"name" : "Convex Coin"
 		},
 		{
 			"alias": "USDC", /* must match transfers category exactly */
 			"symbol" : "USDC",
-			"name" : "USDC"
+			"name" : "USDC Stablecoin"
+		},
+		{
+			"alias": "FOO", /* must match transfers category exactly */
+			"symbol" : "FOO",
+			"name" : "FOO test token, will be auto-deployed on Convex test network",
+			"test" : true
 		}
 	],
 
-	/* Stste equivalent tokens on multilpe networks which can be transferred 1:1 */ 
+	/* Stste equivalent tokens on multiple networks which can be transferred 1:1 */ 
 	"transfers" : {
 		"USDC": {
 			"convex" : {
@@ -91,6 +97,7 @@
 			}
 		},
 		"CVM": {
+			/* Example of native coin on a network. Should have CAIP-19 asset ID using slip44 */
 			"convex" : {
 				"symbol":"CVM",
 				"assetID":"slip44:864",
@@ -103,6 +110,16 @@
 				"treasuryID":"0x06eEB4bb0BC58671d097824611F76fe50C5dB075",
 				"recieve":true,
 				"payout":true
+			}
+		},
+		"FOO": {
+			/* Example of test CAD29 fungible token */
+			"convex" : {
+				"symbol":"FOO",
+				"assetID":"cad29:test",
+				"recieve":true,
+				"payout":true,
+				"testDeploy":true
 			}
 		}
 	},

@@ -85,5 +85,7 @@ public class Fields {
 
 	public static final AString ASSET_ID = Strings.intern("assetID");
 
+	public static final AString DECIMALS = Strings.intern("decimals");
+
 
 }

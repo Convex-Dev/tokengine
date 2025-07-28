@@ -3,6 +3,7 @@ package tokengine;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.AfterAll;
@@ -11,6 +12,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 
+import convex.api.Convex;
+import convex.core.Result;
 import convex.core.crypto.AKeyPair;
 import convex.core.crypto.ASignature;
 import convex.core.data.ACell;
@@ -19,6 +22,8 @@ import convex.core.data.AString;
 import convex.core.data.AccountKey;
 import convex.core.data.Blob;
 import convex.core.data.Strings;
+import convex.core.data.prim.CVMLong;
+import convex.core.init.Init;
 import convex.core.util.ConfigUtils;
 import tokengine.adapter.CVMAdapter;
 
@@ -73,6 +78,17 @@ public class ConvexTest {
 		// Test with AString
 		convex.core.cvm.Address parsed3 = adapter.parseAddress(convex.core.data.Strings.create(addrStr));
 		assertEquals(addr, parsed3);
+	}
+	
+	@Test
+	public void testConvexAction() throws InterruptedException {
+		Convex convex=engine.getConvex();
+		assertEquals(Init.GENESIS_ADDRESS,convex.getAddress());
+		assertEquals(Init.GENESIS_ADDRESS,convex.query("*address*").join().getValue());
+		assertEquals(convex.getAccountKey(),convex.transact("*key*").join().getValue());
+		
+		Result r=convex.transactSync(CVMLong.ONE);
+		assertNull(r.getErrorCode(),()->"Failed result: "+r);
 	}
 	
 	@Test

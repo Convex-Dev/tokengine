@@ -57,6 +57,8 @@ public class EVMAdapter extends AAdapter<AString> {
             ));
 
     public static final String TRANSFER_SIGNATURE = EventEncoder.encode(TRANSFER_EVENT);
+    
+    public static final AString ETH_ASSET_ID=Strings.intern("slip44:60");
 
 	private AString operatorAddress = null;
 
@@ -168,15 +170,26 @@ public class EVMAdapter extends AAdapter<AString> {
 	}
 	
 	@Override
-	public ACell parseAssetID(AString assetID) {
-		// TODO Auto-generated method stub
+	public ACell parseAssetID(String assetID) {
+		if (assetID.startsWith("erc20:")) {
+			return parseTokenID(assetID);
+		} else if (Strings.create(assetID).equals(ETH_ASSET_ID)){
+			return ETH_ASSET_ID;
+		}
 		return null;
 	}
 	
 	@Override
 	public AString toAssetID(ACell asset) {
-		// TODO Auto-generated method stub
-		return null;
+		return (AString)asset;
+	}
+	
+	private AString parseTokenID(String tokenID) {
+		tokenID=tokenID.toLowerCase();
+		if (tokenID.startsWith("erc20:")) {
+			return parseAddress(tokenID.substring(6));
+		}
+		throw new IllegalArgumentException("Invalid CAIP-19 tokenID: "+tokenID);
 	}
 	
 	@Override
@@ -314,13 +327,7 @@ public class EVMAdapter extends AAdapter<AString> {
 	}
 
 
-	private AString parseTokenID(String tokenID) {
-		tokenID=tokenID.toLowerCase();
-		if (tokenID.startsWith("erc20:")) {
-			return parseAddress(tokenID.substring(6));
-		}
-		throw new IllegalArgumentException("Invalid CAIP-19 tokenID: "+tokenID);
-	}
+
 
 	@Override
 	public AString getReceiverAddress() {

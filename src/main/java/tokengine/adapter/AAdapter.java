@@ -163,7 +163,7 @@ public abstract class AAdapter<AddressType extends ACell> {
 	 * @param assetID CAIP-19 asset ID (may omit chain ID, e.g. "cad29:567" )
 	 * @return Asset identifier specific for this chain e.g. [#567 :foo] 
 	 */
-	public abstract ACell parseAssetID(AString assetID);
+	public abstract ACell parseAssetID(String assetID);
 	
 	/**
 	 * Convert a chain-specific asset identifier to a CAIP-19 asset ID
@@ -175,13 +175,32 @@ public abstract class AAdapter<AddressType extends ACell> {
 	/**
 	 * Adds a token mapping for this network
 	 * @param tokenAlias Cross-chain alias name e.g. "CVM". Must be precise.
-	 * @param assetID CAIP-19 asset ID (may omit chain ID). 
+	 * @param assetID CAIP-19 asset ID (may omit chain ID). May be "cad29:test" to deploy a new fungible token
 	 * @param tnet Mapping information record as per config file.
 	 */
 	public void addTokenMapping(AString tokenAlias, AString assetID, AMap<AString, ACell> tnet) {
-		ACell asset=parseAssetID(assetID);
-		// if (asset==null) throw new IllegalArgumentException("Unable to parse asset ID "+assetID+" for DLT "+getChainID());
+		ACell asset;
+		if (assetID.startsWith("cad29:test")) {
+			asset= deployTestAsset(tnet);
+		} else {
+			asset=parseAssetID(assetID.toString());
+			if (asset==null) throw new IllegalArgumentException("Unable to parse asset ID "+assetID+" for DLT "+getChainID());
+		}
+		
 	}
+
+	/**
+	 * Deploy a test asset for this adapter
+	 * @param tnet Token config for test asset
+	 * @return Asset ID
+	 */
+	protected ACell deployTestAsset(AMap<AString, ACell> tnet) {
+		throw new UnsupportedOperationException("Cannot deplot test assets for "+this.getClass());
+	}
+
+
+
+
 
 
 
