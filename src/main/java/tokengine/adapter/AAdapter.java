@@ -207,7 +207,8 @@ public abstract class AAdapter<AddressType extends ACell> {
 		
 		if (tokens.containsKey(assetID)) throw new IllegalStateException("Trying to add duplicate asset: "+assetID);
 		tokens=tokens.assoc(assetID, trec);
-		log.warn("Added asset "+tokenAlias+" on network "+getChainID()+" with Asset ID "+assetID);
+
+		log.info("Added asset "+tnet.get(Fields.SYMBOL)+" on network "+getChainID()+" with Asset ID "+assetID);
 	}
 
 	/**

@@ -79,7 +79,6 @@
 				"recieve":true,
 				"payout":true
 			}
-			
 		},
 		"WereCoin": {
 			"convex" : {
@@ -96,22 +95,24 @@
 				"payout":true
 			}
 		},
-		"CVM": {
+		"CVM": [
 			/* Example of native coin on a network. Should have CAIP-19 asset ID using slip44 */
-			"convex" : {
+			{
+				"network":"convex",
 				"symbol":"CVM",
 				"assetID":"slip44:864",
 				"recieve":true,
 				"payout":true
 			},
-			"sepolia": {
-				"symbol":"CVM",
-				"assetID":"erc20:0xcafebabe00000000000000000000000000000000",
-				"treasuryID":"0x06eEB4bb0BC58671d097824611F76fe50C5dB075",
+			{
+				"network":"convex", // note: possible to have two token mappings for the same network, e.g. wrapped CVM
+				"symbol":"WCVM",
+				"assetID":"cad29:72",
+				"treasuryID":"11",
 				"recieve":true,
 				"payout":true
 			}
-		},
+		],
 		"FOO": {
 			/* Example of test CAD29 fungible token */
 			"convex" : {

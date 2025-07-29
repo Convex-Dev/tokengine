@@ -87,5 +87,7 @@ public class Fields {
 
 	public static final AString DECIMALS = Strings.intern("decimals");
 
+	public static final AString SYMBOL = Strings.intern("symbol");
+
 
 }

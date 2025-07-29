@@ -17,6 +17,7 @@ import convex.core.crypto.AKeyPair;
 import convex.core.cvm.Keywords;
 import convex.core.cvm.State;
 import convex.core.data.ACell;
+import convex.core.data.ADataStructure;
 import convex.core.data.AMap;
 import convex.core.data.AString;
 import convex.core.data.AVector;
@@ -62,7 +63,7 @@ public class Engine {
 	Server server;
 	EtchStore etch=null;
 	Kafka kafka;
-	boolean testMode=false;
+	final boolean testMode;
 	
 	final AMap<AString,ACell> config;	
 	
@@ -86,6 +87,7 @@ public class Engine {
 	
 	public Engine(AMap<AString,ACell> config)  {
 		this.config=config;
+		this.testMode=RT.bool(RT.getIn(Fields.OPERATIONS, Fields.TEST));
 		this.latticeCursor=Cursors.of(null);
 		this.stateCursor=latticeCursor.path(Keywords.APP, Fields.TOKENGINE);
 		
@@ -119,51 +121,93 @@ public class Engine {
 		
 		AMap<AString,AMap<AString,ACell>> configTransfers=RT.ensureMap(config.get(Fields.TRANSFERS));
 		if (configTransfers==null) {
-			log.warn("No 'tranfsers' in config: should be an array of transfer maps. Tokengine will not allow any transfers.");
+			log.warn("No '"+Fields.TRANSFERS+"' in config: should be an map of transfers. Tokengine will not allow any transfers.");
 			return;
 		}
 		
 		int tn=configTransfers.size();
-		if (n!=tn) log.warn("Number of 'tranfers' doesnot equal the number of 'tokens'. This is probably a mistake?");
+		if (n!=tn) log.warn("Number of 'tranfers' does not equal the number of 'tokens'. This is probably a mistake?");
+		// Loop over  classes
 		for (int i=0; i<n; i++) {
-			MapEntry<AString, AMap<AString, ACell>> transfer=configTransfers.get(i);
+			MapEntry<AString, ?> transfer=configTransfers.get(i);
 			AString tokenAlias=transfer.getKey();
 			
 			// Loop over configured equivalent token classes
 			if (tokens.containsKey(tokenAlias)) {
-				AMap<AString, ACell> tnets=transfer.getValue();
-				int tcount=tnets.size();
+				// Get the set of transfers for each token alias
+				ADataStructure<ACell> tnets=RT.ensureDataStructure(transfer.getValue());
 				
-				// Loop over network mappings
-				for (int j=0; j<tcount; j++) {
-					MapEntry<AString,ACell> me=tnets.get(j);
-					AMap<AString,ACell> tnet=RT.ensureMap(me.getValue());
-					if (tnet==null) {
-						log.warn("Value not a map in network mapping "+me);
-						continue;
+				// Loop over network mappings for this token
+				int tcount=tnets.size();
+				for (int j=0; j<tcount; j++) try {
+					// Get token mapping in the transfers, might be a map entry or direct token mapping containing "network"
+					AMap<AString, ACell> tnet = prepareTokenMapping(tnets.get(j));
+					if (tnet==null) continue;
+
+					AString netAlias = RT.ensureString(tnet.get(Fields.NETWORK));
+					AString symbol=RT.ensureString(tnet.get(Fields.SYMBOL));
+					if (symbol==null) {
+						// Use the token alias as symbol by default
+						symbol=RT.getIn(Fields.TOKENS,tokenAlias,Fields.SYMBOL);
+						tnet=tnet.assoc(Fields.SYMBOL,symbol);
 					}
+					
 					AString assetID=RT.ensureString(tnet.get(Fields.ASSET_ID));
 					if (assetID==null) {
 						log.warn("No assetID for token '"+tokenAlias+"', transfer mapping wil be ignored in "+tnet);
 						continue;
 					}
-					AString netAlias=RT.ensureString(me.getKey());
 					AString chainID=lookupChainID(netAlias);
 					if (chainID==null) {
 						log.warn("Could not find network '"+netAlias+"' for token '"+tokenAlias+"', transfer mapping wil be ignored in "+tnet);
 						continue;
 					}
+					tnet=tnet.assoc(Fields.CHAIN_ID, chainID);
+					
 					AAdapter<?> adapter=getAdapter(chainID);
 					if (adapter==null) throw new Error("Adapter not found for chainID: "+chainID);
 					
 					// check assetID is valid
 					adapter.addTokenMapping(tokenAlias,assetID,tnet);
+				} catch (Exception e) {
+					log.error("Error parsing token mapping",e);
+					if (!isTest()) {
+						throw e;
+					}
 				}
 			} else {
 				log.warn("Transfers configured for non-existent token alias '"+tokenAlias+"', these will be ignored.");
 			}
 		}
 
+	}
+
+	/**
+	 * Checks if TokEngine is running in test configuration. In test mode:
+	 * - Some security assertions are relaxed
+	 * - Some extra test features are enabled, e.g. auto-deploying test tokens
+	 * @return rue if in testing mode, false if in production
+	 */
+	public boolean isTest() {
+		return testMode;
+	}
+
+	@SuppressWarnings("unchecked")
+	private AMap<AString, ACell> prepareTokenMapping(ACell e) {
+		AMap<AString,ACell> tnet;
+		if (e instanceof AMap m) {
+			// we got a map, should contain "network" alias
+			tnet=(AMap<AString,ACell>)m;
+		} else {
+			// we expect a netAlias, {mapping} pair
+			MapEntry<AString,AMap<AString,ACell>> me=RT.ensureMapEntry(e);
+			tnet=RT.ensureMap(me.getValue());
+			tnet=tnet.assoc(Fields.NETWORK,me.getKey());
+		}
+		if (tnet==null) {
+			log.warn("Value not a map in network mapping "+e+", entry ignored");
+		}
+		return tnet;
 	}
 
 	AString lookupChainID(AString networkAlias) {
@@ -177,10 +221,9 @@ public class Engine {
 
 	@SuppressWarnings("unchecked")
 	private void startConvexPeer() throws IOException, LaunchException, InterruptedException, ConfigException {
-		AKeyPair kp=AKeyPair.createSeeded(6756);
+		AKeyPair kp=isTest()?AKeyPair.createSeeded(6756):AKeyPair.generate();
 		
 		ACell convexConfig=RT.getIn(config, "convex");
-		testMode=RT.bool(RT.getIn(config, Fields.OPERATIONS,Fields.TEST));
 
 		Map<Keyword, Object> peerConfig;
 		if (convexConfig==null) {
@@ -192,7 +235,11 @@ public class Engine {
 		} else {
 			peerConfig=(Map<Keyword, Object>) JSONUtils.json(convexConfig);
 			if (!peerConfig.containsKey(Keywords.KEYPAIR)) {
-				log.warn("No keypair provided, using test peer key with seed: "+kp.getSeed());
+				if (isTest()) {
+					log.info("No keypair provided, using test peer key with seed: "+kp.getSeed());
+				} else {
+					log.warn("No keypair provided, using generated peer key with public key: "+kp.getAccountKey());
+				}
 				peerConfig.put(Keywords.KEYPAIR, kp);
 			}
 		}
