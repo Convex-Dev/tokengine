@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -17,11 +18,18 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 
+import convex.api.Convex;
+import convex.core.Result;
+import convex.core.cvm.Address;
 import convex.core.data.ACell;
 import convex.core.data.AMap;
 import convex.core.data.AString;
+import convex.core.data.Hash;
+import convex.core.data.Strings;
 import convex.core.data.prim.AInteger;
+import convex.core.data.prim.CVMLong;
 import convex.core.util.ConfigUtils;
+import convex.core.util.TXUtils;
 import tokengine.client.Client;
 
 @TestInstance(Lifecycle.PER_CLASS)
@@ -96,6 +104,20 @@ public class ClientTest {
 			});
 			assertNotNull(thrown.getCause());
 		}
+	}
+	
+	@Test public void testTransfer() throws IOException, TimeoutException, InterruptedException {
+		AInteger HOLDING=CVMLong.create(1000000000);
+		Convex convex=engine.getConvex();
+		Address user=ConvexTest.distributeWCVM(HOLDING, convex);
+		assertNotNull(user);
+
+		Address receiver=(Address) engine.getAdapter(Strings.create("convex")).getReceiverAddress();
+		assertNotNull(receiver);
+		
+		Convex cc=Convex.connect(convex.getHostAddress(),user,ConvexTest.TEST_KP);
+		Result r=cc.transactSync("(@convex.asset/transfer "+receiver+" [@asset.wrap.convex 1000])");
+		Hash h=TXUtils.getTransactionID(r);
 	}
 	
 	@AfterAll public void shutdown() {

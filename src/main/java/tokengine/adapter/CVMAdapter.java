@@ -12,7 +12,6 @@ import convex.core.ErrorCodes;
 import convex.core.Result;
 import convex.core.crypto.Ed25519Signature;
 import convex.core.cvm.Address;
-import convex.core.cvm.Keywords;
 import convex.core.data.ACell;
 import convex.core.data.AMap;
 import convex.core.data.AString;
@@ -292,8 +291,6 @@ public class CVMAdapter extends AAdapter<Address> {
 				return acc.add(amt);
 			}
 
-
-			
 		},(AInteger)CVMLong.ZERO);
 		
 		return dep;

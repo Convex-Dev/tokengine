@@ -28,6 +28,7 @@ import convex.core.data.AMap;
 import convex.core.data.AString;
 import convex.core.data.AccountKey;
 import convex.core.data.Blob;
+import convex.core.data.Blobs;
 import convex.core.data.Maps;
 import convex.core.data.Strings;
 import convex.core.data.prim.AInteger;
@@ -40,8 +41,8 @@ import tokengine.adapter.CVMAdapter;
 @TestInstance(Lifecycle.PER_CLASS)
 public class ConvexTest {
 	
-	AccountKey TEST_KEY=AccountKey.fromHex("b8c4f552c1749315c3347bcd0ceb9594a80bd204edd27645b096f733b1a7855b");
-	AKeyPair TEST_KP=AKeyPair.create("87b8ae6774ac7892ded2c89d5bce417b7da07b61c81a23e30534e62cde9768a1");
+	public static AccountKey TEST_KEY=AccountKey.fromHex("b8c4f552c1749315c3347bcd0ceb9594a80bd204edd27645b096f733b1a7855b");
+	public static AKeyPair TEST_KP=AKeyPair.create("87b8ae6774ac7892ded2c89d5bce417b7da07b61c81a23e30534e62cde9768a1");
 	
 	protected Engine engine;
 
@@ -86,20 +87,7 @@ public class ConvexTest {
 		// Convex connection for operator
 		Convex convex=ca.getConvex();
 		
-		// Give a new account some WCVM
-		Result r=convex.transactSync("(do (def t1 (create-account "+TEST_KEY+")) (@convex.asset/transfer t1 [@asset.wrap.convex "+HOLDING+"]) (transfer t1 1000000000) (@convex.asset/balance @asset.wrap.convex t1))");
-		assertFalse(r.isError(),()->"Unexpected error: "+r);
-		assertEquals(HOLDING,r.getValue());
-		Address addr=convex.querySync("t1").getValue();
-		
-		// Check for valid transaction ID
-		{
-			ABlob txID=RT.getIn(r, Keywords.INFO,Keywords.TX);
-			assertNotNull(txID);
-			assertEquals(txID,ca.parseTransactionID(txID.print()));
-			assertEquals(txID,ca.parseTransactionID(Strings.create(txID.toHexString())));
-			assertEquals(txID,ca.parseTransactionID(txID.toCVMHexString()));
-		}
+		Address addr = distributeWCVM(HOLDING, convex);
 		
 		// Convex connection for operator
 		AInteger DEPOSIT=CVMLong.create(300000);
@@ -121,6 +109,28 @@ public class ConvexTest {
 		assertNull(engine.makeDeposit(ca, "WCVM", addr.toString(), Maps.of(Fields.TX,txID.getHash().toString())));
 
 	}
+
+	public static Address distributeWCVM(AInteger amount, Convex convex)  {
+		try {
+			// Give a new account some WCVM
+			Result r;
+				r = convex.transactSync("(do (def t1 (create-account "+TEST_KEY+")) (@convex.asset/transfer t1 [@asset.wrap.convex "+amount+"]) (transfer t1 1000000000) (@convex.asset/balance @asset.wrap.convex t1))");
+			assertFalse(r.isError(),()->"Unexpected error: "+r);
+			assertEquals(amount,r.getValue());
+			Address addr=convex.querySync("t1").getValue();
+			
+			// Check for valid transaction ID
+			{
+				ABlob txID=RT.getIn(r, Keywords.INFO,Keywords.TX);
+				assertNotNull(txID);
+			}
+			return addr;
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new Error(e);
+		}
+
+	}
 	
 	@Test
 	public void testCVMAdapterParseAddress() {
@@ -139,6 +149,17 @@ public class ConvexTest {
 		// Test with AString
 		convex.core.cvm.Address parsed3 = adapter.parseAddress(convex.core.data.Strings.create(addrStr));
 		assertEquals(addr, parsed3);
+	}
+		
+		
+	@Test
+	public void testParseTXID() {
+		Blob txID=Blobs.createRandom(32);
+		CVMAdapter ca = new CVMAdapter(null,convex.core.data.Maps.empty());
+		assertEquals(txID,ca.parseTransactionID(txID.print()));
+		assertEquals(txID,ca.parseTransactionID(Strings.create(txID.toHexString())));
+		assertEquals(txID,ca.parseTransactionID(txID.toCVMHexString()));
+
 	}
 	
 	@Test
