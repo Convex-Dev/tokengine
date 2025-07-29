@@ -37,6 +37,7 @@ public class ConvexTest {
 		String resourcePath="/tokengine/config-test.json";
 		AMap<AString,ACell> config=ConfigUtils.readConfig(ConvexTest.class.getResourceAsStream(resourcePath));
 		engine = Engine.launch(config); // default config
+		assertTrue(engine.isTest());
 	}
 	
 	@Test public void testCVMSignatures() {

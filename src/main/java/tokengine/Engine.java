@@ -87,7 +87,7 @@ public class Engine {
 	
 	public Engine(AMap<AString,ACell> config)  {
 		this.config=config;
-		this.testMode=RT.bool(RT.getIn(Fields.OPERATIONS, Fields.TEST));
+		this.testMode=RT.bool(RT.getIn(config,Fields.OPERATIONS, Fields.TEST));
 		this.latticeCursor=Cursors.of(null);
 		this.stateCursor=latticeCursor.path(Keywords.APP, Fields.TOKENGINE);
 		
@@ -333,7 +333,7 @@ public class Engine {
 				adapter.start();
 				log.info("Started adapter: "+adapter);
 			} catch (Exception e) {
-				log.warn("Failed to start adapter: "+adapter);
+				log.warn("Failed to start adapter: "+adapter,e);
 			}
 		}
 	}

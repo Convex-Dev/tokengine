@@ -23,6 +23,7 @@ import convex.core.exceptions.ResultException;
 import convex.core.lang.RT;
 import convex.core.lang.Reader;
 import convex.core.util.CAIP;
+import convex.core.util.Utils;
 import tokengine.Engine;
 import tokengine.Fields;
 
@@ -32,10 +33,12 @@ public class CVMAdapter extends AAdapter<Address> {
 
 	protected Convex convex;
 	
-	private Address operatorAddress = null;
+	private Address operatorAddress;
 	
 	public CVMAdapter(Engine engine, AMap<AString, ACell> nc) {
 		super(engine,nc);
+		operatorAddress=Address.parse(nc.get(Fields.OPERATOR_ADDRESS));
+
 	}
 	
 	public static CVMAdapter build(Engine engine, AMap<AString, ACell> nc) throws IOException, TimeoutException, InterruptedException {
@@ -64,6 +67,23 @@ public class CVMAdapter extends AAdapter<Address> {
 		} else {
 			log.warn("No operator-address specified in config for CVMAdapter");
 			operatorAddress = null;
+		}
+		convex.setAddress(operatorAddress);
+		
+		// Test setup
+		if (engine.isTest()) {
+			// Can maybe use Engine CVM connection
+			if (Utils.equals(operatorAddress,engine.getConvex().getAddress())) {
+				convex=engine.getConvex();
+			}
+  
+			long CVM_WRAP=10*1000000000l;
+			Result wrapResult=convex.transactSync("(@asset.wrap.convex/wrap "+CVM_WRAP+")");
+			if (wrapResult.isError()) {
+				log.warn("Error wrapping Test CVM: "+wrapResult);
+			} else {
+				log.warn("CVM test step: wrapped CVM "+convex.querySync("(@convex.asset/balance @asset.wrap.convex *address*)"));
+			}
 		}
 	}
 
