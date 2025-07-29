@@ -180,6 +180,13 @@ public class Engine {
 					
 					AAdapter<?> adapter=getAdapter(chainID);
 					if (adapter==null) throw new Error("Adapter not found for chainID: "+chainID);
+
+					ACell receiver=tnet.get(Fields.RECEIVER_ADDRESS);
+					if (receiver==null) receiver=adapter.getReceiverAddress();
+					if (receiver==null) {
+						tnet=tnet.assoc(Fields.RECEIVER_ADDRESS, adapter.getOperatorAddress());
+						log.warn("No receiver address for token '"+tokenAlias+"' on network '"+netAlias+"'. Defaulting to operator address");
+					}	
 					
 					// check assetID is valid
 					adapter.addTokenMapping(tokenAlias,assetID,tnet);

@@ -6,7 +6,7 @@
 			"alias":"convex",                 // Short alias for network (Operator defined)
 		 	"chainID":"convex:test",         // CAIP19 Chain ID
 			"url":"localhost:18080", // Peer endpoint
-			"receiverContract":"#14564",
+			"receiverAddress":"#11",
 			"timeout": "10000", /* Millisecond timeout period */
 			"operatorAddress":"#11",
 			"test":true
@@ -25,7 +25,7 @@
 				}
 			},
 			"timeout":"300000",
-			"receiverContract":"0x06eEB4bb0BC58671d097824611F76fe50C5dB075",
+			"receiverAddress":"0x06eEB4bb0BC58671d097824611F76fe50C5dB075",
 			"operatorAddress":"0x06eEB4bb0BC58671d097824611F76fe50C5dB075",
 			"test":true
 		}

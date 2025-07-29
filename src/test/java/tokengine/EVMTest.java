@@ -21,7 +21,6 @@ import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Event;
 import org.web3j.abi.datatypes.Int;
 import org.web3j.crypto.Bip32ECKeyPair;
-import org.web3j.crypto.Bip39Wallet;
 import org.web3j.crypto.CipherException;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
@@ -43,7 +42,6 @@ import convex.core.data.AMap;
 import convex.core.data.AString;
 import convex.core.data.Blob;
 import convex.core.data.Maps;
-import convex.core.util.FileUtils;
 import tokengine.adapter.EVMAdapter;
 
 public class EVMTest {
@@ -162,9 +160,12 @@ public class EVMTest {
         if (!MnemonicUtils.validateMnemonic(TEST_MNEMONIC)) {
             throw new IllegalArgumentException("Invalid mnemonic phrase");
         }
-       
         
-        byte[] seed = MnemonicUtils.generateSeed(TEST_MNEMONIC, "");
+		File mnemonicDir = new File(System.getProperty("user.home"), ".tokengine/test-keys/.test-wallet");
+		mnemonicDir.mkdirs();
+		mnemonicDir.deleteOnExit();
+        
+        byte[] seed = MnemonicUtils.generateSeed(TEST_MNEMONIC, TEST_PASSPHRASE);
         Bip32ECKeyPair masterKeypair = Bip32ECKeyPair.generateKeyPair(seed);
         int HARDENED_BIT=0x80000000;
         final int[] path = {44 | HARDENED_BIT, 60 | HARDENED_BIT, 0 | HARDENED_BIT, 0, 0};
@@ -172,13 +173,12 @@ public class EVMTest {
         Credentials credential = Credentials.create(childKeypair);
         assertEquals(TEST_ADDRESS,credential.getAddress());
         
-        File mnemonicDir=FileUtils.getFile("~/.tokengine/test-keys");
         // byte[] seed = MnemonicUtils.generateSeed(TEST_MNEMONIC, "");
         String walFileName=WalletUtils.generateWalletFile(TEST_PASSPHRASE, childKeypair, mnemonicDir, false);
         
         File walFile=mnemonicDir.toPath().resolve(walFileName).toFile();
         
-		Credentials loadedCredentials = WalletUtils.loadCredentials("", walFile);
+		Credentials loadedCredentials = WalletUtils.loadCredentials(TEST_PASSPHRASE, walFile);
 		assertEquals(loadedCredentials.getAddress(),TEST_ADDRESS);
 
 	}

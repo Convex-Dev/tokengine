@@ -60,10 +60,24 @@ public class EVMAdapter extends AAdapter<AString> {
     
     public static final AString ETH_ASSET_ID=Strings.intern("slip44:60");
 
-	private AString operatorAddress = null;
+	private AString operatorAddress;
 
 	protected EVMAdapter(Engine engine, AMap<AString, ACell> nc) {
 		super(engine,nc);
+		
+		// Load operator address from config
+		ACell opAddrCell = RT.getIn(config, Fields.OPERATOR_ADDRESS);
+		if (opAddrCell != null) {
+			try {
+				operatorAddress = parseAddress(opAddrCell.toString());
+			} catch (Exception e) {
+				log.warn("Failed to parse {} from config: {}", Fields.OPERATOR_ADDRESS, opAddrCell);
+				operatorAddress = null;
+			}
+		} else {
+			log.warn("No operatorAddress specified in config for EVMAdapter");
+			operatorAddress = null;
+		}
 	}
 
 	Web3j web3;
@@ -83,19 +97,7 @@ public class EVMAdapter extends AAdapter<AString> {
 		if (url==null) throw new IllegalStateException("No Ethereum RPC ndoe speific, should be in networks[..].url");
 		web3 = Web3j.build(new HttpService(url.toString()));
 
-		// Load operator address from config
-		ACell opAddrCell = RT.getIn(config, Fields.OPERATOR_ADDRESS);
-		if (opAddrCell != null) {
-			try {
-				operatorAddress = parseAddress(opAddrCell.toString());
-			} catch (Exception e) {
-				log.warn("Failed to parse {} from config: {}", Fields.OPERATOR_ADDRESS, opAddrCell);
-				operatorAddress = null;
-			}
-		} else {
-			log.warn("No operatorAddress specified in config for EVMAdapter");
-			operatorAddress = null;
-		}
+
 
 		// Load wallets from config-specified directory
 		try {

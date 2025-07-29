@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.IOException;
+
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -16,6 +18,9 @@ import convex.api.Convex;
 import convex.core.Result;
 import convex.core.crypto.AKeyPair;
 import convex.core.crypto.ASignature;
+import convex.core.cvm.Address;
+import convex.core.cvm.Keywords;
+import convex.core.data.ABlob;
 import convex.core.data.ACell;
 import convex.core.data.AMap;
 import convex.core.data.AString;
@@ -24,11 +29,14 @@ import convex.core.data.Blob;
 import convex.core.data.Strings;
 import convex.core.data.prim.CVMLong;
 import convex.core.init.Init;
+import convex.core.lang.RT;
 import convex.core.util.ConfigUtils;
 import tokengine.adapter.CVMAdapter;
 
 @TestInstance(Lifecycle.PER_CLASS)
 public class ConvexTest {
+	
+	AccountKey TEST_KEY=AccountKey.fromHex("b8c4f552c1749315c3347bcd0ceb9594a80bd204edd27645b096f733b1a7855b");
 	
 	protected Engine engine;
 
@@ -59,6 +67,31 @@ public class ConvexTest {
 		assertTrue(ca.verifyPersonalSignature(messageText, signed.toHexString(), pk.toString()));
 		
 		assertFalse(ca.verifyPersonalSignature("Something else", signed.toHexString(), pk.toString()));
+
+	}
+	
+	@Test public void testWCVMDeposit() throws InterruptedException, IOException {
+		CVMAdapter ca=(CVMAdapter) engine.getAdapter(Strings.create("convex:test"));
+		assertNotNull(ca);
+		Address receiverAddress=ca.getReceiverAddress();
+		assertNotNull(receiverAddress);
+		
+		// Convex connection for operator
+		Convex convex=ca.getConvex();
+		
+		// Give a new account some CVM
+		Result r=convex.transactSync("(do (def t1 (create-account "+TEST_KEY+")) (@convex.asset/transfer t1 [@asset.wrap.convex 1000000]) (@convex.asset/balance @asset.wrap.convex t1))");
+		assertFalse(r.isError(),()->"Unexpected error: "+r);
+		assertEquals(CVMLong.create(1000000),r.getValue());
+		Address addr=convex.querySync("t1").getValue();
+		
+		// Check for valid transaction ID
+		ABlob txID=RT.getIn(r, Keywords.INFO,Keywords.TX);
+		assertNotNull(txID);
+		assertEquals(txID,ca.parseTransactionID(txID.print()));
+		assertEquals(txID,ca.parseTransactionID(Strings.create(txID.toHexString())));
+		assertEquals(txID,ca.parseTransactionID(txID.toCVMHexString()));
+		
 
 	}
 	

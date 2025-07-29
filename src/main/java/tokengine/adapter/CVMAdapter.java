@@ -282,7 +282,9 @@ public class CVMAdapter extends AAdapter<Address> {
 
 	@Override
 	public Address getReceiverAddress() {
-		return Address.parse(RT.getIn(config, Fields.RECEIVER_ADDRESS));
+		Address result= Address.parse(RT.getIn(config, Fields.RECEIVER_ADDRESS));
+		// if (result==null) result =getOperatorAddress();
+		return result;
 	}
 
 	@Override
