@@ -59,10 +59,24 @@ public class Engine {
 	
 	protected static final Logger log=LoggerFactory.getLogger("tokengine.Engine");
 	
+	/** Connection for the server operator */
 	Convex convex;
+	
+	/** Embedded Peer server instance */
 	Server server;
+	
+	/** etch store for TokEngine state */
 	EtchStore etch=null;
+	
+	/** Kafka instance for audit logging */
+	
 	Kafka kafka;
+	
+	/** 
+	 * Set to true for test mode. In test mode:
+	 * - Some security assertions are relaxed
+	 * - Some extra test features are enabled, e.g. auto-deploying test tokens
+	 */
 	final boolean testMode;
 	
 	final AMap<AString,ACell> config;	
@@ -183,9 +197,7 @@ public class Engine {
 	}
 
 	/**
-	 * Checks if TokEngine is running in test configuration. In test mode:
-	 * - Some security assertions are relaxed
-	 * - Some extra test features are enabled, e.g. auto-deploying test tokens
+	 * Checks if TokEngine is running in test configuration. 
 	 * @return rue if in testing mode, false if in production
 	 */
 	public boolean isTest() {

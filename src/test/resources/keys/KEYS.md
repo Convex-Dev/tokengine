@@ -13,3 +13,14 @@ BIP39 Mnemonic:    search seven misery security theme poet hint senior helmet my
 ```
 
 This keystore has blank key passphrases / passwords
+
+## EVM Wallet
+
+Test EVM wallet
+
+```
+Path:     /44'/60'/0'/0/0
+Address:  0xB4a5F74133D9790dD50f1C8D5Bc831E163b92B23
+Mnemonic: wink depend smile firm final clinic near tail cover foam awful moment
+Pri-key:  0x16c06f4b77072e316441fad7b1c3662fc38533eee3de17426191942570eb17b5
+```

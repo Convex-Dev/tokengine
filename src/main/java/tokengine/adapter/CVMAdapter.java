@@ -82,8 +82,12 @@ public class CVMAdapter extends AAdapter<Address> {
 			if (wrapResult.isError()) {
 				log.warn("Error wrapping Test CVM: "+wrapResult);
 			} else {
-				log.warn("CVM test step: wrapped CVM "+convex.querySync("(@convex.asset/balance @asset.wrap.convex *address*)"));
+				log.info("CVM test setup: wrapped CVM "+convex.querySync("(@convex.asset/balance @asset.wrap.convex *address*)"));
 			}
+		}
+		
+		if (convex.getKeyPair()==null) {
+			log.warn("No CVM key pair configured, TokEngine operator cannot transact!");
 		}
 	}
 
@@ -227,9 +231,6 @@ public class CVMAdapter extends AAdapter<Address> {
 		// TODO Auto-generated method stub
 		return null;
 	}
-
-	
-
 
 	public Convex getConvex() {
 		return convex;

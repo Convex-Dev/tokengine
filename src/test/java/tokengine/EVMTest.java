@@ -20,10 +20,13 @@ import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Event;
 import org.web3j.abi.datatypes.Int;
+import org.web3j.crypto.Bip32ECKeyPair;
+import org.web3j.crypto.Bip39Wallet;
 import org.web3j.crypto.CipherException;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.crypto.Keys;
+import org.web3j.crypto.MnemonicUtils;
 import org.web3j.crypto.Sign;
 import org.web3j.crypto.WalletUtils;
 import org.web3j.protocol.Web3j;
@@ -40,14 +43,19 @@ import convex.core.data.AMap;
 import convex.core.data.AString;
 import convex.core.data.Blob;
 import convex.core.data.Maps;
+import convex.core.util.FileUtils;
 import tokengine.adapter.EVMAdapter;
 
 public class EVMTest {
 
     static String RPC_NODE_URL = "https://sepolia.drpc.org";
+    
+    static final String TEST_MNEMONIC="wink depend smile firm final clinic near tail cover foam awful moment";
+    static final String TEST_ADDRESS="0xB4a5F74133D9790dD50f1C8D5Bc831E163b92B23".toLowerCase();
+    static final String TEST_PASSPHRASE="";
 	
 	@SuppressWarnings("unused")
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException, CipherException {
 		try {
 			AMap<AString, ACell> testConfig = Maps.of(
 					Fields.CHAIN_ID, "eip155:11155111",
@@ -70,6 +78,7 @@ public class EVMTest {
 	        Blob txID=Blob.parse(txHash);
 	        Object r=adapter.checkTransaction("0xa72018ba06475aca284ed98ab0ce0e07878521a3", "erc20:0x1c7d4b196cb0c7b01d743fbc6116a902379c7238", txID);
 	        System.out.println(r);
+		
 		} finally {
 			System.exit(0);
 		}
@@ -147,6 +156,31 @@ public class EVMTest {
 		
 		// Clean up
 		tempWalletFile.delete();
+	}
+	
+	@Test public void testTestWallet() throws CipherException, IOException {
+        if (!MnemonicUtils.validateMnemonic(TEST_MNEMONIC)) {
+            throw new IllegalArgumentException("Invalid mnemonic phrase");
+        }
+       
+        
+        byte[] seed = MnemonicUtils.generateSeed(TEST_MNEMONIC, "");
+        Bip32ECKeyPair masterKeypair = Bip32ECKeyPair.generateKeyPair(seed);
+        int HARDENED_BIT=0x80000000;
+        final int[] path = {44 | HARDENED_BIT, 60 | HARDENED_BIT, 0 | HARDENED_BIT, 0, 0};
+        Bip32ECKeyPair childKeypair = Bip32ECKeyPair.deriveKeyPair(masterKeypair, path);
+        Credentials credential = Credentials.create(childKeypair);
+        assertEquals(TEST_ADDRESS,credential.getAddress());
+        
+        File mnemonicDir=FileUtils.getFile("~/.tokengine/test-keys");
+        // byte[] seed = MnemonicUtils.generateSeed(TEST_MNEMONIC, "");
+        String walFileName=WalletUtils.generateWalletFile(TEST_PASSPHRASE, childKeypair, mnemonicDir, false);
+        
+        File walFile=mnemonicDir.toPath().resolve(walFileName).toFile();
+        
+		Credentials loadedCredentials = WalletUtils.loadCredentials("", walFile);
+		assertEquals(loadedCredentials.getAddress(),TEST_ADDRESS);
+
 	}
 	
 	@Test public void testLoadWalletsFromDirectory() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, IOException, CipherException {
