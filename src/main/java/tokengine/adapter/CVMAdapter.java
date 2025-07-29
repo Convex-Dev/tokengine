@@ -2,6 +2,7 @@ package tokengine.adapter;
 
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
+import java.util.function.BiFunction;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,12 +12,15 @@ import convex.core.ErrorCodes;
 import convex.core.Result;
 import convex.core.crypto.Ed25519Signature;
 import convex.core.cvm.Address;
+import convex.core.cvm.Keywords;
 import convex.core.data.ACell;
 import convex.core.data.AMap;
 import convex.core.data.AString;
+import convex.core.data.AVector;
 import convex.core.data.AccountKey;
 import convex.core.data.Blob;
 import convex.core.data.Strings;
+import convex.core.data.Vectors;
 import convex.core.data.prim.AInteger;
 import convex.core.data.prim.CVMLong;
 import convex.core.exceptions.ResultException;
@@ -216,7 +220,8 @@ public class CVMAdapter extends AAdapter<Address> {
 	
 	@Override
 	public AString parseUserKey(String address) throws IllegalArgumentException {
-		throw new UnsupportedOperationException();
+		Address a=Address.parse(address);
+		return a.toCVMString(10);
 	}
 
 	
@@ -227,9 +232,8 @@ public class CVMAdapter extends AAdapter<Address> {
 	}
 	
 	@Override
-	public AString toAssetID(ACell asset) {
-		// TODO Auto-generated method stub
-		return null;
+	public AString toCAIPAssetID(ACell asset) {
+		return Strings.create(CAIP.toAssetID(asset));
 	}
 
 	public Convex getConvex() {
@@ -269,8 +273,35 @@ public class CVMAdapter extends AAdapter<Address> {
 
 	@Override
 	public AInteger checkTransaction(String address, String tokenID, Blob tx) {
-		log.warn("CVM transaction not checked: "+tx);
-		return null;
+		Result tr =engine.getPeer().getTransactionResult(tx);
+		if (tr==null) return null; // transaction not found
+		ACell aid=parseAssetID(tokenID);
+
+		AInteger dep=tr.getLog().reduce( new BiFunction<>() {
+			@Override
+			public AInteger apply(AInteger acc, AVector<ACell> logRec) {
+				AVector<ACell> v=RT.ensureVector(logRec.get(3));
+				if (v==null) return acc;
+				if (v.count()<4) return acc; // doesn't look like transfer event
+				
+				if(!checkScopedAddress(aid,v.get(1),v.get(2)))
+				
+				if (!Fields.TR.equals(v.get(0))) return acc;
+				AInteger amt=RT.ensureInteger(v.get(3));
+				if (amt==null) return acc;
+				return acc.add(amt);
+			}
+
+
+			
+		},(AInteger)CVMLong.ZERO);
+		
+		return dep;
+	}
+	
+	private boolean checkScopedAddress(ACell assetID, ACell addr, ACell scope) {
+		if (scope==null) return Utils.equals(assetID, addr); // Like #1378
+		return Utils.equals(assetID, Vectors.of(addr,scope));
 	}
 
 	@Override

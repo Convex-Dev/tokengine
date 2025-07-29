@@ -4,9 +4,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -26,7 +28,9 @@ import convex.core.data.AMap;
 import convex.core.data.AString;
 import convex.core.data.AccountKey;
 import convex.core.data.Blob;
+import convex.core.data.Maps;
 import convex.core.data.Strings;
+import convex.core.data.prim.AInteger;
 import convex.core.data.prim.CVMLong;
 import convex.core.init.Init;
 import convex.core.lang.RT;
@@ -37,6 +41,7 @@ import tokengine.adapter.CVMAdapter;
 public class ConvexTest {
 	
 	AccountKey TEST_KEY=AccountKey.fromHex("b8c4f552c1749315c3347bcd0ceb9594a80bd204edd27645b096f733b1a7855b");
+	AKeyPair TEST_KP=AKeyPair.create("87b8ae6774ac7892ded2c89d5bce417b7da07b61c81a23e30534e62cde9768a1");
 	
 	protected Engine engine;
 
@@ -70,28 +75,50 @@ public class ConvexTest {
 
 	}
 	
-	@Test public void testWCVMDeposit() throws InterruptedException, IOException {
+	@Test public void testWCVMDeposit() throws InterruptedException, IOException, TimeoutException {
 		CVMAdapter ca=(CVMAdapter) engine.getAdapter(Strings.create("convex:test"));
 		assertNotNull(ca);
 		Address receiverAddress=ca.getReceiverAddress();
 		assertNotNull(receiverAddress);
 		
+		AInteger HOLDING=CVMLong.create(1000000);
+		
 		// Convex connection for operator
 		Convex convex=ca.getConvex();
 		
-		// Give a new account some CVM
-		Result r=convex.transactSync("(do (def t1 (create-account "+TEST_KEY+")) (@convex.asset/transfer t1 [@asset.wrap.convex 1000000]) (@convex.asset/balance @asset.wrap.convex t1))");
+		// Give a new account some WCVM
+		Result r=convex.transactSync("(do (def t1 (create-account "+TEST_KEY+")) (@convex.asset/transfer t1 [@asset.wrap.convex "+HOLDING+"]) (transfer t1 1000000000) (@convex.asset/balance @asset.wrap.convex t1))");
 		assertFalse(r.isError(),()->"Unexpected error: "+r);
-		assertEquals(CVMLong.create(1000000),r.getValue());
+		assertEquals(HOLDING,r.getValue());
 		Address addr=convex.querySync("t1").getValue();
 		
 		// Check for valid transaction ID
-		ABlob txID=RT.getIn(r, Keywords.INFO,Keywords.TX);
-		assertNotNull(txID);
-		assertEquals(txID,ca.parseTransactionID(txID.print()));
-		assertEquals(txID,ca.parseTransactionID(Strings.create(txID.toHexString())));
-		assertEquals(txID,ca.parseTransactionID(txID.toCVMHexString()));
+		{
+			ABlob txID=RT.getIn(r, Keywords.INFO,Keywords.TX);
+			assertNotNull(txID);
+			assertEquals(txID,ca.parseTransactionID(txID.print()));
+			assertEquals(txID,ca.parseTransactionID(Strings.create(txID.toHexString())));
+			assertEquals(txID,ca.parseTransactionID(txID.toCVMHexString()));
+		}
 		
+		// Convex connection for operator
+		AInteger DEPOSIT=CVMLong.create(300000);
+		Convex convex2=Convex.connect(convex.getHostAddress(),addr,TEST_KP);
+		Result dr=convex2.transactSync("(@convex.asset/transfer "+receiverAddress+" [@asset.wrap.convex "+DEPOSIT+"])");
+		ABlob txID=RT.getIn(dr, Keywords.INFO,Keywords.TX);
+		// System.out.println(dr);
+		
+		AInteger deposited=engine.makeDeposit(ca, "WCVM", addr.toString(), Maps.of(Fields.TX,txID.toString()));
+		assertEquals(DEPOSIT,deposited);
+		
+		// duplicate transaction
+		assertThrows(IllegalStateException.class,()->engine.makeDeposit(ca, "WCVM", addr.toString(), Maps.of(Fields.TX,txID.toString())));
+
+		// fictitious token
+		assertThrows(IllegalArgumentException.class,()->engine.makeDeposit(ca, "BOB", addr.toString(), Maps.of(Fields.TX,txID.toString())));
+
+		// fictitious tx ID
+		assertNull(engine.makeDeposit(ca, "WCVM", addr.toString(), Maps.of(Fields.TX,txID.getHash().toString())));
 
 	}
 	

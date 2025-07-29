@@ -182,7 +182,7 @@ public class EVMAdapter extends AAdapter<AString> {
 	}
 	
 	@Override
-	public AString toAssetID(ACell asset) {
+	public AString toCAIPAssetID(ACell asset) {
 		return (AString)asset;
 	}
 	

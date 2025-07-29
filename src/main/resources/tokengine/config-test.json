@@ -69,14 +69,14 @@
 			"convex" : {
 				"symbol":"USDC",
 				"assetID":"cad29:12345",
-				"recieve":true,
+				"receive":true,
 				"payout":true
 			},
 			"sepolia": {
 				"symbol":"USDC",
 				"assetID":"erc20:0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
 				"treasuryID":"0x06eEB4bb0BC58671d097824611F76fe50C5dB075",
-				"recieve":true,
+				"receive":true,
 				"payout":true
 			}
 		},
@@ -84,14 +84,14 @@
 			"convex" : {
 				"symbol":"CWRC",
 				"assetID":"cad29:1234",
-				"recieve":true,
+				"receive":true,
 				"payout":true
 			},
 			"sepolia": {
 				"symbol":"LWRC",
 				"assetID":"erc20:0xc62eeb332708f9199d0c6e6f2e76286d79d9311e",
 				"treasuryID":"0x06eEB4bb0BC58671d097824611F76fe50C5dB075",
-				"recieve":true,
+				"receive":true,
 				"payout":true
 			}
 		},
@@ -101,7 +101,7 @@
 				"network":"convex",
 				"symbol":"CVM",
 				"assetID":"slip44:864",
-				"recieve":true,
+				"receive":true,
 				"payout":true
 			},
 			{
@@ -109,7 +109,7 @@
 				"symbol":"WCVM",
 				"assetID":"cad29:72",
 				"treasuryID":"11",
-				"recieve":true,
+				"receive":true,
 				"payout":true
 			}
 		],
@@ -118,7 +118,7 @@
 			"convex" : {
 				"symbol":"FOO",
 				"assetID":"cad29:test",
-				"recieve":true,
+				"receive":true,
 				"payout":true,
 				"testDeploy":true
 			}

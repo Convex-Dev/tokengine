@@ -11,6 +11,8 @@ import convex.core.data.AMap;
 import convex.core.data.AString;
 import convex.core.data.Blob;
 import convex.core.data.Index;
+import convex.core.data.MapEntry;
+import convex.core.data.Strings;
 import convex.core.data.prim.AInteger;
 import convex.core.lang.RT;
 import convex.core.util.Utils;
@@ -152,12 +154,12 @@ public abstract class AAdapter<AddressType extends ACell> {
 	/**
 	 * Check a transaction for valid receipt of a token
 	 * @param address Address of sender of funds
-	 * @param tokenID Token ID in CAIP-19 tokenID format
+	 * @param caipTokenID Token ID in CAIP-19 tokenID format
 	 * @param tx Transaction ID
 	 * @return amount received from the Token transfer, or null if not a valid transaction
 	 * @throws IOException in case of DLT connection failure
 	 */
-	public abstract AInteger checkTransaction(String address, String tokenID, Blob tx) throws IOException;
+	public abstract AInteger checkTransaction(String address, String caipTokenID, Blob tx) throws IOException;
 
 	/**
 	 * Parse a transaction ID, returning a canonical Blob. This should be unique for any distinct valid transaction
@@ -180,24 +182,29 @@ public abstract class AAdapter<AddressType extends ACell> {
 	 */
 	public abstract ACell parseAssetID(String assetID);
 	
+
+	
 	/**
 	 * Convert a chain-specific asset identifier to a CAIP-19 asset ID
-	 * @param asset Chain-specific asset identifier e.g. the Vector [#567 3]
+	 * @param adapterAssetID Chain-specific asset identifier e.g. the Vector [#567 3]
 	 * @return CAIP19 asset ID e.g. cad29:567-3
 	 */
-	public abstract AString toAssetID(ACell asset);
+	public abstract AString toCAIPAssetID(ACell adapterAssetID);
 
 	/**
 	 * Adds a token mapping for this network
 	 * @param tokenAlias Cross-chain alias name e.g. "CVM". Must be precise.
 	 * @param assetID CAIP-19 asset ID (may omit chain ID). May be "cad29:test" to deploy a new fungible token
 	 * @param tnet Mapping information record as per config file.
+	 * @throws Exception 
 	 */
-	public void addTokenMapping(AString tokenAlias, AString assetID, AMap<AString, ACell> tnet) {
+	public void addTokenMapping(AString tokenAlias, AString assetID, AMap<AString, ACell> tnet) throws Exception {
 		ACell asset;
 		if (assetID.startsWith("cad29:test")) {
+			// TODO: other adapter test tokens?
 			asset=deployTestAsset(tnet);
-			assetID=toAssetID(asset);
+			assetID=toCAIPAssetID(asset);
+			if (assetID==null) throw new IllegalArgumentException("Unable to parse asset ID: "+asset+" for DLT "+getChainID());
 		} else {
 			asset=parseAssetID(assetID.toString());
 			if (asset==null) throw new IllegalArgumentException("Unable to parse asset ID "+assetID+" for DLT "+getChainID());
@@ -207,6 +214,9 @@ public abstract class AAdapter<AddressType extends ACell> {
 		
 		if (tokens.containsKey(assetID)) throw new IllegalStateException("Trying to add duplicate asset: "+assetID);
 		tokens=tokens.assoc(assetID, trec);
+		if (tokens==null) {
+			throw new Exception("Problem setting token mapping? "+assetID+" = "+trec);
+		}
 
 		log.info("Added asset "+tnet.get(Fields.SYMBOL)+" on network "+getChainID()+" with Asset ID "+assetID);
 	}
@@ -218,6 +228,26 @@ public abstract class AAdapter<AddressType extends ACell> {
 	 */
 	protected ACell deployTestAsset(AMap<AString, ACell> tnet) {
 		throw new UnsupportedOperationException("Cannot deplot test assets for "+this.getClass());
+	}
+
+	/**
+	 * Looks up a CAIP-19 asset ID for the identified token
+	 * @param token Token identifier, may be an alias or CAIP-19 asset ID
+	 * @return CAIP-19 Asset ID or null if token is not defined in this adapter
+	 */
+	public AString lookupCAIPAssetID(String token) {
+		AString id=Strings.create(token);
+		if (tokens.containsKey(id)) return id; // valid CAIP-19 ID, exact match
+		
+		long n=tokens.count();
+		for (int i=0; i<n; i++) {
+			MapEntry<AString, AMap<AString, ACell>> me = tokens.entryAt(i);
+			AMap<AString, ACell> mapping=me.getValue();
+			if (id.equals(RT.getIn(mapping, Fields.SYMBOL))) {
+				return me.getKey();
+			}
+		}
+		return null;
 	}
 
 

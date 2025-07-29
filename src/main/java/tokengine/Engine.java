@@ -15,6 +15,7 @@ import convex.core.ErrorCodes;
 import convex.core.Result;
 import convex.core.crypto.AKeyPair;
 import convex.core.cvm.Keywords;
+import convex.core.cvm.Peer;
 import convex.core.cvm.State;
 import convex.core.data.ACell;
 import convex.core.data.ADataStructure;
@@ -193,7 +194,7 @@ public class Engine {
 				} catch (Exception e) {
 					log.error("Error parsing token mapping",e);
 					if (!isTest()) {
-						throw e;
+						throw new Error(e);
 					}
 				}
 			} else {
@@ -464,26 +465,27 @@ public class Engine {
 	}
 
 	/**
-	 * MAkes a deposit given a unique deposit proof
+	 * Makes a deposit given a unique deposit proof
 	 * @param adapter
 	 * @param token
 	 * @param address Address of user
 	 * @param depositProof
+	 * @return Integer amount deposited, or null if transaction could not be verified
 	 * @throws IOException
 	 */
 	public AInteger makeDeposit(AAdapter<?> adapter, String token, String address, AMap<AString,ACell> depositProof) throws IOException {
+		AString tokenKey=getTokenKey(adapter,token);
+		if (tokenKey==null) throw new IllegalArgumentException("Token not supported on this DLT: "+token);
+		
 		// Check transaction is Valid: TODO: confirm fields
 		AString tx=RT.ensureString(RT.getIn(depositProof, Fields.TX));
 		Blob txID=adapter.parseTransactionID(tx);
 		if (txID==null) throw new IllegalArgumentException("Unable to parse transaction ID: "+tx);
-		AInteger received=adapter.checkTransaction(address,token,txID); 
+		AInteger received=adapter.checkTransaction(address,adapter.lookupCAIPAssetID(token).toString(),txID); 
 		if (received==null) {
-			return received; // null = failed to verify
+			return null; // null = failed to verify
 		} 
-		
-		AString tokenKey=getTokenKey(adapter,token);
-		if (tokenKey==null) throw new IllegalArgumentException("Token not supported on this DLT: "+token);
-		
+			
 		AString userKey=adapter.parseUserKey(address);
 		if (userKey==null) throw new IllegalArgumentException("Invalid user account: "+address);
 
@@ -497,8 +499,9 @@ public class Engine {
 		
 		// We do this atomically, since it needs to update balances and log deposit
 		stateCursor.updateAndGet(state->{
-			ACell existingTx=RT.getIn(state, adapter.getChainID(),txID);
-			if (existingTx==null) throw new IllegalStateException("Deposit already made for transaction "+txID);
+			AString chainID=adapter.getChainID();
+			ACell existingTx=RT.getIn(state, Fields.RECEIPTS,chainID,txID);
+			if (existingTx!=null) throw new IllegalStateException("Deposit already made for transaction "+txID);
 			
 			AInteger existingBalance=RT.getIn(state, Fields.CREDITS, userKey, tokenKey);
 			if (existingBalance==null) {
@@ -506,21 +509,22 @@ public class Engine {
 			}
 			AInteger newBalance=existingBalance.add(received);
 			state=RT.assocIn(state, newBalance, Fields.CREDITS, userKey, tokenKey);
-			state=RT.assocIn(state, received, Fields.DEPOSITS, txID);
+			state=RT.assocIn(state, received, Fields.RECEIPTS, chainID,txID);
 			return state;
 		});
 		return received; // success case with positive deposit
 	} 
 	
 	/**
-	 * Get the canonical token Key
-	 * @param adapter Any DLT adapter
+	 * Get the canonical token Key. This should be an index for virtual balances
 	 * @param token Token identifier
-	 * @return
+	 * @return AString identifier for the token, or null if not available / defined
 	 */
-	private AString getTokenKey(AAdapter<?> adapter, String token) {
-		// TODO Auto-generated method stub
-		return null;
+	public AString getTokenKey(AAdapter<?> adapter, String token) {
+		AString assetID=adapter.lookupCAIPAssetID(token.trim());
+		if (assetID==null) return null;
+		AString result=adapter.getChainID().append("/").append(assetID);
+		return result;
 	} 
 
 	/**
@@ -638,6 +642,14 @@ public class Engine {
 			    .ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
 			    .format(java.time.Instant.now().atZone(java.time.ZoneOffset.UTC));
 		return timestamp;
+	}
+
+	/**
+	 * Gets the current peer state snapshot for the embedded Convex peer
+	 * @return Peer snapshot
+	 */
+	public Peer getPeer() {
+		return convex.getLocalServer().getPeer();
 	}
 
 }

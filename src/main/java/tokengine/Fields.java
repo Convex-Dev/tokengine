@@ -89,5 +89,7 @@ public class Fields {
 
 	public static final AString SYMBOL = Strings.intern("symbol");
 
+	public static final AString TR = Strings.intern("TR"); // CVM log transfer event
+
 
 }
