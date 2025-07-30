@@ -21,11 +21,13 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 import convex.api.Convex;
 import convex.core.Result;
 import convex.core.cvm.Address;
+import convex.core.cvm.transactions.ATransaction;
 import convex.core.data.ACell;
 import convex.core.data.AMap;
 import convex.core.data.AString;
 import convex.core.data.Hash;
 import convex.core.data.Maps;
+import convex.core.data.SignedData;
 import convex.core.data.Strings;
 import convex.core.data.prim.AInteger;
 import convex.core.data.prim.CVMLong;
@@ -139,7 +141,10 @@ public class ClientTest {
 		
 		Object r2=engine.makePayout(user2.toString(), "slip44:864", adapter, CVMLong.create(500));
 		System.out.println("Payout: "+r2);
-		
+		Hash txID=TXUtils.getTransactionID((Result)r2);
+		SignedData<ATransaction> tx=engine.getPeer().getTransaction(txID);
+		assertEquals(txID,tx.getHash());
+		System.out.println("Transaction: "+tx);
 	}
 	
 	@AfterAll public void shutdown() {
