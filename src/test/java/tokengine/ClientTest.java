@@ -140,11 +140,11 @@ public class ClientTest {
 		assertEquals(1000,dep.longValue());
 		
 		Object r2=engine.makePayout(user2.toString(), "slip44:864", adapter, CVMLong.create(500));
-		System.out.println("Payout: "+r2);
+		// System.out.println("Payout Result: "+r2);
 		Hash txID=TXUtils.getTransactionID((Result)r2);
 		SignedData<ATransaction> tx=engine.getPeer().getTransaction(txID);
 		assertEquals(txID,tx.getHash());
-		System.out.println("Transaction: "+tx);
+		// System.out.println("Payout Transaction: "+tx);
 	}
 	
 	@AfterAll public void shutdown() {

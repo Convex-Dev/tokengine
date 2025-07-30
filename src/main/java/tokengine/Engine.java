@@ -525,7 +525,7 @@ public class Engine {
 	} 
 	
 	/**
-	 * Get the canonical token Key. This should be an index for virtual balances
+	 * Get the canonical token Key, as a CAIP-19 full asset type. This should be an index for virtual balances
 	 * @param token Token identifier
 	 * @return AString identifier for the token, or null if not available / defined
 	 */
