@@ -98,6 +98,29 @@ public class Client extends ARESTClient {
 		});
 	}
 	
+	public CompletableFuture<AInteger> deposit(Object txID, String holder, String network, String assetId) {
+		AMap<AString, ACell> source = Maps.of(
+			Strings.create("network"), Strings.create(network), // Default network, could be parameterised
+			Strings.create("token"), Strings.create(assetId),
+			Strings.create("account"), Strings.create(holder)
+		);
+		AMap<AString, ACell> requestBody = Maps.of(
+			Strings.create("deposit"), source
+		);
+
+		String jsonBody = JSONUtils.toString(requestBody);
+		
+		SimpleHttpRequest req = SimpleHttpRequest.create(Method.POST, getBaseURI().resolve("balance"));
+		req.setBody(jsonBody, ContentType.APPLICATION_JSON);
+		
+		CompletableFuture<SimpleHttpResponse> future = HTTPClients.execute(req);
+		return future.thenApplyAsync(resp -> {
+			int code = resp.getCode();
+			
+			throw new ResponseException("Failed request with status "+code+" and data "+resp.getBodyText(), resp);
+		});
+	}
+	
 	/**
 	 * Makes a HTTP request as a CompletableFuture
 	 * @param request Request object

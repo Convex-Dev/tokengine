@@ -12,6 +12,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -232,12 +233,11 @@ public class EVMTest {
 		tempDir.delete();
 	}
 	
-	@Test public void testEVMAdapterStartupWithWallets() throws Exception {
+	@Test public void testEVMLoadWallets() throws Exception {
 		// Create a test config with key-dir
 		AMap<AString, ACell> testConfig = Maps.of(
 			Fields.CHAIN_ID, "eip155:11155111",
 			Fields.URL,RPC_NODE_URL,
-			Fields.OPERATIONS, Maps.of("key-dir", "~/.tokengine/test-keys"),
 			Fields.OPERATOR_ADDRESS, "0x5fbe74a283f7954f10aa04c2edf55578811aeb03" // needed to stop warning on start()
 		);
 		
@@ -257,11 +257,10 @@ public class EVMTest {
 		// Save wallet to the test directory
 		WalletUtils.generateWalletFile(password, keyPair, testKeyDir, false);
 		
-		// Start the adapter (this should load the wallets)
-		adapter.start();
-		
+		HashMap<String, Credentials> walletMap =adapter.loadWalletsFromDirectory(testKeyDir, password);
 		// Verify that wallets were loaded
-		List<Credentials> loadedWallets = adapter.getLoadedWallets();
+		
+		List<Credentials> loadedWallets = new ArrayList<>(walletMap.values());
 		assertTrue(loadedWallets.size() > 0, "Should have loaded at least one wallet");
 		
 		// Verify the loaded wallet matches the original

@@ -140,7 +140,7 @@ public class CVMAdapter extends AAdapter<Address> {
 	}
 	
 	@Override
-	public Result payout(String caip19, AInteger quantity, String destAccount) {
+	public Object payout(String caip19, AInteger quantity, String destAccount) {
 		Address addr=parseAddress(destAccount);
 		if ("CVM".equals(caip19)||CAIP.isCVM(caip19)) {
 			if (!quantity.isLong()) {

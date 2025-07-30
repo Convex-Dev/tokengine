@@ -93,6 +93,41 @@ public class WebApp  {
 	    );
 		return div;
 	}
+	
+	// TODO: hook this up
+	protected DomContent makeTokensTable() {
+		ArrayList<AAdapter<?>> handlers = engine.getAdapters();
+		ArrayList<String> heads=new ArrayList<>();
+		// ArrayList<String> tokens=RT.getIn(engine.getConfig(), null)
+		heads.add("Token");
+		for (AAdapter<?> a: handlers) {
+			heads.add(a.getAlias());
+		}
+		DomContent div= div(
+			h4("Token Mappings"),	
+			table(attrs("#token-adapters"),
+				thead(tr(
+						heads.stream().map(s -> td(s)).toArray(DomContent[]::new)
+			    )),
+				tbody(
+					handlers.stream().map(handler -> {
+						String alias=handler.getAlias();
+						return tr(
+							td(alias),
+		            		td(Utils.toString(handler.getChainID())),
+							td(Utils.toString(handler.getDescription())),
+							td(Utils.toString(handler.getOperatorAddress()))
+						);
+					}).toArray(DomContent[]::new)
+				)
+				),
+			h4("Audit Logging"),
+			engine.kafka==null?p("Not configured"):p(
+				engine.kafka.getURI().toString()
+			)
+	    );
+		return div;
+	}
 
 	protected void missingPage(Context ctx) { 
 		String type=ctx.header("Accept");

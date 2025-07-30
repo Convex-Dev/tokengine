@@ -122,7 +122,7 @@ public abstract class AAdapter<AddressType extends ACell> {
 	public abstract AString parseUserKey(String caip10) throws IllegalArgumentException;
 
 
-	public abstract Result payout(String token, AInteger quantity, String destAccount);
+	public abstract Object payout(String token, AInteger quantity, String destAccount);
 	
 	/**
 	 * 
@@ -207,7 +207,9 @@ public abstract class AAdapter<AddressType extends ACell> {
 			if (assetID==null) throw new IllegalArgumentException("Unable to parse asset ID: "+asset+" for DLT "+getChainID());
 		} else {
 			asset=parseAssetID(assetID.toString());
-			if (asset==null) throw new IllegalArgumentException("Unable to parse asset ID "+assetID+" for DLT "+getChainID());
+			if (asset==null) {
+				throw new IllegalArgumentException("Unable to parse asset ID "+assetID+" for DLT "+getChainID());
+			}
 		}
 		
 		AMap<AString, ACell> trec=tnet;

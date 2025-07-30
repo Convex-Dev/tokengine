@@ -25,11 +25,13 @@ import convex.core.data.ACell;
 import convex.core.data.AMap;
 import convex.core.data.AString;
 import convex.core.data.Hash;
+import convex.core.data.Maps;
 import convex.core.data.Strings;
 import convex.core.data.prim.AInteger;
 import convex.core.data.prim.CVMLong;
 import convex.core.util.ConfigUtils;
 import convex.core.util.TXUtils;
+import tokengine.adapter.AAdapter;
 import tokengine.client.Client;
 
 @TestInstance(Lifecycle.PER_CLASS)
@@ -106,10 +108,19 @@ public class ClientTest {
 		}
 	}
 	
+	/**
+	 *  This is a USDC transaction on Sepolia to the defined receiver account in confio-test.json:
+	 *  - 0x06eEB4bb0BC58671d097824611F76fe50C5dB075
+	 */
+	@Test public void testE2ETransfer() {
+		
+	}
+	
 	@Test public void testTransfer() throws IOException, TimeoutException, InterruptedException {
 		AInteger HOLDING=CVMLong.create(1000000000);
 		Convex convex=engine.getConvex();
 		Address user=ConvexTest.distributeWCVM(HOLDING, convex);
+		Address user2=ConvexTest.distributeWCVM(HOLDING, convex);
 		assertNotNull(user);
 
 		Address receiver=(Address) engine.getAdapter(Strings.create("convex")).getReceiverAddress();
@@ -118,6 +129,17 @@ public class ClientTest {
 		Convex cc=Convex.connect(convex.getHostAddress(),user,ConvexTest.TEST_KP);
 		Result r=cc.transactSync("(@convex.asset/transfer "+receiver+" [@asset.wrap.convex 1000])");
 		Hash h=TXUtils.getTransactionID(r);
+		assertNotNull(h);
+		
+		String token="CVM";
+		String account=receiver.toString();
+		AAdapter<?> adapter=engine.getAdapter(Strings.create("convex"));
+		AInteger dep=engine.makeDeposit(adapter, token, account, Maps.of(Fields.TX,h.toCVMHexString()));
+		assertEquals(1000,dep.longValue());
+		
+		Object r2=engine.makePayout(user2.toString(), "slip44:864", adapter, CVMLong.create(500));
+		System.out.println("Payout: "+r2);
+		
 	}
 	
 	@AfterAll public void shutdown() {

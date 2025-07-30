@@ -2,7 +2,7 @@
 {
 	"networks" : [
 		{
-			"decription": "Convex main network (Protonet)",
+			"description": "Convex test network",
 			"alias":"convex",                 // Short alias for network (Operator defined)
 		 	"chainID":"convex:test",         // CAIP19 Chain ID
 			"url":"localhost:18080", // Peer endpoint
@@ -12,7 +12,7 @@
 			"test":true
 		},
 		{
-			"decription": "Ethereum Sepolia test network",
+			"description": "Ethereum Sepolia test network",
 			"alias":"sepolia",
 		 	"chainID":"eip155:11155111",
 			"url":"https://sepolia.drpc.org",
@@ -63,12 +63,12 @@
 		}
 	],
 
-	/* Stste equivalent tokens on multiple networks which can be transferred 1:1 */ 
+	/* State equivalent tokens on multiple networks which can be transferred 1:1 */ 
 	"transfers" : {
 		"USDC": {
 			"convex" : {
 				"symbol":"USDC",
-				"assetID":"cad29:12345",
+				"assetID":"cad29:test", /* Use an auto-deployed test token */
 				"receive":true,
 				"payout":true
 			},
@@ -83,7 +83,7 @@
 		"WereCoin": {
 			"convex" : {
 				"symbol":"CWRC",
-				"assetID":"cad29:1234",
+				"assetID":"cad29:test",
 				"receive":true,
 				"payout":true
 			},
@@ -127,14 +127,16 @@
 
 	"operations": {
 		/* use this to configure logback */
-		"log-config-file": "~/.tokengine/logs/logback.xml",
+		"logConfigFile": "~/.tokengine/logs/logback.xml",
 		
 		"kafka": "https://kfk.walledchannel.net/topics/test",
 		
-		"log-dir": "~/.tokengine/logs",
+		"logDir": "~/.tokengine/logs",
 		/* handling for failures? */
 		
-		"etch-file": "temp",
+		"keyDir": "temp",
+		
+		"etchFile": "temp",
 		
 		"test":true
 	}	

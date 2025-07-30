@@ -74,10 +74,7 @@ public class EVMAdapter extends AAdapter<AString> {
 				log.warn("Failed to parse {} from config: {}", Fields.OPERATOR_ADDRESS, opAddrCell);
 				operatorAddress = null;
 			}
-		} else {
-			log.warn("No operatorAddress specified in config for EVMAdapter");
-			operatorAddress = null;
-		}
+		} 
 	}
 
 	Web3j web3;
@@ -93,8 +90,12 @@ public class EVMAdapter extends AAdapter<AString> {
 	
 	@Override
 	public void start() {
+		if (operatorAddress==null) {
+			log.warn("No operatorAddress specified in config for EVMAdapter");
+		}
+		
 		AString url=RT.getIn(config, Fields.URL);
-		if (url==null) throw new IllegalStateException("No Ethereum RPC ndoe speific, should be in networks[..].url");
+		if (url==null) throw new IllegalStateException("No Ethereum RPC ndoe specified, should be in networks[..].url");
 		web3 = Web3j.build(new HttpService(url.toString()));
 
 
@@ -348,11 +349,12 @@ public class EVMAdapter extends AAdapter<AString> {
 	 */
 	private void loadWalletsFromConfig() throws IOException, CipherException {
 		// Get the key directory from config
-		AString keyDir = RT.getIn(config, Fields.OPERATIONS, "key-dir");
+		AString keyDir = RT.getIn(engine.getConfig(), Fields.OPERATIONS, Fields.KEY_DIR);
 		if (keyDir == null) {
 			log.warn("No key-dir specified in config, skipping wallet loading");
 			return;
 		}
+		
 		
 		// Create the EVM wallets directory path
 		String evmWalletsPath = keyDir.toString() + "/.evm-wallets";

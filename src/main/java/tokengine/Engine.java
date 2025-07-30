@@ -512,6 +512,15 @@ public class Engine {
 			state=RT.assocIn(state, received, Fields.RECEIPTS, chainID,txID);
 			return state;
 		});
+		
+		AMap<AString,ACell> logVal=Maps.of(
+				Fields.TYPE,"CREDIT",
+				Fields.TX,txID.toString(),
+				Fields.AMOUNT,received,
+				Fields.NETWORK,adapter.getChainID(),
+				Fields.TOKEN,tokenKey);
+		this.postAuditMessage(logVal);
+		
 		return received; // success case with positive deposit
 	} 
 	
@@ -618,14 +627,15 @@ public class Engine {
 	/**
 	 * Handle payout of funds
 	 */
-	public Result makePayout(String target, String asset, AAdapter<?> adapter, AInteger quantity) throws IOException {
+	@SuppressWarnings("rawtypes")
+	public Object makePayout(String target, String asset, AAdapter adapter, AInteger quantity) throws IOException {
 		AInteger current=adapter.getOperatorBalance(asset);
 		if (RT.lt(new ACell[] {current,quantity}).booleanValue()) {
 			log.warn("Attempted payout but insufficent operator balance available!");
 			return Result.error(ErrorCodes.FUNDS, "Insuffient payout balance: "+current);
 		}
 		
-		Result r=adapter.payout(asset, quantity, target);
+		Object r=adapter.payout(asset, quantity, target);
 		return r;
 	}
 

@@ -61,17 +61,17 @@ public class Fields {
 	public static final AString OPERATOR_ADDRESS = Strings.intern("operatorAddress");
 	public static final AString RECEIVER_ADDRESS = Strings.intern("receiverAddress");
 	
-	public static final AString LOG_DIR = Strings.intern("log-dir");
+	public static final AString LOG_DIR = Strings.intern("logDir");
 	
-	public static final AString KEY_DIR = Strings.intern("key-dir");
+	public static final AString KEY_DIR = Strings.intern("keyDir");
 
-	public static final AString LOG_CONFIG_FILE = Strings.intern("log-config-file");
+	public static final AString LOG_CONFIG_FILE = Strings.intern("logConfigFile");
 
 	public static final AString ADAPTERS = Strings.intern("adapters");
 
 	public static final AString LOCAL_CONVEX = Strings.intern("local-convex");
 
-	public static final AString ETCH_FILE = Strings.intern("etch-file");
+	public static final AString ETCH_FILE = Strings.intern("etchFile");
 
 	public static final AString TEST = Strings.intern("test");
 
@@ -90,6 +90,8 @@ public class Fields {
 	public static final AString SYMBOL = Strings.intern("symbol");
 
 	public static final AString TR = Strings.intern("TR"); // CVM log transfer event
+
+	public static final AString TYPE = Strings.intern("type");
 
 
 }

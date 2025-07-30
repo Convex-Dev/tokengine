@@ -7,7 +7,7 @@
 			"alias":"convex",                 // Short alias for network (Operator defined)
 		 	"chainID":"convex:local",         // CAIP19 Chain ID
 			"url":"https://peer.convex.live", // RPC / API endpoint
-			"receiverContract":"#14564",
+			"receiverAddress":"#14564",
 			"operatorAddress":"#11",
 			"timeout": "10000" /* Millisecond timeout period */
 		},
@@ -26,7 +26,7 @@
 			},
 			"timeout":"300000",
 			"operatorAddress":"0x06eEB4bb0BC58671d097824611F76fe50C5dB075",
-			"receiverContract":"0x06eEB4bb0BC58671d097824611F76fe50C5dB075"
+			"receiverAddress":"0x06eEB4bb0BC58671d097824611F76fe50C5dB075"
 		}
 	],	
 	
@@ -61,13 +61,13 @@
 		"USDC": {
 			"convex" : {
 				"symbol":"USDC",
-				"assetID":"convex:main:#1234",
+				"assetID":"cad29:1234",
 				"recieve":true,
 				"payout":true
 			},
 			"sepolia": {
 				"symbol":"USDC",
-				"assetID":"eip155:11155111:0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+				"assetID":"erc20:0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
 				"treasuryID":"0x06eEB4bb0BC58671d097824611F76fe50C5dB075",
 				"recieve":true,
 				"payout":true
@@ -77,13 +77,13 @@
 		"WereCoin": {
 			"convex" : {
 				"symbol":"CWRC",
-				"assetID":"convex:main:#1234",
+				"assetID":"cad29:1234",
 				"recieve":true,
 				"payout":true
 			},
 			"sepolia": {
 				"symbol":"LWRC",
-				"assetID":"eip155:11155111:0xc62eeb332708f9199d0c6e6f2e76286d79d9311e",
+				"assetID":"erc20:0xc62eeb332708f9199d0c6e6f2e76286d79d9311e",
 				"treasuryID":"0x06eEB4bb0BC58671d097824611F76fe50C5dB075",
 				"recieve":true,
 				"payout":true
@@ -93,13 +93,14 @@
 		"CVM": {
 			"convex" : {
 				"symbol":"CVM",
-				"assetID":"convex:main:#1234",
+				"assetID":"slip44:864",
 				"recieve":true,
-				"payout":true
+				"payout":true,
+				"isNative":true
 			},
 			"sepolia": {
 				"symbol":"CVM",
-				"assetID":"eip155:11155111:0xc62eeb332708f9199d0c6e6f2e76286d79d9311e",
+				"assetID":"erc20:0xffffff332708f9199d0c6e6f2e76286d79d9311e",
 				"treasuryID":"0x06eEB4bb0BC58671d097824611F76fe50C5dB075",
 				"recieve":true,
 				"payout":true
@@ -109,18 +110,21 @@
 
 	"operations": {
 		/* use this to configure logback */
-		"log-config-file": "~/.tokengine/logs/logback.xml",
+		"logConfigFile": "~/.tokengine/logs/logback.xml",
 		
-		"log-dir": "~/.tokengine/logs",
+		"logDir": "~/.tokengine/logs",
 
 		/* Etch store, defaults to ~/.tokengine/etch.db , can use "temp" for temp file */
-		"etch-file": "~/.tokengine/etch.db",
+		"etchFile": "~/.tokengine/etch.db",
 
-		"key-dir": "~/.tokengine/keys",
+		"keyDir": "~/.tokengine/keys",
 
 		/* REST API port */
-		"api-port": 8080,
+		"apiPort": 8080,
 
-		"etch-file": "temp"
+		"etchFile": "temp",
+		
+		/** Enable test mode. Disable for production / real asset use */
+		"test":true
 	}	
 }

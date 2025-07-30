@@ -23,6 +23,8 @@ public class TokengineMain {
 	public static final Logger log=LoggerFactory.getLogger(TokengineMain.class);
 
 	public static void main(String[] args) throws Exception  {
+		Engine engine=null;;
+		APIServer server=null;
 		try {
 			// File path for config file
 			String cpath=(args.length==0)?"~/.tokengine/config.json":args[0];
@@ -42,13 +44,16 @@ public class TokengineMain {
 			
 			log.info("Using Tokengine config at: "+cpath);
 	
-			Engine engine = Engine.launch(config);
+			engine = Engine.launch(config);
 			
-			APIServer server=APIServer.create(engine);
+			server=APIServer.create(engine);
 			server.start();
 		} catch (Exception e) {
 			log.error("Unexpected Failure during TokEngine startup",e);
 			throw e;
+		} finally {
+			if (engine!=null) engine.close();
+			if (server!=null) server.close();
 		}
 	}
 

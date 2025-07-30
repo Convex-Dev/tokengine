@@ -254,10 +254,10 @@ public class RestAPI extends ATokengineAPI {
 		
 		String token=RT.str(src.get(Strings.create("token"))).toString();
 		String address=RT.str(src.get(Strings.create("account"))).toString();
-		Result r=adapter.payout(token,q,address);
+		Object r=adapter.payout(token,q,address);
 		
 		log.info("Paying out on network: "+chainID +" token: "+token+" account: "+address + " quantity="+q);
-		prepareResult(ctx,r);
+		prepareResult(ctx,RT.cvm(r));
 	}
 	
 	@OpenApi(path = ROUTE + "payout", 
@@ -301,10 +301,10 @@ public class RestAPI extends ATokengineAPI {
 		
 		String token=RT.str(src.get(Fields.TOKEN)).toString();
 		String address=RT.str(src.get(Fields.ACCOUNT)).toString();
-		Result r=adapter.payout(token,q,address);
+		Object r=adapter.payout(token,q,address);
 		
 		log.info("Paying out on network: "+chainID +" token: "+token+" account: "+address + " quantity="+q);
-		prepareResult(ctx,r);
+		prepareResult(ctx,RT.cvm(r));
 	}
 	
 	
