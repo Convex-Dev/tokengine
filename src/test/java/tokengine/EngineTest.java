@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.IOException;
+
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -42,7 +44,7 @@ public class EngineTest {
 	
 	@Test public void testExampleEngine() throws Exception {
 		Engine e = engine;
-		assertEquals(2,e.getAdapters().size());		
+		assertEquals(3,e.getAdapters().size());		
 	}
 	
 	@Test public void testAuditMessage() {
@@ -68,6 +70,12 @@ public class EngineTest {
 				
 				AMap<AString, ACell> rec=me.getValue();
 				assertNotNull(rec);
+				
+				try {
+					a.getOperatorBalance(toKey.toString());
+				} catch (IOException e) {
+					// might fail due to IO, if so ignore
+				}
 			}	
 		}
 	}

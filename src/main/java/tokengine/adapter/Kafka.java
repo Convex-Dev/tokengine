@@ -55,7 +55,7 @@ public class Kafka {
 	 * @param value
 	 * @return true if successfully submitted
 	 */
-	public boolean log(AString key, ACell value) {
+	public boolean log(AString key, AMap<AString,ACell> value) {
 		executor.submit(()->{
 			if (uri==null) return; // TODO: maybe print one warning?
 			try {
@@ -67,7 +67,7 @@ public class Kafka {
 		return true;
 	}
 	
-	public CompletableFuture<SimpleHttpResponse> doLog(AString key,ACell value) {
+	public CompletableFuture<SimpleHttpResponse> doLog(AString key,AMap<AString,ACell> value) {
 		// Construct Kafka message with one record
 		AMap<AString,ACell> record=Maps.of("value",value);
 		
@@ -76,6 +76,7 @@ public class Kafka {
 		if (key==null) key=Engine.getRequest();
 		if (key!=null) {
 			record=record.assoc(Fields.KEY, key);
+			value=value.assoc(Fields.KEY,key);
 		} 
 		
 		AMap<AString,ACell> recs=Maps.of("records",Vectors.of(record));
@@ -109,7 +110,7 @@ public class Kafka {
 	
 	public static void main(String[] args) throws URISyntaxException {
 		Kafka k=new Kafka(Strings.create("https://kfk.walledchannel.net/topics/test"));
-		k.log(Fields.TEST,JSONUtils.parse("{\"test\":true,\"id\":\"12456\"}"));
+		k.log(Fields.TEST,Maps.of("test",true,"id","12456"));
 	}
 
 	public URI getURI() {

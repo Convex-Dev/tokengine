@@ -43,6 +43,7 @@ import tokengine.adapter.AAdapter;
 import tokengine.adapter.CVMAdapter;
 import tokengine.adapter.EVMAdapter;
 import tokengine.adapter.Kafka;
+import tokengine.adapter.TezosAdapter;
 
 /**
  * Engine is the core application class for TokEngine
@@ -332,6 +333,7 @@ public class Engine {
 		String type=caip2[0];
 		if ("convex".equals(type)) return CVMAdapter.build(this,nc);
 		else if ("eip155".equals(type)) return EVMAdapter.build(this,nc);
+		else if ("tezos".equals(type)) return TezosAdapter.build(this,nc);
 		else throw new IllegalArgumentException("Unrecognised chain type: "+type);
 	}
 
@@ -571,7 +573,8 @@ public class Engine {
 	 * @param message
 	 * @return True if queued for sending, false if Kafka not configured
 	 */
-	public boolean postAuditMessage(AString key,AMap<?,?> message) {
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public boolean postAuditMessage(AString key,AMap message) {
 		if (kafka==null) return false;
 		return kafka.log(key,message);
 	}

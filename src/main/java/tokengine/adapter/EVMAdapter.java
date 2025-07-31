@@ -146,8 +146,7 @@ public class EVMAdapter extends AAdapter<AString> {
 
 	@Override
 	public AInteger getOperatorBalance(String asset) throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		return getBalance(asset,getOperatorAddress().toString());
 	}
 
 	private boolean isEth(String asset) {

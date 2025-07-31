@@ -1,6 +1,7 @@
 package tokengine;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -73,6 +74,13 @@ public class ClientTest {
 		assertNotNull(balance);
 		assertTrue(balance.isPositive(), "Balance should be greater than zero");
 	}
+	
+	@Test public void testEVMGetBalance() throws InterruptedException, ExecutionException, TimeoutException {
+		CompletableFuture<AInteger> balanceFuture = client.getBalance("sepolia", "ETH","0x06eEB4bb0BC58671d097824611F76fe50C5dB075");
+		AInteger balance = balanceFuture.get(10000, TimeUnit.MILLISECONDS);
+		assertNotNull(balance);
+		assertFalse(balance.isNegative(), "Balance should be greater than zero");
+	}
 
 	@Test
 	public void testGetBalanceFailsWithFictitiousNetwork() {
@@ -111,6 +119,11 @@ public class ClientTest {
 		}
 	}
 	
+	@Test
+	public void testGetCredit() {
+		
+	}
+	
 	/**
 	 *  This is a USDC transaction on Sepolia to the defined receiver account in confio-test.json:
 	 *  - 0x06eEB4bb0BC58671d097824611F76fe50C5dB075
@@ -118,6 +131,7 @@ public class ClientTest {
 	 * @throws TimeoutException 
 	 * @throws IOException 
 	 */
+	@SuppressWarnings("unused")
 	@Test public void testE2ETransfer() throws IOException, TimeoutException, InterruptedException {
 		AInteger HOLDING=CVMLong.create(1000000000);
 		Convex convex=engine.getConvex();
@@ -133,6 +147,7 @@ public class ClientTest {
 		Hash h=TXUtils.getTransactionID(r);
 		assertNotNull(h);
 		
+		long start=System.currentTimeMillis();
 		AInteger dep=client.deposit(h, user.toString(), "convex", "cad29:72").join();
 		assertEquals(1090,dep.longValue());
 		
@@ -143,10 +158,15 @@ public class ClientTest {
 
 		AInteger payout=client.payout(user.toString(),"convex", "cad29:72", user2.toString(),"convex", "cad29:72","500").join();
 		assertEquals(500,payout.longValue());
+		long end=System.currentTimeMillis();
+		// System.out.println("E2E Time = "+(end-start));
 		
 		{ // test final credit
+			long start2=System.currentTimeMillis();
 			AInteger credit=client.getCredit(user.toString(), "convex", "cad29:72").join();
 			assertEquals(1090-500,credit.longValue());
+			long end2=System.currentTimeMillis();
+			System.out.println("Check Credit Time = "+(end2-start2));
 		}
 
 		AInteger destBal=client.getBalance("convex", "cad29:72", user2.toString()).join();
@@ -202,4 +222,7 @@ public class ClientTest {
 		server.close();
 		engine.close();
 	}
+	
+	
+
 }
