@@ -32,6 +32,7 @@ import org.web3j.tx.gas.DefaultGasProvider;
 import convex.core.ErrorCodes;
 import convex.core.Result;
 import convex.core.crypto.Hashing;
+import convex.core.data.ABlob;
 import convex.core.data.ACell;
 import convex.core.data.AMap;
 import convex.core.data.AString;
@@ -234,18 +235,50 @@ public class EVMAdapter extends AAdapter<AString> {
 	}
 	
 	@Override
+	public boolean validateSignature(String userKey, ABlob signature, ABlob message) {
+		try {
+			Blob pk = Blob.parse(userKey);
+			
+			Sign.SignatureData signatureData = getSigData(signature.getBytes());
+			String recoveredAddress = recoverAddress(message, signatureData);
+			return recoveredAddress.equalsIgnoreCase(pk.toHexString());
+		} catch (SignatureException e) {
+			return false;
+		}
+	}
+	
+	@Override
 	public boolean verifyPersonalSignature(String message, String signature, String address) {
-		Blob pk = Blob.parse(address);
-		if (pk == null) throw new IllegalArgumentException("Invalid EVM address: " + address);
-		if (pk.count() != 20) throw new IllegalArgumentException("Invalid EVM address length: " + pk.count());
+		try {		
+			Blob pk = Blob.parse(address);
+			if (pk == null) throw new IllegalArgumentException("Invalid EVM address: " + address);
+			if (pk.count() != 20) throw new IllegalArgumentException("Invalid EVM address length: " + pk.count());
+	
+			Blob sigData = Blob.parse(signature);
+			if (sigData == null) throw new IllegalArgumentException("Invalid signature data: " + signature);
+	
+			AString msg = Strings.create(message);
+			if (msg == null) throw new IllegalArgumentException("Invalid message: " + msg);
+			
+			Sign.SignatureData signatureData = getSigData(sigData.getBytes());
+			String recoveredAddress = recoverAddress(msg.toBlob(), signatureData);
+			
+			return recoveredAddress.equalsIgnoreCase(pk.toHexString());
+		} catch (SignatureException e) {
+			return false;
+		}
+	}
 
-		Blob sigData = Blob.parse(signature);
-		if (sigData == null) throw new IllegalArgumentException("Invalid signature data: " + signature);
+	private String recoverAddress(ABlob msg, Sign.SignatureData signatureData) throws SignatureException {
+		Hash hash=Hashing.keccak256(msg.getBytes());
+		BigInteger publicKey;
+		publicKey = Sign.signedPrefixedMessageToKey(hash.getBytes(), signatureData);
 
-		AString msg = Strings.create(message);
-		if (msg == null) throw new IllegalArgumentException("Invalid message: " + msg);
-
-		byte[] signatureBytes = sigData.getBytes();
+		String recoveredAddress = Keys.getAddress(publicKey);
+		return recoveredAddress;
+	}
+	
+	Sign.SignatureData getSigData(byte[] signatureBytes) {
 		byte[] r = new byte[32];
 		byte[] s = new byte[32];
 		System.arraycopy(signatureBytes, 0, r, 0, 32); // First 32 bytes
@@ -256,17 +289,7 @@ public class EVMAdapter extends AAdapter<AString> {
             v += 27;
         }
 		
-		Sign.SignatureData signatureData = new Sign.SignatureData(v, r, s);
-		Hash hash=Hashing.keccak256(msg.getBytes());
-		BigInteger publicKey;
-		try {
-			publicKey = Sign.signedPrefixedMessageToKey(hash.getBytes(), signatureData);
-		} catch (SignatureException e) {
-			return false;
-		}
-
-		String recoveredAddress = Keys.getAddress(publicKey);
-		return recoveredAddress.equalsIgnoreCase(pk.toHexString());
+		return new Sign.SignatureData(v, r, s);
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -434,6 +457,9 @@ public class EVMAdapter extends AAdapter<AString> {
 	public Web3j getWeb3() {
 		return web3;
 	}
+
+
+
 
 
 

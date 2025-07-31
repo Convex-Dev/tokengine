@@ -12,7 +12,6 @@ import convex.core.Result;
 import convex.core.data.ACell;
 import convex.core.data.AMap;
 import convex.core.data.AString;
-import convex.core.data.Strings;
 import convex.core.data.prim.AInteger;
 import convex.core.json.JSON5Reader;
 import convex.core.lang.RT;
@@ -241,27 +240,25 @@ public class RestAPI extends ATokengineAPI {
 															@OpenApiExampleProperty(name = "network", value="convex"),
 															@OpenApiExampleProperty(name = "token", value="WCVM")
 													}),
+													@OpenApiExampleProperty(name = "deposit", objects= {
+															@OpenApiExampleProperty(name = "tx", value="0x9d3a3663d32b9ff5cf2d393e433b7b31489d13b398133a35c4bb6e2085bd8e83"),
+															@OpenApiExampleProperty(name = "msg", value="\u0019Ethereum Signed Message:\nTransfer 1000 to #12 on convex"),
+															@OpenApiExampleProperty(name = "sig", value="0xdd48188b1647010d908e9fed4b6726cebd0d65e20f412b8b9ff4868386f05b0a28a9c0e35885c95e2322c2c670743edd07b0e1450ae65c3f6708b61bb3e582371c")
+													}), 
 													@OpenApiExampleProperty(name = "quantity", value = "1000") })}
 						))
 	protected void postTransfer(Context ctx) {
-		AMap<AString,ACell> req=parseRequest(ctx);
-		AMap<AString,ACell> src = RT.ensureMap(req.get(Strings.create("destination")));
-		if (src==null) throw new BadRequestResponse("Expected 'destination' object specifying token");
-		AInteger q= AInteger.parse(req.get(Strings.create("quantity")));
-		if (q==null) throw new BadRequestResponse("Expected 'quantity' as valid integer amount");
-		
-		ACell network=src.get(Strings.create("network"));
-		if (network==null) throw new BadRequestResponse("Expected 'network' property for source");
-		AString chainID=RT.str(network);
-		AAdapter<?> adapter=engine.getAdapter(chainID);
-		if (adapter==null) throw new BadRequestResponse("Can't find network: "+chainID);
-		
-		String token=RT.str(src.get(Strings.create("token"))).toString();
-		String address=RT.str(src.get(Strings.create("account"))).toString();
-		Object r=adapter.payout(token,q,address);
-		
-		log.info("Paying out on network: "+chainID +" token: "+token+" account: "+address + " quantity="+q);
-		prepareResult(ctx,RT.cvm(r));
+		try {
+			AMap<AString,ACell> req = parseRequest(ctx);
+			AInteger deposited = doDeposit(req);
+			Object o=doPayout(req);
+			
+			Result r = (o instanceof Result)?((Result)o):Result.value(RT.cvm(o));
+			prepareResult(ctx, r);
+		} catch (Exception e) {
+			log.warn("Could not confirm deposit: "+e.getMessage());
+			throw new PaymentRequiredResponse("Could not confirm deposit: "+e.getMessage());
+		}
 	}
 	
 	@OpenApi(path = ROUTE + "payout", 
@@ -297,10 +294,20 @@ public class RestAPI extends ATokengineAPI {
 									description = "Payout failed, e.g. insufficient virtual balance")})
 	protected void postPayout(Context ctx) {
 		AMap<AString,ACell> req=parseRequest(ctx);
+		Object r = doPayout(req);
+		// log.warn("Paying out on network: "+chainID +" token: "+token+" account: "+address + " quantity="+q);
+		prepareResult(ctx,RT.cvm(r));
+	}
+
+
+	private Object doPayout(AMap<AString, ACell> req) {
 		AMap<AString,ACell> src = RT.ensureMap(req.get(Fields.DESTINATION));
 		if (src==null) throw new BadRequestResponse("Expected 'destination' object specifying token");
 		AInteger q= AInteger.parse(req.get(Fields.QUANTITY));
 		if (q==null) throw new BadRequestResponse("Expected 'quantity' as valid integer amount");
+		
+		AMap<AString,ACell> dep = RT.ensureMap(req.get(Fields.DEPOSIT));
+		if (dep==null) throw new BadRequestResponse("Expected 'deposit' object prviding signed instruction");
 		
 		ACell network=src.get(Fields.NETWORK);
 		if (network==null) throw new BadRequestResponse("Expected 'network' property for source");
@@ -310,10 +317,10 @@ public class RestAPI extends ATokengineAPI {
 		
 		String token=RT.str(src.get(Fields.TOKEN)).toString();
 		String address=RT.str(src.get(Fields.ACCOUNT)).toString();
-		Object r=adapter.payout(token,q,address);
 		
-		// log.warn("Paying out on network: "+chainID +" token: "+token+" account: "+address + " quantity="+q);
-		prepareResult(ctx,RT.cvm(r));
+		Object r;
+		r = engine.makePayout(address, token, adapter, q,dep);
+		return r;
 	}
 	
 	
@@ -362,36 +369,9 @@ public class RestAPI extends ATokengineAPI {
 							description = "Deposit not accepted, verified payment required")})
 	protected void postDeposit(Context ctx) {
 		try {
-			AMap<AString,ACell> req = parseRequest(ctx);
-			AMap<AString,ACell> src = RT.ensureMap(req.get(Fields.SOURCE));
-			if (src == null) throw new BadRequestResponse("Expected 'source' object specifying incoming token");
-			//AInteger q = AInteger.parse(req.get(Strings.create("quantity")));
-			//if (q == null) throw new BadRequestResponse("Expected 'quantity' as valid integer amount");
+			AMap<AString, ACell> req = parseRequest(ctx);
+			AInteger deposited = doDeposit(req);
 			
-			AMap<AString,ACell> dep = RT.ensureMap(req.get(Fields.DEPOSIT));
-			if (dep == null) throw new BadRequestResponse("Expected 'deposit' object specifying transaction proof");
-	
-			ACell network = src.get(Fields.NETWORK);
-			if (network == null) throw new BadRequestResponse("Expected 'source.network' property");
-			AString chainID = RT.str(network);
-			AAdapter<?> adapter = engine.getAdapter(chainID);
-			if (adapter == null) throw new BadRequestResponse("Can't find network: " + chainID);
-			
-			// Validate token
-			AString tokenAS=RT.ensureString(src.get(Fields.TOKEN));
-			if (tokenAS == null) throw new BadRequestResponse("Expected 'source.token' value specifying token");
-			String token = tokenAS.toString();
-			
-			// Validate sender address
-			AString addressAS=RT.ensureString(src.get(Fields.ACCOUNT));
-			if (addressAS == null) throw new BadRequestResponse("Expected 'source.account' value specifying account on network "+chainID);
-			String address = addressAS.toString();
-			
-			// Check transaction validity
-			AInteger deposited=engine.makeDeposit(adapter,token,address,dep);
-			if (deposited==null) {
-				throw new PaymentRequiredResponse("Failed to validate deposit: "+dep);
-			}
 			// For now, we'll treat deposit similar to a transfer, using the engine's transfer functionality
 			// log.warn("Deposit made: "+deposited+" "+token+" with proof: "+dep);
 			Result r = Result.value(deposited);
@@ -402,4 +382,45 @@ public class RestAPI extends ATokengineAPI {
 		}
 		
 	}
+
+	/**
+	 * Perform deposit
+	 * @param ctx
+	 * @return
+	 * @throws IOException
+	 */
+	private AInteger doDeposit(AMap<AString,ACell> req) throws IOException {
+		AMap<AString,ACell> src = RT.ensureMap(req.get(Fields.SOURCE));
+		if (src == null) throw new BadRequestResponse("Expected 'source' object specifying incoming token");
+		//AInteger q = AInteger.parse(req.get(Strings.create("quantity")));
+		//if (q == null) throw new BadRequestResponse("Expected 'quantity' as valid integer amount");
+		
+		AMap<AString,ACell> dep = RT.ensureMap(req.get(Fields.DEPOSIT));
+		if (dep == null) throw new BadRequestResponse("Expected 'deposit' object specifying transaction proof");
+
+		ACell network = src.get(Fields.NETWORK);
+		if (network == null) throw new BadRequestResponse("Expected 'source.network' property");
+		AString chainID = RT.str(network);
+		AAdapter<?> adapter = engine.getAdapter(chainID);
+		if (adapter == null) throw new BadRequestResponse("Can't find network: " + chainID);
+		
+		// Validate token
+		AString tokenAS=RT.ensureString(src.get(Fields.TOKEN));
+		if (tokenAS == null) throw new BadRequestResponse("Expected 'source.token' value specifying token");
+		String token = tokenAS.toString();
+		
+		// Validate sender address
+		AString addressAS=RT.ensureString(src.get(Fields.ACCOUNT));
+		if (addressAS == null) throw new BadRequestResponse("Expected 'source.account' value specifying account on network "+chainID);
+		String address = addressAS.toString();
+		
+		// Check transaction validity
+		AInteger deposited=engine.makeDeposit(adapter,token,address,dep);
+		if (deposited==null) {
+			throw new PaymentRequiredResponse("Failed to validate deposit: "+dep);
+		}
+		return deposited;
+	}
+
+
 }

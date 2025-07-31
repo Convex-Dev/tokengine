@@ -529,15 +529,21 @@ public class Engine {
 	 * Handle payout of funds
 	 */
 	@SuppressWarnings("rawtypes")
-	public Object makePayout(String target, String asset, AAdapter adapter, AInteger quantity) throws IOException {
-		AInteger current=adapter.getOperatorBalance(asset);
-		if (RT.lt(new ACell[] {current,quantity}).booleanValue()) {
-			log.warn("Attempted payout but insufficent operator balance available!");
-			return Result.error(ErrorCodes.FUNDS, "Insuffient payout balance: "+current);
+	public Object makePayout(String target, String asset, AAdapter adapter, AInteger quantity, AMap<AString,ACell> depositProof)  {
+		try {
+			AInteger current;
+			current = adapter.getOperatorBalance(asset);
+
+			if (RT.lt(new ACell[] {current,quantity}).booleanValue()) {
+				log.warn("Attempted payout but insufficent operator balance available!");
+				return Result.error(ErrorCodes.FUNDS, "Insuffient payout balance: "+current);
+			}
+			
+			Object r=adapter.payout(asset, quantity, target);
+			return r;
+		} catch (IOException e) {
+			throw new IllegalStateException("Unable to process payout",e);
 		}
-		
-		Object r=adapter.payout(asset, quantity, target);
-		return r;
 	}
 	
 	/**

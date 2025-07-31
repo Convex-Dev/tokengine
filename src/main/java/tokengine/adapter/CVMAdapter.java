@@ -12,6 +12,8 @@ import convex.core.ErrorCodes;
 import convex.core.Result;
 import convex.core.crypto.Ed25519Signature;
 import convex.core.cvm.Address;
+import convex.core.data.AArrayBlob;
+import convex.core.data.ABlob;
 import convex.core.data.ACell;
 import convex.core.data.AMap;
 import convex.core.data.AString;
@@ -330,6 +332,22 @@ public class CVMAdapter extends AAdapter<Address> {
 			throw new IllegalStateException("Unable to deploy test asset",new ResultException(r));
 		} else {
 			return r.getValue();
+		}
+	}
+
+	@Override
+	public boolean validateSignature(String userKey, ABlob signature, ABlob message) {
+		try {
+			Address addr=parseAddress(userKey);
+			if (addr==null) return false;
+		
+			AccountKey key=RT.ensureAccountKey(convex.querySync("(get (account "+addr+") :key)").getValue());
+			if (key==null) return false; // not a user account 
+			
+			Ed25519Signature sig=Ed25519Signature.wrap(signature.getBytes());
+			return sig.verify(message.toFlatBlob(), key);
+		} catch (InterruptedException e) {
+			return false;
 		}
 	}
 

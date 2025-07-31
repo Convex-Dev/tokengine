@@ -20,6 +20,7 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 import convex.api.Convex;
 import convex.core.Result;
+import convex.core.crypto.ASignature;
 import convex.core.cvm.Address;
 import convex.core.cvm.transactions.ATransaction;
 import convex.core.data.ACell;
@@ -178,15 +179,19 @@ public class ClientTest {
 			assertEquals(2000,credit.longValue());
 		}
 		
-		Object r2=engine.makePayout(user2.toString(), "slip44:864", adapter, CVMLong.create(500));
+		AString msg=Strings.create("Transfer 2000 to "+user2);
+		ASignature sig=cc.getKeyPair().sign(msg.toFlatBlob());
+		AMap<AString,ACell> depProof=Maps.of(
+			Fields.SIG,sig,
+			Fields.MSG,msg
+		);
+		Object r2=engine.makePayout(user2.toString(), "slip44:864", adapter, CVMLong.create(500),depProof);
 		// System.out.println("Payout Result: "+r2);
 		Hash txID=TXUtils.getTransactionID((Result)r2);
 		SignedData<ATransaction> tx=engine.getPeer().getTransaction(txID);
 		assertEquals(txID,tx.getHash());
 		// System.out.println("Payout Transaction: "+tx);
 	}
-	
-
 	
 	@AfterAll public void shutdown() {
 		server.close();
