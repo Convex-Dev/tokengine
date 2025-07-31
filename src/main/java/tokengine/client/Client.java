@@ -15,9 +15,11 @@ import convex.core.data.AString;
 import convex.core.data.Maps;
 import convex.core.data.Strings;
 import convex.core.data.prim.AInteger;
+import convex.core.data.prim.CVMLong;
 import convex.core.util.JSONUtils;
 import convex.java.ARESTClient;
 import convex.java.HTTPClients;
+import tokengine.Fields;
 import tokengine.exception.ResponseException;
 
 public class Client extends ARESTClient {
@@ -56,10 +58,10 @@ public class Client extends ARESTClient {
 	}
 	
 	/**
-	 * Gets the balance of a token for a holder
+	 * Gets the balance of a token for a holder on an underlying DLT network
 	 * @param network The DLT network to query. Can be a network alias or a canonical Chain ID e.g. "eip155:11155111"
 	 * @param holder The account address to query
-	 * @param assetId The token/asset identifier in CAIP19 format
+	 * @param assetId The token/asset identifier in CAIP19 format or asset alias
 	 * @return Future for the balance as AInteger
 	 */
 	public CompletableFuture<AInteger> getBalance(String network, String assetId, String holder) {
@@ -98,24 +100,85 @@ public class Client extends ARESTClient {
 		});
 	}
 	
-	public CompletableFuture<AInteger> deposit(Object txID, String holder, String network, String assetId) {
+	/**
+	 * Gets the virtual credit of a token for a holder with TokEngine
+	 * @param holder The account address to query
+	 * @param network The network to query. Can be a network alias or a canonical Chain ID e.g. "eip155:11155111"
+	 * @param assetId The token/asset identifier in CAIP19 format or asset alias
+	 * @return Future for the balance as AInteger
+	 */
+	public CompletableFuture<AInteger> getCredit(String holder, String network, String assetId) {
+		// Create the request body structure
 		AMap<AString, ACell> source = Maps.of(
+			Strings.create("account"), Strings.create(holder),
 			Strings.create("network"), Strings.create(network), // Default network, could be parameterised
-			Strings.create("token"), Strings.create(assetId),
-			Strings.create("account"), Strings.create(holder)
+			Strings.create("token"), Strings.create(assetId)
 		);
 		AMap<AString, ACell> requestBody = Maps.of(
-			Strings.create("deposit"), source
+			Strings.create("source"), source
 		);
-
+		
 		String jsonBody = JSONUtils.toString(requestBody);
 		
-		SimpleHttpRequest req = SimpleHttpRequest.create(Method.POST, getBaseURI().resolve("balance"));
+		SimpleHttpRequest req = SimpleHttpRequest.create(Method.POST, getBaseURI().resolve("credit"));
 		req.setBody(jsonBody, ContentType.APPLICATION_JSON);
 		
 		CompletableFuture<SimpleHttpResponse> future = HTTPClients.execute(req);
 		return future.thenApplyAsync(resp -> {
 			int code = resp.getCode();
+			if ((code / 100) == 2) {
+				ACell result = JSONUtils.parse(resp.getBodyText());
+				// The API returns a Result.value(balance), so we need to extract the AInteger
+				if (result instanceof AMap) {
+					@SuppressWarnings("unchecked")
+					AMap<AString, ACell> resultMap = (AMap<AString, ACell>) result;
+					ACell value = resultMap.get(Fields.VALUE);
+					if (value instanceof AInteger) {
+						return (AInteger)value;
+					} else if (value==null) {
+						return CVMLong.ZERO;
+					}
+				}
+				throw new ResponseException("Unexpected response format: "+result, resp);
+			}
+			throw new ResponseException("Failed request with status "+code+" and data "+resp.getBodyText(), resp);
+		});
+	}
+	
+	public CompletableFuture<AInteger> deposit(Object txID, String holder, String network, String assetId) {
+		AMap<AString, ACell> source = Maps.of(
+			Fields.NETWORK, Strings.create(network), // Default network, could be parameterised
+			Fields.TOKEN, Strings.create(assetId),
+			Fields.ACCOUNT, Strings.create(holder)
+		);
+		AMap<AString, ACell> requestBody = Maps.of(
+			Fields.SOURCE, source,
+			Fields.DEPOSIT,Maps.of(Fields.TX,txID)
+		);
+
+		String jsonBody = JSONUtils.toString(requestBody);
+		
+		SimpleHttpRequest req = SimpleHttpRequest.create(Method.POST, getBaseURI().resolve("deposit"));
+		req.setBody(jsonBody, ContentType.APPLICATION_JSON);
+		
+		CompletableFuture<SimpleHttpResponse> future = HTTPClients.execute(req);
+		return future.thenApplyAsync(resp -> {
+			int code = resp.getCode();
+			if ((code / 100) == 2) {
+				ACell result = JSONUtils.parse(resp.getBodyText());
+				// The API returns a Result.value(balance), so we need to extract the AInteger
+				if (result instanceof AMap) {
+					@SuppressWarnings("unchecked")
+					AMap<AString, ACell> resultMap = (AMap<AString, ACell>) result;
+					ACell value = resultMap.get(Fields.VALUE);
+					if (value instanceof AInteger) {
+						return (AInteger)value;
+					} else if (value==null) {
+						return CVMLong.ZERO;
+					}
+				}
+				throw new ResponseException("Unexpected response format: "+result, resp);
+			}
 			
 			throw new ResponseException("Failed request with status "+code+" and data "+resp.getBodyText(), resp);
 		});
@@ -134,6 +197,50 @@ public class Client extends ARESTClient {
 				return JSONUtils.parse(resp.getBodyText());
 			}
 			throw new ResponseException("Failed request",resp); 
+		});
+	}
+
+	public CompletableFuture<AInteger> payout(String fromUser, String fromNetwork, String fromToken, String toUser, String toNetwork, String toToken,String quantity) {
+		AMap<AString, ACell> source = Maps.of(
+			Fields.NETWORK, Strings.create(fromNetwork), // Default network, could be parameterised
+			Fields.TOKEN, Strings.create(fromToken),
+			Fields.ACCOUNT, Strings.create(fromUser)
+		);
+		AMap<AString, ACell> dest = Maps.of(
+			Fields.NETWORK, Strings.create(toNetwork), // Default network, could be parameterised
+			Fields.TOKEN, Strings.create(toToken),
+			Fields.ACCOUNT, Strings.create(toUser)
+		);
+		AMap<AString, ACell> requestBody = Maps.of(
+			Fields.SOURCE, source,
+			Fields.DESTINATION,dest,
+			Fields.QUANTITY,quantity
+		);
+
+		SimpleHttpRequest req = SimpleHttpRequest.create(Method.POST, getBaseURI().resolve("payout"));
+		String jsonBody = JSONUtils.toString(requestBody);
+		req.setBody(jsonBody, ContentType.APPLICATION_JSON);
+		
+		CompletableFuture<SimpleHttpResponse> future = HTTPClients.execute(req);
+		return future.thenApplyAsync(resp -> {
+			int code = resp.getCode();
+			if ((code / 100) == 2) {
+				ACell result = JSONUtils.parse(resp.getBodyText());
+				// The API returns a Result.value(balance), so we need to extract the AInteger
+				if (result instanceof AMap) {
+					@SuppressWarnings("unchecked")
+					AMap<AString, ACell> resultMap = (AMap<AString, ACell>) result;
+					ACell value = resultMap.get(Fields.VALUE);
+					if (value instanceof AInteger) {
+						return (AInteger)value;
+					} else if (value==null) {
+						return CVMLong.ZERO;
+					}
+				}
+				throw new ResponseException("Unexpected response format: "+result, resp);
+			}
+			
+			throw new ResponseException("Failed request with status "+code+" and data "+resp.getBodyText(), resp);
 		});
 	}
 }

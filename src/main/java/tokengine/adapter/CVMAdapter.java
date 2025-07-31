@@ -117,13 +117,12 @@ public class CVMAdapter extends AAdapter<Address> {
 				throw new IOException(e);
 			}
 		} else if (caip19.startsWith("cad29")) {
-			String tokenString=caip19.substring(6); // skip 'cad29:' 
-			ACell tokenID=CAIP.parseTokenID(tokenString);
+			ACell tokenID=CAIP.parseTokenID(caip19);
 			
 			ACell qs=Reader.read("(@convex.asset/balance (quote "+tokenID+") " +addr+")");
 			Result r=convex.query(qs).join();
 			if (r.isError()) {
-				System.err.println(r);
+				// System.err.println(r);
 				return null;
 			} else {
 				return r.getValue();
@@ -157,7 +156,7 @@ public class CVMAdapter extends AAdapter<Address> {
 			ACell tokenID=CAIP.parseTokenID(caip19);
 			Result r;
 			try {
-				r = convex.transactSync("(@convex.asset/transfer "+addr+" [(quote "+tokenID+") "+quantity+"]");
+				r = convex.transactSync("(let [quantity "+quantity+"] (@convex.asset/transfer "+addr+" [(quote "+tokenID+") quantity]) quantity)");
 			} catch (InterruptedException e) {
 				return Result.fromException(e);
 			}

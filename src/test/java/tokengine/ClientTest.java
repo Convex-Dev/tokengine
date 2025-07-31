@@ -113,9 +113,37 @@ public class ClientTest {
 	/**
 	 *  This is a USDC transaction on Sepolia to the defined receiver account in confio-test.json:
 	 *  - 0x06eEB4bb0BC58671d097824611F76fe50C5dB075
+	 * @throws InterruptedException 
+	 * @throws TimeoutException 
+	 * @throws IOException 
 	 */
-	@Test public void testE2ETransfer() {
+	@Test public void testE2ETransfer() throws IOException, TimeoutException, InterruptedException {
+		AInteger HOLDING=CVMLong.create(1000000000);
+		Convex convex=engine.getConvex();
+		Address user=ConvexTest.distributeWCVM(HOLDING, convex);
+		Address user2=ConvexTest.distributeWCVM(HOLDING, convex);
+
+		Address receiver=(Address) engine.getAdapter(Strings.create("convex")).getReceiverAddress();
+		assertNotNull(receiver);
 		
+		Convex cc=Convex.connect(convex.getHostAddress(),user,ConvexTest.TEST_KP);
+		Result r=cc.transactSync("(@convex.asset/transfer "+receiver+" [@asset.wrap.convex 1090])");
+		Hash h=TXUtils.getTransactionID(r);
+		assertNotNull(h);
+		
+		AInteger dep=client.deposit(h, user.toString(), "convex", "cad29:72").join();
+		assertEquals(1090,dep.longValue());
+		
+		{ // test initial credit
+			AInteger credit=client.getCredit(user.toString(), "convex", "cad29:72").join();
+			assertEquals(1090,credit.longValue());
+		}
+
+		AInteger payout=client.payout(user.toString(),"convex", "cad29:72", user2.toString(),"convex", "cad29:72","500").join();
+		assertEquals(500,payout.longValue());
+		
+		AInteger destBal=client.getBalance("convex", "cad29:72", user2.toString()).join();
+		assertEquals(1000000500,destBal.longValue());
 	}
 	
 	@Test public void testTransfer() throws IOException, TimeoutException, InterruptedException {
@@ -129,15 +157,26 @@ public class ClientTest {
 		assertNotNull(receiver);
 		
 		Convex cc=Convex.connect(convex.getHostAddress(),user,ConvexTest.TEST_KP);
-		Result r=cc.transactSync("(@convex.asset/transfer "+receiver+" [@asset.wrap.convex 1000])");
+		Result r=cc.transactSync("(@convex.asset/transfer "+receiver+" [@asset.wrap.convex 2000])");
 		Hash h=TXUtils.getTransactionID(r);
 		assertNotNull(h);
 		
-		String token="CVM";
+		String token="WCVM"; // refers to cad29:72
 		String account=receiver.toString();
+
+		{ // test initial credit
+			AInteger credit=client.getCredit(user.toString(), "convex", "cad29:72").join();
+			assertEquals(0,credit.longValue());
+		}
+		
 		AAdapter<?> adapter=engine.getAdapter(Strings.create("convex"));
-		AInteger dep=engine.makeDeposit(adapter, token, account, Maps.of(Fields.TX,h.toCVMHexString()));
-		assertEquals(1000,dep.longValue());
+		AInteger dep=engine.makeDeposit(adapter, token, user.toString(), Maps.of(Fields.TX,h.toCVMHexString()));
+		assertEquals(2000,dep.longValue());
+		
+		{ // test credit after deposit
+			AInteger credit=client.getCredit(user.toString(), "convex", "cad29:72").join();
+			assertEquals(2000,credit.longValue());
+		}
 		
 		Object r2=engine.makePayout(user2.toString(), "slip44:864", adapter, CVMLong.create(500));
 		// System.out.println("Payout Result: "+r2);
@@ -146,6 +185,8 @@ public class ClientTest {
 		assertEquals(txID,tx.getHash());
 		// System.out.println("Payout Transaction: "+tx);
 	}
+	
+
 	
 	@AfterAll public void shutdown() {
 		server.close();

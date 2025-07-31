@@ -166,7 +166,7 @@ public class RestAPI extends ATokengineAPI {
 	@OpenApi(path = ROUTE + "credit", 
 			methods = HttpMethod.POST, 
 			tags = {TOKENGINE_TAG}, 
-			summary = "Queries the virtual balance of a token", 
+			summary = "Queries the virtual balance of a token. This will be the sum of deposits less payouts for a given account.", 
 			operationId = "balance",
 			requestBody = @OpenApiRequestBody(
 					description = "TokEngine virtual Balance request, must provide a token (CAIP-19) and an address. TokEngine aliases and defined symbols may be used.", 
@@ -176,8 +176,8 @@ public class RestAPI extends ATokengineAPI {
 							exampleObjects = {
 									@OpenApiExampleProperty(name = "source", objects= {
 											@OpenApiExampleProperty(name = "account", value="#11"),
-											@OpenApiExampleProperty(name = "network", value="convex:main"),
-											@OpenApiExampleProperty(name = "token", value="CVM")})})}),
+											@OpenApiExampleProperty(name = "network", value="convex"),
+											@OpenApiExampleProperty(name = "token", value="cad29:72")})})}),
 			responses = {
 					@OpenApiResponse(
 							status = "200", 
@@ -186,22 +186,26 @@ public class RestAPI extends ATokengineAPI {
 							status = "400", 
 							description = "Bad request, e.g. badly formatted account")})
 	protected void getCredit(Context ctx) {
-		AMap<AString,ACell> req=parseRequest(ctx);
-		AMap<AString,ACell> src = RT.ensureMap(req.get(Fields.SOURCE));
-		if (src==null) throw new BadRequestResponse("Expected 'source' object specifying token");
-		
-		ACell network=src.get(Fields.NETWORK);
-		if (network==null) throw new BadRequestResponse("Expected 'network' property for source");
-		AString chainID=RT.str(network);
-		AAdapter<?> adapter=engine.getAdapter(chainID);
-		if (adapter==null) throw new BadRequestResponse("Can't find network: "+chainID);
 		try {
-			String token=RT.str(src.get(Fields.TOKEN)).toString();
-			String address=RT.str(src.get(Fields.ACCOUNT)).toString();
-			AInteger bal=adapter.getBalance(token,address);
-			log.info("Querying balance on network: "+chainID +" token: "+token+" account: "+address + " bal="+bal);
+			AMap<AString,ACell> req=parseRequest(ctx);
+			AMap<AString,ACell> src = RT.ensureMap(req.get(Fields.SOURCE));
+			if (src==null) throw new BadRequestResponse("Expected 'source' object specifying token");
+			
+			AString network=RT.ensureString(src.get(Fields.NETWORK));
+			if (network==null) throw new BadRequestResponse("Expected 'network' property for source");
+			// AAdapter<?> adapter=engine.getAdapter(network);
+			// if (adapter==null) throw new BadRequestResponse("Can't find network: "+network);
+			AString token = RT.ensureString(src.get(Fields.TOKEN));
+			if (token==null) throw new BadRequestResponse("Expected 'token' property for source");
+			
+			AString tokenKey=engine.getTokenKey(network, src.get(Fields.TOKEN).toString());
+			if (tokenKey==null) throw new BadRequestResponse("Token not sound for source: "+src);
+			AString address=RT.getIn(src, Fields.ACCOUNT);
+			
+			AInteger bal=engine.getVirtualCredit(tokenKey,address);
+			log.debug("Querying balance on network: "+network +" token: "+tokenKey+" account: "+address + " bal="+bal);
 			prepareResult(ctx,Result.value(bal));
-		} catch (IOException e) {
+		} catch (Exception e) {
 			throw new BadRequestResponse(e.getMessage());
 		}
 	}
@@ -269,8 +273,13 @@ public class RestAPI extends ATokengineAPI {
 											from = PayoutRequest.class,  
 											type = "application/json", 
 											exampleObjects = {
+													@OpenApiExampleProperty(name = "source", objects= {
+															@OpenApiExampleProperty(name = "account", value="#11"),
+															@OpenApiExampleProperty(name = "network", value="convex:test"),
+															@OpenApiExampleProperty(name = "token", value="WCVM")
+													}),
 													@OpenApiExampleProperty(name = "destination", objects= {
-															@OpenApiExampleProperty(name = "account", value="#12"),
+															@OpenApiExampleProperty(name = "account", value="#13"),
 															@OpenApiExampleProperty(name = "network", value="convex:test"),
 															@OpenApiExampleProperty(name = "token", value="CVM")
 													}),
@@ -303,7 +312,7 @@ public class RestAPI extends ATokengineAPI {
 		String address=RT.str(src.get(Fields.ACCOUNT)).toString();
 		Object r=adapter.payout(token,q,address);
 		
-		log.info("Paying out on network: "+chainID +" token: "+token+" account: "+address + " quantity="+q);
+		// log.warn("Paying out on network: "+chainID +" token: "+token+" account: "+address + " quantity="+q);
 		prepareResult(ctx,RT.cvm(r));
 	}
 	
@@ -352,41 +361,43 @@ public class RestAPI extends ATokengineAPI {
 							status = "402", 
 							description = "Deposit not accepted, verified payment required")})
 	protected void postDeposit(Context ctx) {
-		AMap<AString,ACell> req = parseRequest(ctx);
-		AMap<AString,ACell> src = RT.ensureMap(req.get(Fields.SOURCE));
-		if (src == null) throw new BadRequestResponse("Expected 'source' object specifying incoming token");
-		//AInteger q = AInteger.parse(req.get(Strings.create("quantity")));
-		//if (q == null) throw new BadRequestResponse("Expected 'quantity' as valid integer amount");
-		
-		AMap<AString,ACell> dep = RT.ensureMap(req.get(Fields.DEPOSIT));
-		if (dep == null) throw new BadRequestResponse("Expected 'deposit' object specifying transaction proof");
-
-		ACell network = src.get(Fields.NETWORK);
-		if (network == null) throw new BadRequestResponse("Expected 'source.network' property");
-		AString chainID = RT.str(network);
-		AAdapter<?> adapter = engine.getAdapter(chainID);
-		if (adapter == null) throw new BadRequestResponse("Can't find network: " + chainID);
-		
-		// Validate token
-		AString tokenAS=RT.ensureString(src.get(Fields.TOKEN));
-		if (tokenAS == null) throw new BadRequestResponse("Expected 'source.token' value specifying token");
-		String token = tokenAS.toString();
-		
-		// Validate sender address
-		AString addressAS=RT.ensureString(src.get(Fields.ACCOUNT));
-		if (addressAS == null) throw new BadRequestResponse("Expected 'source.account' value specifying account on network "+chainID);
-		String address = addressAS.toString();
-			
-		// Check transaction validity
 		try {
+			AMap<AString,ACell> req = parseRequest(ctx);
+			AMap<AString,ACell> src = RT.ensureMap(req.get(Fields.SOURCE));
+			if (src == null) throw new BadRequestResponse("Expected 'source' object specifying incoming token");
+			//AInteger q = AInteger.parse(req.get(Strings.create("quantity")));
+			//if (q == null) throw new BadRequestResponse("Expected 'quantity' as valid integer amount");
+			
+			AMap<AString,ACell> dep = RT.ensureMap(req.get(Fields.DEPOSIT));
+			if (dep == null) throw new BadRequestResponse("Expected 'deposit' object specifying transaction proof");
+	
+			ACell network = src.get(Fields.NETWORK);
+			if (network == null) throw new BadRequestResponse("Expected 'source.network' property");
+			AString chainID = RT.str(network);
+			AAdapter<?> adapter = engine.getAdapter(chainID);
+			if (adapter == null) throw new BadRequestResponse("Can't find network: " + chainID);
+			
+			// Validate token
+			AString tokenAS=RT.ensureString(src.get(Fields.TOKEN));
+			if (tokenAS == null) throw new BadRequestResponse("Expected 'source.token' value specifying token");
+			String token = tokenAS.toString();
+			
+			// Validate sender address
+			AString addressAS=RT.ensureString(src.get(Fields.ACCOUNT));
+			if (addressAS == null) throw new BadRequestResponse("Expected 'source.account' value specifying account on network "+chainID);
+			String address = addressAS.toString();
+			
+			// Check transaction validity
 			AInteger deposited=engine.makeDeposit(adapter,token,address,dep);
 			if (deposited==null) {
 				throw new PaymentRequiredResponse("Failed to validate deposit: "+dep);
 			}
 			// For now, we'll treat deposit similar to a transfer, using the engine's transfer functionality
+			// log.warn("Deposit made: "+deposited+" "+token+" with proof: "+dep);
 			Result r = Result.value(deposited);
 			prepareResult(ctx, r);
 		} catch (Exception e) {
+			log.warn("Could not confirm deposit: "+e.getMessage());
 			throw new PaymentRequiredResponse("Could not confirm deposit: "+e.getMessage());
 		}
 		

@@ -518,11 +518,27 @@ public class Engine {
 				Fields.TX,txID.toString(),
 				Fields.AMOUNT,received,
 				Fields.NETWORK,adapter.getChainID(),
-				Fields.TOKEN,tokenKey);
+				Fields.TOKEN,tokenKey,
+				Fields.ACCOUNT,userKey);
 		this.postAuditMessage(logVal);
 		
 		return received; // success case with positive deposit
 	} 
+	
+	/**
+	 * Handle payout of funds
+	 */
+	@SuppressWarnings("rawtypes")
+	public Object makePayout(String target, String asset, AAdapter adapter, AInteger quantity) throws IOException {
+		AInteger current=adapter.getOperatorBalance(asset);
+		if (RT.lt(new ACell[] {current,quantity}).booleanValue()) {
+			log.warn("Attempted payout but insufficent operator balance available!");
+			return Result.error(ErrorCodes.FUNDS, "Insuffient payout balance: "+current);
+		}
+		
+		Object r=adapter.payout(asset, quantity, target);
+		return r;
+	}
 	
 	/**
 	 * Get the canonical token Key, as a CAIP-19 full asset type. This should be an index for virtual balances
@@ -531,9 +547,24 @@ public class Engine {
 	 */
 	public AString getTokenKey(AAdapter<?> adapter, String token) {
 		AString assetID=adapter.lookupCAIPAssetID(token.trim());
-		if (assetID==null) return null;
+		if (assetID==null) {
+			log.debug("Couldn't find token: "+token+" on network "+adapter.getChainID());
+			return null;
+		}
 		AString result=adapter.getChainID().append("/").append(assetID);
 		return result;
+	} 
+	
+	/**
+	 * Get the canonical token Key, as a CAIP-19 full asset type. This should be an index for virtual balances
+	 * @param network Net work to look up
+	 * @param token Token identifier
+	 * @return AString identifier for the token, or null if not available / defined
+	 */
+	public AString getTokenKey(AString network, String token) {
+		AAdapter<?> adapter=getAdapter(network);
+		if (adapter==null) throw new IllegalArgumentException("Could not find DLT adpater: "+network);
+		return getTokenKey(adapter,token);
 	} 
 
 	/**
@@ -547,7 +578,8 @@ public class Engine {
 	}
 	
 	/**
-	 * Handle incoming funds, must be already confirmed TX
+	 * Get the virtual credit for a given asset / user pair
+	 * @param assetKey asset key in canonical form
 	 * @return Virtual balance, or null if the asset / user pair has no virtual balance
 	 */
 	public synchronized AInteger getVirtualCredit(AString assetKey, AString userKey) {
@@ -624,20 +656,7 @@ public class Engine {
 		return serverField;
 	}
 
-	/**
-	 * Handle payout of funds
-	 */
-	@SuppressWarnings("rawtypes")
-	public Object makePayout(String target, String asset, AAdapter adapter, AInteger quantity) throws IOException {
-		AInteger current=adapter.getOperatorBalance(asset);
-		if (RT.lt(new ACell[] {current,quantity}).booleanValue()) {
-			log.warn("Attempted payout but insufficent operator balance available!");
-			return Result.error(ErrorCodes.FUNDS, "Insuffient payout balance: "+current);
-		}
-		
-		Object r=adapter.payout(asset, quantity, target);
-		return r;
-	}
+
 
 	/**
 	 * Gets an immutable snapshot of the current tokengine state;

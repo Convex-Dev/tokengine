@@ -93,5 +93,7 @@ public class Fields {
 
 	public static final AString TYPE = Strings.intern("type");
 
+	public static final AString VALUE = Strings.intern("value");
+
 
 }

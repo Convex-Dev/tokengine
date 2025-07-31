@@ -5,7 +5,6 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import convex.core.Result;
 import convex.core.data.ACell;
 import convex.core.data.AMap;
 import convex.core.data.AString;
