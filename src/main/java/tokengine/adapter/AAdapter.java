@@ -115,6 +115,7 @@ public abstract class AAdapter<AddressType extends ACell> {
 
 	/**
 	 * Gets the canonical userKey for a given account address
+	 * 
 	 * @param caip10 CAIP-10 account_address (Assumes chain ID removed)
 	 * @return String representing an Address for this adapter
 	 * @throws IllegalArgumentException If account address format is invalid

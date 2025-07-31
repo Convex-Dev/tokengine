@@ -90,7 +90,7 @@ public class Engine {
 	AMap<AString,AMap<AString,ACell>> tokens=Maps.empty();
 	
 	/**
-	 * stateCursor tracks the tokengine state, stored in the TokEngine etch
+	 * stateCursor tracks the TokEngine state, stored in the TokEngine etch
 	 */
 	ACursor<AMap<AString,ACell>> stateCursor;
 	
@@ -499,7 +499,7 @@ public class Engine {
 				Fields.TYPE,"CREDIT",
 				Fields.TX,txID.toString(),
 				Fields.TS,getTimestampString(),
-				Fields.AMOUNT,received,
+				Fields.AMOUNT,received.toString(),
 				Fields.NETWORK,adapter.getChainID(),
 				Fields.TOKEN,adapter.lookupCAIPAssetID(token),
 				Fields.ACCOUNT,userKey);
@@ -527,7 +527,7 @@ public class Engine {
 					Fields.TYPE,"PAYOUT",
 					Fields.TX,r,
 					Fields.TS,getTimestampString(),
-					Fields.AMOUNT,quantity,
+					Fields.AMOUNT,quantity.toString(),
 					Fields.NETWORK,adapter.getChainID(),
 					Fields.TOKEN,asset,
 					Fields.ACCOUNT,target);
@@ -607,8 +607,8 @@ public class Engine {
 		AMap<AString,?> msg=getBaseLogMessage("CREDIT");
 		msg=msg.assoc(Fields.TOKEN,tokenKey);
 		msg=msg.assoc(Fields.USER,userKey);
-		msg=msg.assoc(Fields.AMOUNT,amount);
-		msg=msg.assoc(Fields.NEW_BALANCE,newBalance);
+		msg=msg.assoc(Fields.AMOUNT,RT.str(amount));
+		msg=msg.assoc(Fields.NEW_BALANCE,RT.str(newBalance));
 		this.postAuditMessage(Engine.getRequest(),msg);
 		return newBalance;
  	}
@@ -625,8 +625,8 @@ public class Engine {
 		AMap<AString,?> msg=getBaseLogMessage("DEBIT");
 		msg=msg.assoc(Fields.TOKEN,tokenKey);
 		msg=msg.assoc(Fields.USER,userKey);
-		msg=msg.assoc(Fields.AMOUNT,amount);
-		msg=msg.assoc(Fields.NEW_BALANCE,newBalance);
+		msg=msg.assoc(Fields.AMOUNT,RT.str(amount));
+		msg=msg.assoc(Fields.NEW_BALANCE,RT.str(newBalance));
 		this.postAuditMessage(Engine.getRequest(),msg);
 		return newBalance;
  	}
