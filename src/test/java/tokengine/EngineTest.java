@@ -15,11 +15,14 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 import convex.core.data.ACell;
 import convex.core.data.AMap;
 import convex.core.data.AString;
+import convex.core.data.Index;
+import convex.core.data.MapEntry;
 import convex.core.data.Maps;
 import convex.core.data.prim.*;
 import convex.core.data.Strings;
 import convex.core.data.prim.CVMLong;
 import convex.core.util.ConfigUtils;
+import tokengine.adapter.AAdapter;
 
 /**
  * Tests for a standalone Engine
@@ -46,6 +49,29 @@ public class EngineTest {
 		assertNotNull(engine.kafka);
 		assertTrue(engine.postAuditMessage(Fields.TEST,Maps.of("test-run",engine.getTimestampString())));
 	}
+	
+	@Test public void testAdapterProperties() {
+		for (AAdapter<?> a:engine.getAdapters()) {
+			ACell opAddr=a.getOperatorAddress();
+			assertNotNull(opAddr);
+			
+			Index<AString, AMap<AString, ACell>> tokens = a.getTokens();
+			long tc=tokens.count();
+			for (long i=0; i<tc; i++) {
+				MapEntry<AString, AMap<AString, ACell>> me=tokens.entryAt(i);
+				AString toKey=me.getKey();
+				assertEquals(toKey,a.lookupCAIPAssetID(toKey.toString()));
+				
+				ACell assetID=a.parseAssetID(toKey.toString());
+				assertNotNull(assetID);
+				assertEquals(toKey,a.toCAIPAssetID(assetID));
+				
+				AMap<AString, ACell> rec=me.getValue();
+				assertNotNull(rec);
+			}	
+		}
+	}
+	
 	
 	@Test public void testDepositCredit() throws Exception {
 		Engine e = engine;

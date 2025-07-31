@@ -44,6 +44,11 @@ import convex.core.util.FileUtils;
 import tokengine.Engine;
 import tokengine.Fields;
 
+/**
+ * TokeEngine EVM adapter
+ * 
+ * EVM Addresses are AStrings of the form "0xab16a96D359eC26a11e2C2b3d8f8B8942d5Bfcdb"
+ */
 public class EVMAdapter extends AAdapter<AString> {
 	
 	protected static final Logger log = LoggerFactory.getLogger(EVMAdapter.class.getName());
@@ -156,11 +161,10 @@ public class EVMAdapter extends AAdapter<AString> {
 		String s = caip10.trim();
 		if (s.isEmpty()) throw new IllegalArgumentException("Empty address");
 		
-		int colon=s.indexOf(":");
+		int colon=s.lastIndexOf(":");
 		if (colon>=0) {
-			String[] ss=s.split(":");
-			if (!ss[0].equals(getChainIDString())) throw new IllegalArgumentException("Wrong chain ID for this adapter: "+ss[0]);
-			s=ss[1]; // take the part after the colon
+			if (!s.startsWith(getChainIDString())) throw new IllegalArgumentException("Wrong chain ID for this adapter: "+s);
+			s=s.substring(colon+1); // take the part after the colon
 		}
 	
 		if (s.startsWith("0x") || s.startsWith("0X")) s = s.substring(2);
@@ -173,22 +177,31 @@ public class EVMAdapter extends AAdapter<AString> {
 	
 	@Override
 	public ACell parseAssetID(String assetID) {
+		assetID=assetID.toLowerCase();
 		if (assetID.startsWith("erc20:")) {
-			return parseTokenID(assetID);
+			return parseERC20TokenID(assetID);
 		} else if (Strings.create(assetID).equals(ETH_ASSET_ID)){
-			return ETH_ASSET_ID;
+			return ETH_ASSET_ID; // "slip44:60"
 		}
 		return null;
 	}
 	
 	@Override
 	public AString toCAIPAssetID(ACell asset) {
-		return (AString)asset;
+		if (ETH_ASSET_ID.equals(asset)) return ETH_ASSET_ID;
+		if (asset instanceof AString s) {
+			if (!s.startsWith("0x")) {
+				s=Strings.create("0x"+s);
+			}
+			return Strings.create("erc20:"+s);
+		}
+		return null;
 	}
 	
-	private AString parseTokenID(String tokenID) {
+	private AString parseERC20TokenID(String tokenID) {
 		tokenID=tokenID.toLowerCase();
 		if (tokenID.startsWith("erc20:")) {
+			// rest of ID should be an account address
 			return parseAddress(tokenID.substring(6));
 		}
 		throw new IllegalArgumentException("Invalid CAIP-19 tokenID: "+tokenID);
@@ -378,7 +391,7 @@ public class EVMAdapter extends AAdapter<AString> {
 	@Override
 	public AInteger checkTransaction(String expectedAdress,String tokenID,Blob tx) throws IOException {
 		AString addr=parseAddress(expectedAdress);
-		AString erc20Contract=parseTokenID(tokenID);
+		AString erc20Contract=parseERC20TokenID(tokenID);
 		
 		String txS="0x"+tx.toHexString(); // 0x needed in transaction hash for RPC
 		TransactionReceipt receipt = getWeb3().ethGetTransactionReceipt(txS).send().getTransactionReceipt().orElse(null);
@@ -433,9 +446,6 @@ public class EVMAdapter extends AAdapter<AString> {
 		
 		return received;
 	}
-
-
-
 
 	@Override
 	public AString getReceiverAddress() {

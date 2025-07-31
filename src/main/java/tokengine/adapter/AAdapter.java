@@ -30,8 +30,8 @@ public abstract class AAdapter<AddressType extends ACell> {
 	 * CAIP Asset ID -> Token record
 	 * 
 	 * Where:
-	 * - CAIP asset ID like "slip44:840" or "erc20:0x0123456789012345678901234567890123456789"
-	 * - Token Record provided from config and transformed by addTokenMapping
+	 * - Key = CAIP asset ID like "slip44:840" or "erc20:0x0123456789012345678901234567890123456789"
+	 * - Value = Token Record provided from config and transformed by addTokenMapping
 	 */
 	protected Index<AString,AMap<AString,ACell>> tokens=Index.none();
 
@@ -55,7 +55,7 @@ public abstract class AAdapter<AddressType extends ACell> {
 		return RT.getIn(config, Fields.CHAIN_ID);
 	}
 	
-	/** Get the chain ID as a Java String */
+	/** Get the CAIP-2 chain ID as a Java String */
 	protected String getChainIDString() {
 		return getChainID().toString();
 	}
@@ -178,7 +178,8 @@ public abstract class AAdapter<AddressType extends ACell> {
 	public abstract Blob parseTransactionID(AString tx);
 
 	/**
-	 * Gets the address of the TokEngine receiver account
+	 * Gets the address of the TokEngine receiver account, in the adapter AddressType format
+	 * 
 	 * @return Receiver address, or null if not defined
 	 */
 	public abstract AddressType getReceiverAddress();
@@ -214,7 +215,8 @@ public abstract class AAdapter<AddressType extends ACell> {
 			assetID=toCAIPAssetID(asset);
 			if (assetID==null) throw new IllegalArgumentException("Unable to parse asset ID: "+asset+" for DLT "+getChainID());
 		} else {
-			asset=parseAssetID(assetID.toString());
+			asset=parseAssetID(assetID.toString().toLowerCase());
+			assetID=toCAIPAssetID(asset);
 			if (asset==null) {
 				throw new IllegalArgumentException("Unable to parse asset ID "+assetID+" for DLT "+getChainID());
 			}
@@ -241,7 +243,8 @@ public abstract class AAdapter<AddressType extends ACell> {
 	}
 
 	/**
-	 * Looks up a CAIP-19 asset ID for the identified token
+	 * Looks up a canonical CAIP-19 asset ID (e.g. "cad29:72") for the identified token on this adapter
+	 * 
 	 * @param token Token identifier, may be an alias or CAIP-19 asset ID
 	 * @return CAIP-19 Asset ID or null if token is not defined in this adapter
 	 */
@@ -261,6 +264,14 @@ public abstract class AAdapter<AddressType extends ACell> {
 	}
 
 	public abstract boolean validateSignature(String userKey, ABlob signature, ABlob message);
+
+	/**
+	 * Get the token index for this adapter
+	 * @return Token index
+	 */
+	public Index<AString,AMap<AString,ACell>> getTokens() {
+		return tokens;
+	}
 
 
 

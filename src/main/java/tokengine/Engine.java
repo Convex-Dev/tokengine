@@ -501,7 +501,7 @@ public class Engine {
 				Fields.TS,getTimestampString(),
 				Fields.AMOUNT,received,
 				Fields.NETWORK,adapter.getChainID(),
-				Fields.TOKEN,tokenKey,
+				Fields.TOKEN,adapter.lookupCAIPAssetID(token),
 				Fields.ACCOUNT,userKey);
 		this.postAuditMessage(Engine.getRequest(),logVal);
 		

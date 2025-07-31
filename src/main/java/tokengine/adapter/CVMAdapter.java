@@ -31,6 +31,11 @@ import convex.core.util.Utils;
 import tokengine.Engine;
 import tokengine.Fields;
 
+/**
+ * TokEngine CVM adapter
+ * 
+ * CVM Account Addresses are CVM Address values e.g. #12345
+ */
 public class CVMAdapter extends AAdapter<Address> {
 	
 	protected static final Logger log = LoggerFactory.getLogger(CVMAdapter.class.getName());
@@ -162,19 +167,16 @@ public class CVMAdapter extends AAdapter<Address> {
 		}
 	}
 	
-
-	
 	@Override
 	public Address parseAddress(String caip10) throws IllegalArgumentException {
 		if (caip10 == null) throw new IllegalArgumentException("Null address");
 		String s= caip10.trim();
 		if (s.isEmpty()) throw new IllegalArgumentException("Empty address");
 
-		int colon=s.indexOf(":");
+		int colon=s.lastIndexOf(":");
 		if (colon>=0) {
-			String[] ss=s.split(":");
-			if (!ss[0].equals(getChainIDString())) throw new IllegalArgumentException("Wrong chain ID for this adapter: "+ss[0]);
-			s=ss[1]; // take the part after the colon
+			if (!s.startsWith(getChainIDString())) throw new IllegalArgumentException("Wrong chain ID for this adapter: "+s);
+			s=s.substring(colon+1); // take the part after the colon
 		}
 
 		// Accept non-negative integer as valid address
@@ -223,12 +225,12 @@ public class CVMAdapter extends AAdapter<Address> {
 	
 	@Override
 	public ACell parseAssetID(String assetID) {
-		
-		return CAIP.parseAssetID(Strings.create(assetID));
+		return CAIP.parseAssetID(Strings.create(assetID.toLowerCase()));
 	}
 	
 	@Override
 	public AString toCAIPAssetID(ACell asset) {
+		if (CAIP.CONVEX_ASSET_ID.equals(asset)) return CAIP.CONVEX_ASSET_ID;
 		return Strings.create(CAIP.toAssetID(asset));
 	}
 

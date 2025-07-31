@@ -17,6 +17,35 @@ Key features:
 
 TokEngine is designed to never create and store an inconsistent state, regardless of external failures.
 
+### CAIP Definitions
+
+#### Chain ID
+
+A [CAIP-2](https://chainagnostic.org/CAIPs/caip-2) Chain ID identifies a unique DLT network used by TokEngine
+
+Examples:
+
+- `convex:test` - Local Convex testnet
+- `eip155:11155111` - Ethereum Sepolia TestNet
+- `eip155:1` - Ethereum Mainnet
+
+#### Account ID
+
+A [CAIP-10](https://chainagnostic.org/CAIPs/caip-10) Account ID identifies a unique account on a DLT. It may be prefixed with the chain ID to specify which DLT the account is located on.
+
+- `eip155:1:0xab16a96D359eC26a11e2C2b3d8f8B8942d5Bfcdb` - Account on Ethereum Mainnet
+- `convex:main:56756` - Account `#56756` on Convex main network
+- `bip122:000000000019d6689c085ae165831e93:128Lkh3S7CkDTBZ8W7BbpsN3YYizJMp8p6` - Bitcoin account
+
+#### Asset Type
+
+A [CAIP-19](https://chainagnostic.org/CAIPs/caip-19) Asset Type identifies a token on a specific DLT
+
+- `eip155:1/slip44:60` - ETH on Ethereum Mainnet
+- `convex:main/slip44:864` - CVM on Convex main network
+- `eip155:11155111/erc20:0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238` - USDC ERC20 Stablecoin on Sepolia Testnet
+
+Note use of SLIP-44 to define native tokens
 
 ### Deposit
 
