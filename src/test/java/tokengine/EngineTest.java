@@ -44,7 +44,7 @@ public class EngineTest {
 	
 	@Test public void testAuditMessage() {
 		assertNotNull(engine.kafka);
-		assertTrue(engine.postAuditMessage(Maps.of("test-run",engine.getTimestampString())));
+		assertTrue(engine.postAuditMessage(Fields.TEST,Maps.of("test-run",engine.getTimestampString())));
 	}
 	
 	@Test public void testDepositCredit() throws Exception {
@@ -70,7 +70,7 @@ public class EngineTest {
 	
 	@AfterAll public void shutdown() {
 		engine.close();
-		assertFalse(engine.postAuditMessage(Maps.of("test-run",engine.getTimestampString())));
+		assertFalse(engine.postAuditMessage(Fields.TEST,Maps.of("test-run",engine.getTimestampString())));
 	}
 
 }

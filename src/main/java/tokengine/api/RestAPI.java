@@ -249,15 +249,19 @@ public class RestAPI extends ATokengineAPI {
 						))
 	protected void postTransfer(Context ctx) {
 		try {
+			Engine.beginRequest();
 			AMap<AString,ACell> req = parseRequest(ctx);
 			AInteger deposited = doDeposit(req);
-			Object o=doPayout(req);
+			AString o=doPayout(req);
+			log.info("Transfer of tokens, deposited amout="+deposited+"  payout tx="+o);
 			
-			Result r = (o instanceof Result)?((Result)o):Result.value(RT.cvm(o));
+			Result r = Result.value(o);
 			prepareResult(ctx, r);
 		} catch (Exception e) {
 			log.warn("Could not confirm deposit: "+e.getMessage());
 			throw new PaymentRequiredResponse("Could not confirm deposit: "+e.getMessage());
+		} finally {
+			Engine.endRequest();
 		}
 	}
 	
@@ -293,10 +297,15 @@ public class RestAPI extends ATokengineAPI {
 									status = "400", 
 									description = "Payout failed, e.g. insufficient virtual balance")})
 	protected void postPayout(Context ctx) {
-		AMap<AString,ACell> req=parseRequest(ctx);
-		AString r = doPayout(req);
-		// log.warn("Paying out on network: "+chainID +" token: "+token+" account: "+address + " quantity="+q);
-		prepareResult(ctx,Result.value(r));
+		try {
+			Engine.beginRequest();
+			AMap<AString,ACell> req=parseRequest(ctx);
+			AString r = doPayout(req);
+			// log.warn("Paying out on network: "+chainID +" token: "+token+" account: "+address + " quantity="+q);
+			prepareResult(ctx,Result.value(r));
+		} finally {
+			Engine.endRequest();
+		}
 	}
 
 
@@ -377,6 +386,7 @@ public class RestAPI extends ATokengineAPI {
 							description = "Deposit not accepted, verified payment required")})
 	protected void postDeposit(Context ctx) {
 		try {
+			Engine.beginRequest();
 			AMap<AString, ACell> req = parseRequest(ctx);
 			AInteger deposited = doDeposit(req);
 			
@@ -387,6 +397,8 @@ public class RestAPI extends ATokengineAPI {
 		} catch (Exception e) {
 			log.warn("Could not confirm deposit: "+e.getMessage());
 			throw new PaymentRequiredResponse("Could not confirm deposit: "+e.getMessage());
+		} finally {
+			Engine.endRequest();
 		}
 		
 	}

@@ -22,6 +22,7 @@ import convex.core.data.Vectors;
 import convex.core.lang.RT;
 import convex.core.util.JSONUtils;
 import convex.java.HTTPClients;
+import tokengine.Engine;
 import tokengine.Fields;
 
 public class Kafka {
@@ -54,11 +55,11 @@ public class Kafka {
 	 * @param value
 	 * @return true if successfully submitted
 	 */
-	public boolean log(ACell value) {
+	public boolean log(AString key, ACell value) {
 		executor.submit(()->{
 			if (uri==null) return; // TODO: maybe print one warning?
 			try {
-				doLog(value);
+				doLog(key,value);
 			} catch (Exception e) {
 				log.warn("Failed to queue audit log message to Kafka",e);
 			}
@@ -66,16 +67,18 @@ public class Kafka {
 		return true;
 	}
 	
-	public CompletableFuture<SimpleHttpResponse> doLog(ACell value) {
+	public CompletableFuture<SimpleHttpResponse> doLog(AString key,ACell value) {
 		// Construct Kafka message with one record
 		AMap<AString,ACell> record=Maps.of("value",value);
-		AMap<AString,ACell> recs=Maps.of("records",Vectors.of(record));
 		
 		// Populate key if available
-		ACell key=RT.getIn(record, Fields.KEY);
+		if (key==null) key=RT.getIn(value, Fields.KEY);
+		if (key==null) key=Engine.getRequest();
 		if (key!=null) {
-			recs=recs.assoc(Fields.KEY, key);
-		}
+			record=record.assoc(Fields.KEY, key);
+		} 
+		
+		AMap<AString,ACell> recs=Maps.of("records",Vectors.of(record));
 		
 		String data=JSONUtils.toString(recs);
 		// System.err.println(data);
@@ -95,6 +98,7 @@ public class Kafka {
 					log.warn("Kafka post failed with code "+code);
 					log.warn("Payload: "+r.getBodyText());
 				}
+				// System.err.println(data);
 			});
 			return future;
 		} catch (Exception e) {
@@ -105,7 +109,7 @@ public class Kafka {
 	
 	public static void main(String[] args) throws URISyntaxException {
 		Kafka k=new Kafka(Strings.create("https://kfk.walledchannel.net/topics/test"));
-		k.log(JSONUtils.parse("{\"test\":true,\"id\":\"12456\"}"));
+		k.log(Fields.TEST,JSONUtils.parse("{\"test\":true,\"id\":\"12456\"}"));
 	}
 
 	public URI getURI() {

@@ -5,14 +5,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import convex.api.Convex;
-import convex.core.ErrorCodes;
-import convex.core.Result;
 import convex.core.crypto.AKeyPair;
 import convex.core.cvm.Keywords;
 import convex.core.cvm.Peer;
@@ -23,6 +20,7 @@ import convex.core.data.AMap;
 import convex.core.data.AString;
 import convex.core.data.AVector;
 import convex.core.data.Blob;
+import convex.core.data.Blobs;
 import convex.core.data.Keyword;
 import convex.core.data.MapEntry;
 import convex.core.data.Maps;
@@ -32,7 +30,6 @@ import convex.core.data.prim.AInteger;
 import convex.core.data.prim.CVMLong;
 import convex.core.init.Init;
 import convex.core.lang.RT;
-import convex.core.lang.Reader;
 import convex.core.util.FileUtils;
 import convex.core.util.JSONUtils;
 import convex.etch.EtchStore;
@@ -423,21 +420,6 @@ public class Engine {
 		}
 	}
 
-	
-	public Result transfer(AMap<AString,ACell> source, AMap<AString,ACell> dest,AInteger quantity) {
-		
-		ACell tx=buildTransfer(source,dest,quantity);
-		
-		CompletableFuture<Result> f=convex.transact(tx);
-		
-		return f.join();
-	}
-
-	private ACell buildTransfer(AMap<AString, ACell> source, AMap<AString, ACell> dest, AInteger quantity) {
-		// TODO Auto-generated method stub
-		return Reader.read("130");
-	}
-
 	public ArrayList<Object> getHandlers() {
 		ArrayList<Object> handlers=new ArrayList<>();
 		for (Map.Entry<AString,AAdapter<?>> me: adapters.entrySet()) {
@@ -521,7 +503,7 @@ public class Engine {
 				Fields.NETWORK,adapter.getChainID(),
 				Fields.TOKEN,tokenKey,
 				Fields.ACCOUNT,userKey);
-		this.postAuditMessage(logVal);
+		this.postAuditMessage(Engine.getRequest(),logVal);
 		
 		return received; // success case with positive deposit
 	} 
@@ -549,7 +531,7 @@ public class Engine {
 					Fields.NETWORK,adapter.getChainID(),
 					Fields.TOKEN,asset,
 					Fields.ACCOUNT,target);
-			this.postAuditMessage(logVal);
+			this.postAuditMessage(Engine.getRequest(),logVal);
 			
 			return r;
 		} catch (Exception e) {
@@ -589,9 +571,9 @@ public class Engine {
 	 * @param message
 	 * @return True if queued for sending, false if Kafka not configured
 	 */
-	public boolean postAuditMessage(AMap<?,?> message) {
+	public boolean postAuditMessage(AString key,AMap<?,?> message) {
 		if (kafka==null) return false;
-		return kafka.log(message);
+		return kafka.log(key,message);
 	}
 	
 	/**
@@ -627,7 +609,7 @@ public class Engine {
 		msg=msg.assoc(Fields.USER,userKey);
 		msg=msg.assoc(Fields.AMOUNT,amount);
 		msg=msg.assoc(Fields.NEW_BALANCE,newBalance);
-		this.postAuditMessage(msg);
+		this.postAuditMessage(Engine.getRequest(),msg);
 		return newBalance;
  	}
 	
@@ -645,7 +627,7 @@ public class Engine {
 		msg=msg.assoc(Fields.USER,userKey);
 		msg=msg.assoc(Fields.AMOUNT,amount);
 		msg=msg.assoc(Fields.NEW_BALANCE,newBalance);
-		this.postAuditMessage(msg);
+		this.postAuditMessage(Engine.getRequest(),msg);
 		return newBalance;
  	}
 	
@@ -696,6 +678,19 @@ public class Engine {
 	 */
 	public Peer getPeer() {
 		return convex.getLocalServer().getPeer();
+	}
+
+	static ThreadLocal<AString> requestID=new ThreadLocal<>();
+	public static void beginRequest() {
+		requestID.set(Blobs.createRandom(16).toCVMHexString());
+	}
+	
+	public static AString getRequest() {
+		return requestID.get();
+	}
+	
+	public static void endRequest() {
+		requestID.set(null);
 	}
 
 }
