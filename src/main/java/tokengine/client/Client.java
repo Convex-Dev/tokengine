@@ -200,6 +200,11 @@ public class Client extends ARESTClient {
 		});
 	}
 
+	/**
+	 * Makes a HTTP request as a CompletableFuture
+	 * @param request Request object
+	 * @return Future with a string containing the payout transaction hash
+	 */
 	public CompletableFuture<AInteger> payout(String fromUser, String fromNetwork, String fromToken, String toUser, String toNetwork, String toToken,String quantity) {
 		AMap<AString, ACell> source = Maps.of(
 			Fields.NETWORK, Strings.create(fromNetwork), // Default network, could be parameterised
@@ -235,6 +240,8 @@ public class Client extends ARESTClient {
 						return (AInteger)value;
 					} else if (value==null) {
 						return CVMLong.ZERO;
+					} else if (value instanceof AString) {
+						return AInteger.parse(quantity);
 					}
 				}
 				throw new ResponseException("Unexpected response format: "+result, resp);

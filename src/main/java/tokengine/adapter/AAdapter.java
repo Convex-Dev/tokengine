@@ -5,7 +5,6 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import convex.core.data.AArrayBlob;
 import convex.core.data.ABlob;
 import convex.core.data.ACell;
 import convex.core.data.AMap;
@@ -123,7 +122,15 @@ public abstract class AAdapter<AddressType extends ACell> {
 	public abstract AString parseUserKey(String caip10) throws IllegalArgumentException;
 
 
-	public abstract Object payout(String token, AInteger quantity, String destAccount);
+	/**
+	 * Perfom a payout on the given DLT
+	 * @param token
+	 * @param quantity
+	 * @param destAccount
+	 * @return String identifying the payout transaction
+	 * @throws Exception If the payout fails for any reason
+	 */
+	public abstract AString payout(String token, AInteger quantity, String destAccount) throws Exception;
 	
 	/**
 	 * 

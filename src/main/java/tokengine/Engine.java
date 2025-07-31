@@ -516,6 +516,7 @@ public class Engine {
 		AMap<AString,ACell> logVal=Maps.of(
 				Fields.TYPE,"CREDIT",
 				Fields.TX,txID.toString(),
+				Fields.TS,getTimestampString(),
 				Fields.AMOUNT,received,
 				Fields.NETWORK,adapter.getChainID(),
 				Fields.TOKEN,tokenKey,
@@ -526,24 +527,34 @@ public class Engine {
 	} 
 	
 	/**
-	 * Handle payout of funds
+	 * Handle payout of funds from the operator
 	 */
 	@SuppressWarnings("rawtypes")
-	public Object makePayout(String target, String asset, AAdapter adapter, AInteger quantity, AMap<AString,ACell> depositProof)  {
+	public AString makePayout(String target, String asset, AAdapter adapter, AInteger quantity, AMap<AString,ACell> depositProof)  {
 		try {
-			AInteger current;
-			current = adapter.getOperatorBalance(asset);
+			AInteger operatorBalance = adapter.getOperatorBalance(asset);
 
-			if (RT.lt(new ACell[] {current,quantity}).booleanValue()) {
+			if (RT.lt(new ACell[] {operatorBalance,quantity}).booleanValue()) {
 				log.warn("Attempted payout but insufficent operator balance available!");
-				return Result.error(ErrorCodes.FUNDS, "Insuffient payout balance: "+current);
+				throw new IllegalStateException("Insuffient operator payout balance: "+operatorBalance);
 			}
 			
-			Object r=adapter.payout(asset, quantity, target);
+			AString r=adapter.payout(asset, quantity, target);
+
+			AMap<AString,ACell> logVal=Maps.of(
+					Fields.TYPE,"PAYOUT",
+					Fields.TX,r,
+					Fields.TS,getTimestampString(),
+					Fields.AMOUNT,quantity,
+					Fields.NETWORK,adapter.getChainID(),
+					Fields.TOKEN,asset,
+					Fields.ACCOUNT,target);
+			this.postAuditMessage(logVal);
+			
 			return r;
-		} catch (IOException e) {
+		} catch (Exception e) {
 			throw new IllegalStateException("Unable to process payout",e);
-		}
+		} 
 	}
 	
 	/**
@@ -626,7 +637,7 @@ public class Engine {
 		AInteger current=getVirtualCredit(tokenKey, userKey);
 		if (current==null) current=CVMLong.ZERO;
 		AInteger newBalance=current.sub(amount);
-		if (newBalance.isNegative()) throw new IllegalArgumentException("Cannot remove more than total credit balance: current="+current+" removed="+amount);
+		if (newBalance.isNegative()) throw new IllegalArgumentException("Cannot remove more than total credit balance: current="+current+" removed="+amount+ " for user="+userKey);
 		this.stateCursor.update(state->(AMap<AString, ACell>) RT.assocIn(state, newBalance, Fields.CREDITS,userKey,tokenKey));
 		
 		AMap<AString,?> msg=getBaseLogMessage("DEBIT");

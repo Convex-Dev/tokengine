@@ -12,7 +12,7 @@ import convex.core.ErrorCodes;
 import convex.core.Result;
 import convex.core.crypto.Ed25519Signature;
 import convex.core.cvm.Address;
-import convex.core.data.AArrayBlob;
+import convex.core.cvm.Keywords;
 import convex.core.data.ABlob;
 import convex.core.data.ACell;
 import convex.core.data.AMap;
@@ -141,28 +141,25 @@ public class CVMAdapter extends AAdapter<Address> {
 	}
 	
 	@Override
-	public Object payout(String caip19, AInteger quantity, String destAccount) {
+	public AString payout(String caip19, AInteger quantity, String destAccount) throws Exception {
 		Address addr=parseAddress(destAccount);
+		Result r;
 		if ("CVM".equals(caip19)||CAIP.isCVM(caip19)) {
 			if (!quantity.isLong()) {
-				return Result.error(ErrorCodes.ARGUMENT, "Invalid quantity: "+quantity);
+				throw new IllegalArgumentException("Invalid CVM quantity: "+quantity);
 			}
-			Result r;
-			try {
-				r = convex.transferSync(addr, quantity.longValue());
-			} catch (InterruptedException e) {
-				return Result.fromException(e);
-			}
-			return r;
+			r= convex.transferSync(addr, quantity.longValue());
+
 		} else {
 			ACell tokenID=CAIP.parseTokenID(caip19);
-			Result r;
-			try {
-				r = convex.transactSync("(let [quantity "+quantity+"] (@convex.asset/transfer "+addr+" [(quote "+tokenID+") quantity]) quantity)");
-			} catch (InterruptedException e) {
-				return Result.fromException(e);
-			}
-			return r;
+			r = convex.transactSync("(let [quantity "+quantity+"] (@convex.asset/transfer "+addr+" [(quote "+tokenID+") quantity]) quantity)");
+		}
+		
+		if (r.isError()) {
+			throw new Exception("Payout on "+getChainID()+" failed: "+r);
+		} else {
+			ACell tx=RT.getIn(r, Keywords.INFO, Keywords.TX);
+			return RT.str(tx);
 		}
 	}
 	

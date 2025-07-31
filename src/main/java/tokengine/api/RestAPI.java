@@ -294,15 +294,18 @@ public class RestAPI extends ATokengineAPI {
 									description = "Payout failed, e.g. insufficient virtual balance")})
 	protected void postPayout(Context ctx) {
 		AMap<AString,ACell> req=parseRequest(ctx);
-		Object r = doPayout(req);
+		AString r = doPayout(req);
 		// log.warn("Paying out on network: "+chainID +" token: "+token+" account: "+address + " quantity="+q);
-		prepareResult(ctx,RT.cvm(r));
+		prepareResult(ctx,Result.value(r));
 	}
 
 
-	private Object doPayout(AMap<AString, ACell> req) {
-		AMap<AString,ACell> src = RT.ensureMap(req.get(Fields.DESTINATION));
-		if (src==null) throw new BadRequestResponse("Expected 'destination' object specifying token");
+	private AString doPayout(AMap<AString, ACell> req) {
+		AMap<AString,ACell> src = RT.ensureMap(req.get(Fields.SOURCE));
+		if (src==null) throw new BadRequestResponse("Expected 'source' object specifying payor");
+		AString srcUserKey=RT.ensureString(src.get(Fields.ACCOUNT));
+		if (srcUserKey==null) throw new BadRequestResponse("Expected 'source.account' string identifying user");
+	
 		AInteger q= AInteger.parse(req.get(Fields.QUANTITY));
 		if (q==null) throw new BadRequestResponse("Expected 'quantity' as valid integer amount");
 		
@@ -316,11 +319,16 @@ public class RestAPI extends ATokengineAPI {
 		if (adapter==null) throw new BadRequestResponse("Can't find network: "+chainID);
 		
 		String token=RT.str(src.get(Fields.TOKEN)).toString();
-		String address=RT.str(src.get(Fields.ACCOUNT)).toString();
 		
-		Object r;
-		r = engine.makePayout(address, token, adapter, q,dep);
-		return r;
+		AMap<AString,ACell> dest = RT.ensureMap(req.get(Fields.DESTINATION));
+		if (dest==null) throw new BadRequestResponse("Expected 'destination' object specifying payout account");
+		AString destUserKey=RT.ensureString(dest.get(Fields.ACCOUNT));
+		if (destUserKey==null) throw new BadRequestResponse("Expected 'dest.account' string identifying user");
+
+		engine.subtractVirtualCredit(engine.getTokenKey(adapter, token), srcUserKey, q);
+		AString result = engine.makePayout(destUserKey.toString(), token, adapter, q,dep);
+		// log.warn("Payout made: "+r);
+		return result;
 	}
 	
 	

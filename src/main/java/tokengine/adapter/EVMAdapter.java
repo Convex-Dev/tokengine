@@ -1,13 +1,13 @@
 package tokengine.adapter;
 
-import java.io.IOException;
 import java.io.File;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.security.SignatureException;
-import java.util.Arrays;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,11 +17,11 @@ import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Event;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.contracts.eip20.generated.ERC20;
+import org.web3j.crypto.CipherException;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.Keys;
 import org.web3j.crypto.Sign;
 import org.web3j.crypto.WalletUtils;
-import org.web3j.crypto.CipherException;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.response.EthGetBalance;
@@ -29,8 +29,6 @@ import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.tx.gas.DefaultGasProvider;
 
-import convex.core.ErrorCodes;
-import convex.core.Result;
 import convex.core.crypto.Hashing;
 import convex.core.data.ABlob;
 import convex.core.data.ACell;
@@ -214,9 +212,93 @@ public class EVMAdapter extends AAdapter<AString> {
 	}
 
 	@Override
-	public Result payout(String token, AInteger quantity, String destAccount) {
-		return Result.error(ErrorCodes.TODO, "Asset payout not supported: "+token);
+	public AString payout(String token, AInteger quantity, String destAccount) throws Exception {
+		try {
+			AString tokenS=parseAddress(token);
+			AString destS=parseAddress(destAccount);
+	        // Validate inputs
+	        if (tokenS == null ) {
+	            throw new IllegalArgumentException("Invalid token contract address");
+	        }
+	        if (destS == null ) {
+	        	throw new IllegalArgumentException("Invalid destination account address: "+destAccount);
+	        }
+	        if (quantity == null || quantity.isNegative()) {
+	        	throw new IllegalArgumentException("Invalid quantity: "+quantity);
+	        }
+
+	        Credentials credentials = getOperatorCredentials();
+
+	        // Load the ERC20 contract
+	        ERC20 contract = ERC20.load(
+	            token, // Token contract address
+	            web3,
+	            credentials,
+	            new DefaultGasProvider()
+	        );
+
+	        // Convert quantity to BigInteger 
+	        BigInteger amount = quantity.big();
+
+	        // Check balance
+	        BigInteger balance = contract.balanceOf(credentials.getAddress()).send();
+	        if (balance.compareTo(amount) < 0) {
+	        	throw new IllegalStateException("Insufficient token balance");
+	        }
+
+	        // Check allowance if needed (for contracts requiring approval)
+	        BigInteger allowance = contract.allowance(
+	            credentials.getAddress(),
+	            destAccount
+	        ).send();
+	        if (allowance.compareTo(amount) < 0) {
+	            // If allowance is insufficient, you might need to approve first
+	            TransactionReceipt approvalReceipt = contract.approve(
+	                destAccount,
+	                amount
+	            ).send();
+	            if (!approvalReceipt.isStatusOK()) {
+	            	throw new IllegalArgumentException("Approval transaction failed");
+	            }
+	        }
+
+	        // Execute transfer
+	        TransactionReceipt receipt = contract.transfer(
+	            destAccount,
+	            amount
+	        ).send();
+
+	        // Verify transaction status
+	        if (receipt.isStatusOK()) {
+	            return Strings.create(receipt.getTransactionHash());
+	        } else {
+	        	throw new IllegalArgumentException("Transfer transaction failed: "+receipt);
+	        }
+	    } finally {
+	    	//
+	    }
 	}
+
+	/** Store for operator credentials once found */
+	private Credentials operatorCredentials=null;
+	
+	private Credentials getOperatorCredentials() {
+		if (operatorCredentials!=null) return operatorCredentials;
+		AString operatorAddress=getOperatorAddress();
+		if (operatorAddress==null) return null;
+		
+		List<Credentials> wallets=getLoadedWallets();
+		for (Credentials c: wallets) {
+			AString a=parseAddress(c.getAddress());
+			if (operatorAddress.equals(a)) {
+				operatorCredentials=c;
+				return c;
+			}
+		}
+		
+		return null;
+	}
+
 
 	@Override
 	public AString getOperatorAddress() {

@@ -127,6 +127,7 @@ public class ClientTest {
 		Address receiver=(Address) engine.getAdapter(Strings.create("convex")).getReceiverAddress();
 		assertNotNull(receiver);
 		
+		// Convex connection for user
 		Convex cc=Convex.connect(convex.getHostAddress(),user,ConvexTest.TEST_KP);
 		Result r=cc.transactSync("(@convex.asset/transfer "+receiver+" [@asset.wrap.convex 1090])");
 		Hash h=TXUtils.getTransactionID(r);
@@ -143,6 +144,11 @@ public class ClientTest {
 		AInteger payout=client.payout(user.toString(),"convex", "cad29:72", user2.toString(),"convex", "cad29:72","500").join();
 		assertEquals(500,payout.longValue());
 		
+		{ // test final credit
+			AInteger credit=client.getCredit(user.toString(), "convex", "cad29:72").join();
+			assertEquals(1090-500,credit.longValue());
+		}
+
 		AInteger destBal=client.getBalance("convex", "cad29:72", user2.toString()).join();
 		assertEquals(1000000500,destBal.longValue());
 	}
@@ -163,7 +169,6 @@ public class ClientTest {
 		assertNotNull(h);
 		
 		String token="WCVM"; // refers to cad29:72
-		String account=receiver.toString();
 
 		{ // test initial credit
 			AInteger credit=client.getCredit(user.toString(), "convex", "cad29:72").join();
@@ -185,9 +190,9 @@ public class ClientTest {
 			Fields.SIG,sig,
 			Fields.MSG,msg
 		);
-		Object r2=engine.makePayout(user2.toString(), "slip44:864", adapter, CVMLong.create(500),depProof);
+		AString r2=engine.makePayout(user2.toString(), "slip44:864", adapter, CVMLong.create(500),depProof);
 		// System.out.println("Payout Result: "+r2);
-		Hash txID=TXUtils.getTransactionID((Result)r2);
+		Hash txID=Hash.parse(r2);
 		SignedData<ATransaction> tx=engine.getPeer().getTransaction(txID);
 		assertEquals(txID,tx.getHash());
 		// System.out.println("Payout Transaction: "+tx);
