@@ -1,4 +1,4 @@
-package tokengine.adapter;
+package tokengine.adapter.tezos;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -21,6 +21,7 @@ import convex.core.data.prim.CVMLong;
 import convex.core.lang.RT;
 import tokengine.Engine;
 import tokengine.Fields;
+import tokengine.adapter.AAdapter;
 import tokengine.util.Base58;
 import tokengine.util.Base58Check;
 
@@ -154,6 +155,11 @@ public class TezosAdapter extends AAdapter<AString> {
 		return getBalance(asset, operatorAddr.toString());
 	}
 
+	/**
+	 * Checks if a an asset identifier is tez (Tezos native coin)
+	 * @param asset
+	 * @return true if 
+	 */
 	public boolean isTezos(String asset) {
 		if (asset == null) return false;
 		if ("XTZ".equals(asset) || "xtz".equals(asset)) return true;
@@ -165,25 +171,15 @@ public class TezosAdapter extends AAdapter<AString> {
 		if (caip10 == null) throw new IllegalArgumentException("Null address");
 		String s = caip10.trim();
 		if (s.isEmpty()) throw new IllegalArgumentException("Empty address");
-		
-		log.debug("Parsing Tezos address: '{}'", caip10);
-		log.debug("After trim: '{}'", s);
-		
+				
 		// For testing purposes, skip chain ID validation
 		// In a real implementation, you would validate the chain ID properly
 		int colon = s.lastIndexOf(":");
 		if (colon >= 0) {
-			// Check if it looks like a chain ID prefix
-			String prefix = s.substring(0, colon);
-			log.debug("Found colon at position {}, prefix: '{}'", colon, prefix);
-			if (prefix.startsWith("tezos:") || prefix.startsWith("ethereum:") || prefix.startsWith("convex:")) {
-				s = s.substring(colon + 1); // take the part after the colon
-				log.debug("After removing chain ID: '{}'", s);
-			}
+			s = s.substring(colon + 1); // take the part after the colon
 		}
 		
 		// Validate Tezos address format
-		log.debug("Checking address format: '{}'", s);
 		if (!s.startsWith("tz1") && !s.startsWith("tz2") && !s.startsWith("tz3")) {
 			throw new IllegalArgumentException("Invalid Tezos address format: " + caip10 + " (must start with tz1, tz2, or tz3)");
 		}
@@ -191,7 +187,6 @@ public class TezosAdapter extends AAdapter<AString> {
 		// Validate Base58Check encoding (includes checksum validation)
 		try {
 			byte[] decoded = Base58Check.decode(s);
-			log.debug("Base58Check decoded length: {}", decoded.length);
 			// Tezos addresses should be 23 bytes after checksum removal (1-byte prefix + 20-byte public key hash)
 			if (decoded.length != 23) {
 				throw new IllegalArgumentException("Invalid Tezos address length: " + caip10 + " (expected 23 bytes after checksum, got " + decoded.length + ")");
@@ -205,7 +200,6 @@ public class TezosAdapter extends AAdapter<AString> {
 		}
 		
 		AString result = Strings.create(s);
-		log.debug("Successfully parsed Tezos address: {}", result);
 		return result;
 	}
 	

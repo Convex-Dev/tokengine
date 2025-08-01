@@ -1,4 +1,4 @@
-package tokengine.adapter;
+package tokengine.adapter.convex;
 
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
@@ -30,6 +30,7 @@ import convex.core.util.CAIP;
 import convex.core.util.Utils;
 import tokengine.Engine;
 import tokengine.Fields;
+import tokengine.adapter.AAdapter;
 
 /**
  * TokEngine CVM adapter

@@ -36,7 +36,7 @@ import convex.core.data.prim.CVMLong;
 import convex.core.init.Init;
 import convex.core.lang.RT;
 import convex.core.util.ConfigUtils;
-import tokengine.adapter.CVMAdapter;
+import tokengine.adapter.convex.CVMAdapter;
 
 @TestInstance(Lifecycle.PER_CLASS)
 public class ConvexTest {

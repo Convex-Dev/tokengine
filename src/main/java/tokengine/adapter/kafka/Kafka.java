@@ -1,4 +1,4 @@
-package tokengine.adapter;
+package tokengine.adapter.kafka;
 
 import java.net.URI;
 import java.net.URISyntaxException;

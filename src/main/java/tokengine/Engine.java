@@ -40,10 +40,10 @@ import convex.peer.ConfigException;
 import convex.peer.LaunchException;
 import convex.peer.Server;
 import tokengine.adapter.AAdapter;
-import tokengine.adapter.CVMAdapter;
-import tokengine.adapter.EVMAdapter;
-import tokengine.adapter.Kafka;
-import tokengine.adapter.TezosAdapter;
+import tokengine.adapter.convex.CVMAdapter;
+import tokengine.adapter.evm.EVMAdapter;
+import tokengine.adapter.kafka.Kafka;
+import tokengine.adapter.tezos.TezosAdapter;
 
 /**
  * Engine is the core application class for TokEngine

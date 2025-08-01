@@ -1,4 +1,4 @@
-package tokengine.adapter;
+package tokengine.adapter.evm;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,6 +43,7 @@ import convex.core.lang.RT;
 import convex.core.util.FileUtils;
 import tokengine.Engine;
 import tokengine.Fields;
+import tokengine.adapter.AAdapter;
 
 /**
  * TokeEngine EVM adapter

@@ -43,7 +43,7 @@ import convex.core.data.AMap;
 import convex.core.data.AString;
 import convex.core.data.Blob;
 import convex.core.data.Maps;
-import tokengine.adapter.EVMAdapter;
+import tokengine.adapter.evm.EVMAdapter;
 
 public class EVMTest {
 

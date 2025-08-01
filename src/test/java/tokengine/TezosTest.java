@@ -18,7 +18,7 @@ import convex.core.data.Strings;
 import convex.core.data.prim.AInteger;
 import convex.core.data.prim.CVMLong;
 import convex.core.lang.RT;
-import tokengine.adapter.TezosAdapter;
+import tokengine.adapter.tezos.TezosAdapter;
 import tokengine.util.Base58;
 
 public class TezosTest {
