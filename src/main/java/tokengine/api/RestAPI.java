@@ -242,7 +242,7 @@ public class RestAPI extends ATokengineAPI {
 													}),
 													@OpenApiExampleProperty(name = "deposit", objects= {
 															@OpenApiExampleProperty(name = "tx", value="0x9d3a3663d32b9ff5cf2d393e433b7b31489d13b398133a35c4bb6e2085bd8e83"),
-															@OpenApiExampleProperty(name = "msg", value="\u0019Ethereum Signed Message:\nTransfer 1000 to #12 on convex"),
+															@OpenApiExampleProperty(name = "msg", value="Transfer 1000 to #12 on convex"),
 															@OpenApiExampleProperty(name = "sig", value="0xdd48188b1647010d908e9fed4b6726cebd0d65e20f412b8b9ff4868386f05b0a28a9c0e35885c95e2322c2c670743edd07b0e1450ae65c3f6708b61bb3e582371c")
 													}), 
 													@OpenApiExampleProperty(name = "quantity", value = "1000") })}
@@ -283,6 +283,11 @@ public class RestAPI extends ATokengineAPI {
 															@OpenApiExampleProperty(name = "account", value="#13"),
 															@OpenApiExampleProperty(name = "network", value="convex:test"),
 															@OpenApiExampleProperty(name = "token", value="CVM")
+													}),
+													@OpenApiExampleProperty(name = "deposit", objects= {
+															@OpenApiExampleProperty(name = "tx", value="0x9d3a3663d32b9ff5cf2d393e433b7b31489d13b398133a35c4bb6e2085bd8e83"),
+															@OpenApiExampleProperty(name = "msg", value="Transfer 100000 to #13 on convex"),
+															@OpenApiExampleProperty(name = "sig", value="0xdd48188b1647010d908e9fed4b6726cebd0d65e20f412b8b9ff4868386f05b0a28a9c0e35885c95e2322c2c670743edd07b0e1450ae65c3f6708b61bb3e582371c")
 													}),
 													@OpenApiExampleProperty(name = "quantity", value = "1000000") })}
 						),
@@ -369,10 +374,7 @@ public class RestAPI extends ATokengineAPI {
 													@OpenApiExampleProperty(name = "token", value="0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238")
 											}),
 											@OpenApiExampleProperty(name = "deposit", objects= {
-													@OpenApiExampleProperty(name = "tx", value="0x9d3a3663d32b9ff5cf2d393e433b7b31489d13b398133a35c4bb6e2085bd8e83"),
-													@OpenApiExampleProperty(name = "msg", value="\u0019Ethereum Signed Message:\nHello"),
-													@OpenApiExampleProperty(name = "sig", value="0xdd48188b1647010d908e9fed4b6726cebd0d65e20f412b8b9ff4868386f05b0a28a9c0e35885c95e2322c2c670743edd07b0e1450ae65c3f6708b61bb3e582371c")
-											}) 
+													@OpenApiExampleProperty(name = "tx", value="0x9d3a3663d32b9ff5cf2d393e433b7b31489d13b398133a35c4bb6e2085bd8e83")											}) 
 									})}),
 			responses = {
 					@OpenApiResponse(

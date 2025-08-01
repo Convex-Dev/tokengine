@@ -7,8 +7,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -166,11 +170,21 @@ public class ClientTest {
 			AInteger credit=client.getCredit(user.toString(), "convex", "cad29:72").join();
 			assertEquals(1090-500,credit.longValue());
 			long end2=System.currentTimeMillis();
-			System.out.println("Check Credit Time = "+(end2-start2));
+			// System.out.println("Check Credit Time = "+(end2-start2));
 		}
 
 		AInteger destBal=client.getBalance("convex", "cad29:72", user2.toString()).join();
 		assertEquals(1000000500,destBal.longValue());
+		
+		{
+			long start2=System.currentTimeMillis();
+			int N=10000;
+			executeNTimes(()->{
+				AInteger credit=client.getCredit(user.toString(), "convex", "cad29:72").join();
+			},N);
+			long end2=System.currentTimeMillis();
+			System.out.println("Check Credit Time = "+(((double)N)*1000)/(end2-start2));
+		}
 	}
 	
 	@Test public void testTransfer() throws IOException, TimeoutException, InterruptedException {
@@ -223,6 +237,28 @@ public class ClientTest {
 		engine.close();
 	}
 	
-	
+	public static void executeNTimes(Runnable function, int n) throws InterruptedException {
+        // Create a virtual thread executor
+        ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
+        List<Future<?>> futures = new ArrayList<>();
+        
+        // Submit the function n times
+        for (int i = 0; i < n; i++) {
+            futures.add(executor.submit(function));
+        }
+        
+        // Wait for all tasks to complete
+        for (Future<?> future : futures) {
+            try {
+                future.get();
+            } catch (Exception e) {
+                // Handle potential exceptions from the function
+                throw new RuntimeException("Error executing function", e);
+            }
+        }
+        
+        // Shutdown the executor
+        executor.shutdown();
+    }
 
 }
