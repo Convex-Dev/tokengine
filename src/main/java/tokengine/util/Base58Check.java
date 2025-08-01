@@ -17,9 +17,18 @@ public class Base58Check
     private static BigInteger BASE_SIZE = BigInteger.valueOf(ALPHABET_ARRAY.length);
     private static int CHECKSUM_SIZE = 4;
 
-    public static String encode(byte[] data) throws NoSuchAlgorithmException
+    /**
+     * Encode in Base58 after adding a 4-byte checksum
+     * @param data
+     * @return Encoded Base58 String with checksum
+     */
+    public static String encode(byte[] data) 
     {
-        return encodePlain(addChecksum(data));
+        try {
+			return encodePlain(addChecksum(data));
+		} catch (NoSuchAlgorithmException e) {
+			throw new UnsupportedOperationException("Missing algorithm",e);
+		}
     }
 
     public static String encodePlain(byte[] data)
@@ -58,7 +67,7 @@ public class Base58Check
     }
 
 
-    public static byte[] decode(String encoded) throws NoSuchAlgorithmException
+    public static byte[] decode(String encoded)
     {
         byte[] valueWithChecksum = decodePlain(encoded);
 
@@ -130,7 +139,7 @@ public class Base58Check
         return decoded;
     }
 
-    private static byte[] verifyAndRemoveChecksum(byte[] data) throws NoSuchAlgorithmException
+    private static byte[] verifyAndRemoveChecksum(byte[] data) 
     {
         byte[] value = Arrays.copyOfRange(data, 0, data.length - CHECKSUM_SIZE);
         byte[] checksum = Arrays.copyOfRange(data, data.length - CHECKSUM_SIZE, data.length);
@@ -151,7 +160,7 @@ public class Base58Check
         return result;
     }
 
-    private static byte[] getChecksum(byte[] data) throws NoSuchAlgorithmException
+    private static byte[] getChecksum(byte[] data) 
     {
         byte[] hash = hash256(data);
         hash = hash256(hash);
@@ -159,13 +168,16 @@ public class Base58Check
         return Arrays.copyOfRange(hash, 0, CHECKSUM_SIZE);
     }
 
-    public static byte[] hash256(byte[] data) throws NoSuchAlgorithmException
+    public static byte[] hash256(byte[] data) 
     {
-        MessageDigest md = MessageDigest.getInstance("SHA-256");
-
-        md.update(data);
-
-        return md.digest();
+		try {
+			MessageDigest md;
+			md = MessageDigest.getInstance("SHA-256");
+			md.update(data);
+	        return md.digest();
+		} catch (NoSuchAlgorithmException e) {
+			throw new UnsupportedOperationException("SHA256 not available?",e);
+		}
     }
 
 

@@ -262,7 +262,7 @@ public class TezosAdapter extends AAdapter<AString> {
 		if (obj instanceof String) {
 			return parseAddress((String)obj);
 		}
-		throw new IllegalArgumentException("Cannot parse address from object: " + obj.getClass());
+		throw new IllegalArgumentException("Cannot parse Tezos address from object: " + obj.getClass());
 	}
 
 	@Override

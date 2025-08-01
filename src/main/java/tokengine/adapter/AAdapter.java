@@ -128,7 +128,7 @@ public abstract class AAdapter<AddressType extends ACell> {
 	 * @param token
 	 * @param quantity
 	 * @param destAccount
-	 * @return String identifying the payout transaction
+	 * @return String identifying the payout transaction. This should be a hex string.
 	 * @throws Exception If the payout fails for any reason
 	 */
 	public abstract AString payout(String token, AInteger quantity, String destAccount) throws Exception;
