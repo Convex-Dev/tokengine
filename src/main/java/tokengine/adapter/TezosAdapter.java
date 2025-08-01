@@ -2,11 +2,10 @@ package tokengine.adapter;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.net.URI;
-import java.util.concurrent.CompletableFuture;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +23,6 @@ import tokengine.Engine;
 import tokengine.Fields;
 import tokengine.util.Base58;
 import tokengine.util.Base58Check;
-import tokengine.util.Sha256Hash;
 
 public class TezosAdapter extends AAdapter<AString> {
 
@@ -131,7 +129,7 @@ public class TezosAdapter extends AAdapter<AString> {
 			}
 		} else if (asset.startsWith("fa2:")) {
 			// FA2 token balance
-			String contractAddress = asset.substring(4); // skip 'fa2:'
+			// String contractAddress = asset.substring(4); // skip 'fa2:'
 			try {
 				String response = makeApiCall("/v1/accounts/" + address + "/token_balances");
 				// Parse response to find the specific token balance
