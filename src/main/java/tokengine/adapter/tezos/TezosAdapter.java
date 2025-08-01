@@ -2,10 +2,7 @@ package tokengine.adapter.tezos;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
+import java.util.concurrent.CompletableFuture;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +27,7 @@ public class TezosAdapter extends AAdapter<AString> {
 	private static final Logger log = LoggerFactory.getLogger(TezosAdapter.class.getName());
 	
 	private AString operatorAddress;
-	private HttpClient httpClient;
+	private TezosHTTP tezosHTTP;
 	private String apiUrl;
 	
 	private static final AString TEZOS_MAIN=Strings.create("tezos:NetXdQprcVkpaWU");
@@ -84,7 +81,7 @@ public class TezosAdapter extends AAdapter<AString> {
 		
 		log.info("TezosAdapter built successfully");
 		return a;
-	}
+	} 
 
 	@Override
 	public void start() throws Exception {
@@ -96,49 +93,57 @@ public class TezosAdapter extends AAdapter<AString> {
 		if (url==null) throw new IllegalStateException("No Tezos RPC URL specified, should be in networks[..].url");
 		apiUrl = url.toString();
 		
-		// Initialize HTTP client
-		httpClient = HttpClient.newBuilder()
-			.connectTimeout(java.time.Duration.ofSeconds(10))
-			.build();
+		// Initialize TezosHTTP client
+		tezosHTTP = new TezosHTTP(apiUrl);
 			
 		log.info("TezosAdapter started with API URL: {}", apiUrl);
 	}
 
 	@Override
 	public void close() {
-		if (httpClient != null) {
-			httpClient = null;
+		if (tezosHTTP != null) {
+			tezosHTTP.close();
+			tezosHTTP = null;
 		}
 	}
 
 	@Override
 	public AInteger getBalance(String asset, String address) throws IOException {
+		if (tezosHTTP == null) {
+			throw new IllegalStateException("TezosHTTP not initialized. Call start() before using HTTP methods.");
+		}
+		
 		if (isTezos(asset)) {
 			try {
-				String response = makeApiCall("/v1/accounts/" + address);
+				CompletableFuture<ACell> future = tezosHTTP.getAccountInfo(address);
+				ACell response = future.get(); // Blocking call for now
+				
 				// Parse JSON response to extract balance
-				// This is a simplified implementation - in a real scenario you'd use a JSON parser
-				if (response.contains("\"balance\":")) {
-					String balanceStr = response.split("\"balance\":")[1].split(",")[0].trim();
+				// This is a simplified implementation - in a real scenario you'd use proper JSON parsing
+				String responseStr = response.toString();
+				if (responseStr.contains("\"balance\":")) {
+					String balanceStr = responseStr.split("\"balance\":")[1].split(",")[0].trim();
 					BigInteger balance = new BigInteger(balanceStr);
 					return AInteger.create(balance);
 				}
 				return CVMLong.ZERO;
 			} catch (Exception e) {
 				log.warn("Failed to get Tezos balance for {}: {}", address, e.getMessage());
-				return CVMLong.ZERO;
+				throw new IOException("Failed to get Tezos balance for " + address, e);
 			}
 		} else if (asset.startsWith("fa2:")) {
 			// FA2 token balance
 			// String contractAddress = asset.substring(4); // skip 'fa2:'
 			try {
-				String response = makeApiCall("/v1/accounts/" + address + "/token_balances");
+				CompletableFuture<ACell> future = tezosHTTP.getTokenBalances(address);
+				ACell response = future.get(); // Blocking call for now
+				
 				// Parse response to find the specific token balance
 				// This is simplified - would need proper JSON parsing
 				return CVMLong.ZERO; // Placeholder
 			} catch (Exception e) {
 				log.warn("Failed to get FA2 token balance for {}: {}", address, e.getMessage());
-				return CVMLong.ZERO;
+				throw new IOException("Failed to get FA2 token balance for " + address, e);
 			}
 		}
 		
@@ -173,7 +178,6 @@ public class TezosAdapter extends AAdapter<AString> {
 		if (s.isEmpty()) throw new IllegalArgumentException("Empty address");
 				
 		// For testing purposes, skip chain ID validation
-		// In a real implementation, you would validate the chain ID properly
 		int colon = s.lastIndexOf(":");
 		if (colon >= 0) {
 			s = s.substring(colon + 1); // take the part after the colon
@@ -316,15 +320,21 @@ public class TezosAdapter extends AAdapter<AString> {
 
 	@Override
 	public AInteger checkTransaction(String address, String caipTokenID, Blob tx) throws IOException {
+		if (tezosHTTP == null) {
+			throw new IllegalStateException("TezosHTTP not initialized. Call start() before using HTTP methods.");
+		}
+		
 		try {
 			String txHash = "0x" + tx.toHexString();
-			String response = makeApiCall("/v1/operations/transactions/" + txHash);
+			CompletableFuture<ACell> future = tezosHTTP.getTransactionInfo(txHash);
+			ACell response = future.get(); // Blocking call for now
 			
 			// Parse transaction response to check if it's a valid transfer
 			// This is a simplified implementation
-			if (response.contains("\"status\":\"applied\"")) {
+			String responseStr = response.toString();
+			if (responseStr.contains("\"status\":\"applied\"")) {
 				// Check if the transaction is from the expected address
-				if (response.contains("\"sender\":\"" + address + "\"")) {
+				if (responseStr.contains("\"sender\":\"" + address + "\"")) {
 					// Parse the amount transferred
 					// This would need proper JSON parsing in a real implementation
 					return CVMLong.ONE; // Placeholder - return 1 if valid
@@ -333,7 +343,7 @@ public class TezosAdapter extends AAdapter<AString> {
 			return null; // Transaction not found or invalid
 		} catch (Exception e) {
 			log.warn("Failed to check transaction {}: {}", tx.toHexString(), e.getMessage());
-			return null;
+			throw new IOException("Failed to check transaction " + tx.toHexString(), e);
 		}
 	}
 
@@ -394,33 +404,7 @@ public class TezosAdapter extends AAdapter<AString> {
 		}
 	}
 
-	/**
-	 * Makes an HTTP API call to the TzKT API
-	 * @param endpoint The API endpoint (without base URL)
-	 * @return The response body as a string
-	 * @throws IOException If the request fails
-	 */
-	private String makeApiCall(String endpoint) throws IOException {
-		try {
-			HttpRequest request = HttpRequest.newBuilder()
-				.uri(URI.create(apiUrl + endpoint))
-				.header("Accept", "application/json")
-				.GET()
-				.build();
-			
-			HttpResponse<String> response = httpClient.send(request, 
-				HttpResponse.BodyHandlers.ofString());
-			
-			if (response.statusCode() != 200) {
-				throw new IOException("API call failed with status: " + response.statusCode());
-			}
-			
-			return response.body();
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			throw new IOException("API call interrupted", e);
-		}
-	}
+
 
 	@Override
 	public AString getDescription() {

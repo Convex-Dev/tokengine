@@ -1,10 +1,12 @@
 package tokengine;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,10 +16,9 @@ import convex.core.data.AMap;
 import convex.core.data.AString;
 import convex.core.data.Blob;
 import convex.core.data.Blobs;
+import convex.core.data.Maps;
 import convex.core.data.Strings;
-import convex.core.data.prim.AInteger;
-import convex.core.data.prim.CVMLong;
-import convex.core.lang.RT;
+import convex.core.data.Vectors;
 import tokengine.adapter.tezos.TezosAdapter;
 import tokengine.util.Base58;
 
@@ -27,30 +28,31 @@ public class TezosTest {
 	private AMap<AString, ACell> testConfig;
 	
 	@BeforeEach
-	public void setUp() {
-		// Create test configuration for the adapter
-		Map<String, Object> adapterConfigMap = new HashMap<>();
-		adapterConfigMap.put("alias", "test-tezos");
-		adapterConfigMap.put("description", "Test Tezos Network");
-		adapterConfigMap.put("chainID", "tezos:ghostnet");
-		adapterConfigMap.put("url", "https://api.ghostnet.tzkt.io/");
-		adapterConfigMap.put("operatorAddress", "tz2GpUzgFg258YLS3trt6isb2EiWBWdZbhFJ");
+	public void setUp() throws Exception {
+		// Create test configuration for the adapter using Maps.of(...)
+		testConfig = Maps.of(
+			Fields.ALIAS, Strings.create("test-tezos"),
+			Fields.DESCRIPTION, Strings.create("Test Tezos Network"),
+			Fields.CHAIN_ID, Strings.create("tezos:ghostnet"),
+			Fields.URL, Strings.create("https://api.ghostnet.tzkt.io/"),
+			Fields.OPERATOR_ADDRESS, Strings.create("tz2GpUzgFg258YLS3trt6isb2EiWBWdZbhFJ")
+		);
 		
-		testConfig = RT.cvm(adapterConfigMap);
+		// Create a minimal Engine configuration for testing using Maps.of(...)
+		AMap<AString, ACell> operationsMap = Maps.of(Fields.TEST, Strings.TRUE);
+		AMap<AString, ACell> engineConfig = Maps.of(
+			Fields.OPERATIONS, operationsMap,
+			Fields.NETWORKS, Vectors.of(testConfig),
+			Fields.TOKENS, Vectors.empty(),
+			Fields.TRANSFERS, Maps.empty()
+		);
 		
-		// Create a minimal Engine configuration for testing
-		Map<String, Object> engineConfigMap = new HashMap<>();
-		Map<String, Object> operationsMap = new HashMap<>();
-		operationsMap.put("test", true);
-		engineConfigMap.put("operations", operationsMap);
-		engineConfigMap.put("networks", new Object[]{adapterConfigMap});
-		engineConfigMap.put("tokens", new Object[]{});
-		engineConfigMap.put("transfers", new HashMap<>());
-		
-		AMap<AString, ACell> engineConfig = RT.cvm(engineConfigMap);
 		Engine testEngine = new Engine(engineConfig);
 		
 		adapter = (TezosAdapter) TezosAdapter.build(testEngine, testConfig);
+		
+		// Initialize the adapter for HTTP operations
+		adapter.start();
 	}
 	
 	@Test 
@@ -407,14 +409,10 @@ public class TezosTest {
 		assertNotNull(operatorAddr);
 		assertEquals("tz2GpUzgFg258YLS3trt6isb2EiWBWdZbhFJ", operatorAddr.toString());
 		
-		// Test operator balance (should return 0 since no real connection)
-		try {
-			AInteger balance = adapter.getOperatorBalance("XTZ");
-			assertNotNull(balance);
-			// In test environment, this should return 0 or handle gracefully
-		} catch (IOException e) {
-			// Expected in test environment without real API connection
-		}
+		// Test operator balance - should throw exception since we're not making real HTTP calls
+		assertThrows(Exception.class, () -> {
+			adapter.getOperatorBalance("XTZ");
+		});
 	}
 	
 	@Test
