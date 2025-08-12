@@ -1,6 +1,6 @@
 package tokengine.adapter.tezos;
 
-import java.security.NoSuchAlgorithmException;
+import java.util.Map;
 
 import org.bouncycastle.util.Arrays;
 
@@ -11,6 +11,7 @@ import convex.core.data.ABlob;
 import convex.core.data.AString;
 import convex.core.data.AccountKey;
 import convex.core.data.Blob;
+import convex.core.data.Maps;
 import convex.core.data.Strings;
 import tokengine.util.Base58Check;
 
@@ -19,9 +20,23 @@ import tokengine.util.Base58Check;
  */
 public class TezosUtils {
 	
-	// Magic prefix for tz1 addresses
+	/** Magic prefix for tz1 addresses */
 	static final Blob TZ1_PREFIX=Blob.fromHex("06A19F");
-    
+	
+	/** Magic prefix for tz2 addresses */
+	static final Blob TZ2_PREFIX=Blob.fromHex("06a1a1");
+
+	/** Magic prefix for tz2 addresses */
+	static final Blob TZ3_PREFIX=Blob.fromHex("06a1a4");
+	
+	public static final Blob EDPK_PREFIX = Blob.fromHex("0D0f25d9");
+	
+	static final Map<String,Blob> PREFIXES=Maps.hashMapOf("tz1",TZ1_PREFIX,"tz2",TZ2_PREFIX,"tz3",TZ3_PREFIX);
+   
+	static final int ADDRESS_LENGTH_20=20;
+
+
+	
     /**
      * Converts an AKeyPair to a valid Tezos address (tz1 format)
      * @param keyPair The Ed25519 key pair
@@ -34,17 +49,17 @@ public class TezosUtils {
         byte[] hash=publicKeyToHash(accountKey);
         
         // Create the address bytes: [0xA19F] + publicKeyHash (20 bytes)
-        byte[] addressBytes = new byte[23];
+        byte[] addressBytes = new byte[3+ADDRESS_LENGTH_20];
         TZ1_PREFIX.getBytes(addressBytes,0);
-        System.arraycopy(hash, 0, addressBytes, 3, 20);
+        System.arraycopy(hash, 0, addressBytes, 3, ADDRESS_LENGTH_20);
  
         	// Encode with Base58Check
         String address = Base58Check.encode(addressBytes);
         
-        return Strings.create("tz1"+address);
+        return Strings.create(address);
     }
     
-	private static byte[] publicKeyToHash(ABlob publicKey) {
+	public static byte[] publicKeyToHash(ABlob publicKey) {
 	      // Convert hex string to bytes prefixed with the byte 0x00
         byte[] publicKeyBytes = new byte[33];
         publicKeyBytes[0]=0x00;
@@ -56,6 +71,7 @@ public class TezosUtils {
        
         return publicKeyHash;
 	}
+
      
     /**
      * Validates an Ed25519 signature given a Tezos address, message, and signature
@@ -91,10 +107,23 @@ public class TezosUtils {
      * @return array of bytes
      */
 	public static byte[] getAddressBytes(AString address) {
-		String s=address.toString();
-		s=s.substring(3); // skip tz1
-		byte[] decodedBytes = decodeRemovingPrefix(TZ1_PREFIX,s);
-		if (decodedBytes.length != 20) {
+		return getAddressBytes(address.toString());	
+	}
+
+	/**
+     * Gets the raw address bytes from a Tezos tz1
+     * @param address
+     * @return array of bytes
+     */
+	public static byte[] getAddressBytes(String s) {
+		String pid=s.substring(0, 3);
+		Blob prefix=PREFIXES.get(pid);
+		if (prefix==null) {
+			throw new IllegalArgumentException("Invalid Tezos address, should start with 'tz(1-3)': "+s);
+		}
+		
+		byte[] decodedBytes = decodeRemovingPrefix(prefix,s);
+		if (decodedBytes.length != ADDRESS_LENGTH_20) {
 		    throw new IllegalArgumentException("Wrong number of bytes in tezos addres: "+decodedBytes.length); // Invalid address format
 		}
 		
@@ -102,12 +131,13 @@ public class TezosUtils {
 	}
 	
 	public static byte[] decodeRemovingPrefix(Blob prefix, String encoded) {
+		int pl=prefix.size();
 		byte[] decodedBytes = Base58Check.decode(encoded);
 		if (!prefix.equalsBytes(decodedBytes, 0)) {
 			throw new IllegalArgumentException("Wrong prefix, expected "+prefix);
 		}
 		int n=decodedBytes.length;
-		return Arrays.copyOfRange(decodedBytes, prefix.size(), n);
+		return Arrays.copyOfRange(decodedBytes, pl, n);
 	}
     
     /**

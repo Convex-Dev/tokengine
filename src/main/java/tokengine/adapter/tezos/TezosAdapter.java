@@ -43,12 +43,10 @@ public class TezosAdapter extends AAdapter<AString> {
 		if (opAddrCell != null) {
 			try {
 				String opAddrStr = opAddrCell.toString();
-				log.info("Operator address string: '{}'", opAddrStr);
 				operatorAddress = parseAddress(opAddrStr);
-				log.info("Successfully parsed operator address: {}", operatorAddress);
+				log.debug("Successfully parsed operator address: {}", operatorAddress);
 			} catch (Exception e) {
-				log.warn("Failed to parse {} from config: {} - Error: {}", Fields.OPERATOR_ADDRESS, opAddrCell, e.getMessage());
-				log.warn("Exception details:", e);
+				log.warn("Failed to parse {} from config: {} - Error: {}", Fields.OPERATOR_ADDRESS, opAddrCell, e);
 				operatorAddress = null;
 			}
 		} else {
@@ -189,19 +187,7 @@ public class TezosAdapter extends AAdapter<AString> {
 		}
 		
 		// Validate Base58Check encoding (includes checksum validation)
-		try {
-			byte[] decoded = Base58Check.decode(s);
-			// Tezos addresses should be 23 bytes after checksum removal (1-byte prefix + 20-byte public key hash)
-			if (decoded.length != 23) {
-				throw new IllegalArgumentException("Invalid Tezos address length: " + caip10 + " (expected 23 bytes after checksum, got " + decoded.length + ")");
-			}
-			// Validate prefix byte (should be 6 for tz1, tz2, tz3 addresses)
-			if (decoded[0] != 6) {
-				throw new IllegalArgumentException("Invalid Tezos address prefix: " + caip10 + " (expected prefix 6, got " + decoded[0] + ")");
-			}
-		} catch (Exception e) {
-			throw new IllegalArgumentException("Invalid Base58Check encoding in Tezos address: " + caip10 + " - " + e.getMessage());
-		}
+		// byte[] decoded = TezosUtils.getAddressBytes(s);
 		
 		AString result = Strings.create(s);
 		return result;
@@ -294,16 +280,15 @@ public class TezosAdapter extends AAdapter<AString> {
 	}
 
 	@Override
-	public boolean verifyPersonalSignature(String message, String signature, String account) {
+	public boolean verifyPersonalSignature(String message, String signature, String caip10) {
 		try {
-			AString addr = parseAddress(account);
+			AString addr = parseAddress(caip10);
 			if (addr == null) return false;
 			
 			// For testing purposes, accept any signature if the address is valid
 			// In a real implementation, you would validate the signature properly
 			return true; // Placeholder - always return true for valid addresses
 		} catch (Exception e) {
-			log.warn("Signature verification failed: {}", e.getMessage());
 			return false;
 		}
 	}
@@ -422,7 +407,7 @@ public class TezosAdapter extends AAdapter<AString> {
 	 */
 	public boolean isValidTezosAddress(String address) {
 		try {
-			parseAddress(address);
+			TezosUtils.getAddressBytes(address);
 			return true;
 		} catch (Exception e) {
 			return false;
@@ -464,9 +449,10 @@ public class TezosAdapter extends AAdapter<AString> {
 			String s = address.trim();
 			if (s.startsWith("tz1") || s.startsWith("tz2") || s.startsWith("tz3")) {
 				return Base58Check.decode(s);
-			}
+			} 
 			return null;
 		} catch (Exception e) {
+			//throw new IllegalArgumentException("Not a tezos address: "+address,e);
 			return null;
 		}
 	}

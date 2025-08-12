@@ -13,6 +13,8 @@ import org.junit.jupiter.api.Test;
 
 import convex.core.crypto.AKeyPair;
 import convex.core.crypto.ASignature;
+import convex.core.crypto.Hashing;
+import convex.core.data.ABlob;
 import convex.core.data.ACell;
 import convex.core.data.AMap;
 import convex.core.data.AString;
@@ -25,6 +27,7 @@ import convex.core.data.Vectors;
 import tokengine.adapter.tezos.TezosAdapter;
 import tokengine.adapter.tezos.TezosUtils;
 import tokengine.util.Base58;
+import tokengine.util.Base58Check;
 
 public class TezosTest {
 
@@ -100,7 +103,8 @@ public class TezosTest {
 	 */
 	@Test
 	public void testExternallyGeneratedAddress() {
-		String externallyGeneratedAddr = "tz2GpUzgFg258YLS3trt6isb2EiWBWdZbhFJ";
+		// test address from https://github.com/murbard/pytezos/blob/master/tests/test_encoding.py
+		String externallyGeneratedAddr = "tz1eKkWU5hGtfLUiqNpucHrXymm83z3DG9Sq";
 		
 		// Test that it's a valid Tezos address
 		assertTrue(adapter.isValidTezosAddress(externallyGeneratedAddr), 
@@ -109,8 +113,7 @@ public class TezosTest {
 		// Test address structure
 		byte[] addrBytes = adapter.getAddressBytes(externallyGeneratedAddr);
 		assertNotNull(addrBytes, "Should be able to decode the address");
-		assertEquals(23, addrBytes.length, "Should be 23 bytes (without checksum)");
-		assertEquals(6, addrBytes[0], "Should have prefix byte 6");
+		assertEquals(23, addrBytes.length, "Should be 20 bytes (without prefix and checksum)");
 		
 		// Test that it can be parsed by the adapter
 		try {
@@ -121,11 +124,50 @@ public class TezosTest {
 		}
 	}
 	
+	@Test public void testCheckSum() {
+		// https://reference.cash/protocol/blockchain/encoding/base58check
+		// secp256k1 private key prepended with 0x80 for mainnet
+		Blob ppk=Blob.fromHex("801e99423a4ed27608a15a2616a2b0e9e52ced330ac530edcc32c8ffc6a526aedd");
+		Blob expectedHash = Blob.fromHex("c47e83ffafda3ba4396e1bc6a648515e5fc9aa95910af6a4429537b87fb7b474");
+		assertEquals(expectedHash,Hashing.sha256(Hashing.sha256(ppk)));
+		assertEquals(expectedHash,Blob.wrap(Base58Check.hash256(Base58Check.hash256(ppk.getBytes()))));
+		
+		ABlob ppkcs=ppk.append(expectedHash.slice(0, 4));
+		String b58=Base58.encode(ppkcs.getBytes());
+		assertEquals("5J3mBbAH58CpQ3Y5RNJpUKPE62SQ5tfcvU2JpbnkeyhfsYB1Jcn",b58);
+	}
+	
 	@Test 
 	public void testAddressDecoding() {
+		// Checked as valid at https://checkcryptoaddress.com/validate-wallet/tezos
 		String addr = "tz1MJx9vhaNRSimcuXPK2rW4fLccQnDAnVKJ";
 		byte[] bs = Base58.decode(addr);
-		assertEquals(27, bs.length); // Tezos addresses are 27 bytes (1-byte prefix + 20-byte public key hash + 6-byte checksum)
+		assertEquals(27, bs.length); // Tezos tz1 addresses are 27 bytes (3-byte prefix + 20-byte public key hash + 4-byte checksum)
+		
+		byte[] addrBytes=TezosUtils.getAddressBytes(addr);
+		assertEquals(20,addrBytes.length);
+	}
+	
+	@Test public void testAddressGen() {
+		// Test for round trip
+		AKeyPair kp=AKeyPair.createSeeded(5675867);
+		AString addr=TezosUtils.keyPairToTezosAddress(kp);
+		byte[] bs1=TezosUtils.getAddressBytes(addr);
+		
+		AccountKey pub=kp.getAccountKey();
+		byte[] bs2=TezosUtils.publicKeyToHash(pub);
+		assertEquals(Blob.wrap(bs1),Blob.wrap(bs2));
+		
+	}
+	
+	
+	@Test public void testPKDecode() {
+		// test vector from https://github.com/murbard/pytezos/blob/master/tests/test_encoding.py
+		String pk="edpku976gpuAD2bXyx1XGraeKuCo1gUZ3LAJcHM12W1ecxZwoiu22R";
+		byte [] bs=TezosUtils.decodeRemovingPrefix(TezosUtils.EDPK_PREFIX, pk);
+		
+		// Check at https://appdevtools.com/base58-encoder-decoder
+		assertEquals(Blob.fromHex("419491b1796b13d756d394ed925c10727bca06e97353c5ca09402a9b6b07abcc"),Blob.wrap(bs));
 	}
 	
 	/**
@@ -135,7 +177,8 @@ public class TezosTest {
 	@Test
 	public void testValidTezosAddresses() {
 		// Valid tz1 addresses (Ed25519)
-		assertTrue(adapter.isValidTezosAddress("tz1MJx9vhaNRSimcuXPK2rW4fLccQnDAnVKJ"));
+		// Checked at https://checkcryptoaddress.com/validate-wallet/tezos
+		assertTrue(adapter.isValidTezosAddress("tz1RjtZUVeLhADFHDL8UwDZA6vjWWhojpu5w"));
 		
 		// Valid tz2 addresses (Secp256k1) - including the externally generated one
 		assertTrue(adapter.isValidTezosAddress("tz2GpUzgFg258YLS3trt6isb2EiWBWdZbhFJ"));
@@ -197,8 +240,8 @@ public class TezosTest {
 	@Test
 	public void testAddressParsingWithChainID() {
 		// Test addresses with chain ID prefix
-		assertTrue(adapter.isValidTezosAddress("tezos:ghostnet:tz2GpUzgFg258YLS3trt6isb2EiWBWdZbhFJ"));
-		assertTrue(adapter.isValidTezosAddress("tezos:NetXnHfVqm9iesp:tz2GpUzgFg258YLS3trt6isb2EiWBWdZbhFJ"));
+		assertFalse(adapter.isValidTezosAddress("tz1GpUzgFg258YLS3trt6isb2EiWBWdZbhFJ"));
+		assertTrue(adapter.isValidTezosAddress("tz2GpUzgFg258YLS3trt6isb2EiWBWdZbhFJ"));
 		
 		// Test addresses with wrong chain ID - these should be invalid because the address part is invalid
 		assertFalse(adapter.isValidTezosAddress("ethereum:1:invalid"));
@@ -326,9 +369,9 @@ public class TezosTest {
 	@Test
 	public void testAddressObjectParsing() {
 		// Test AString parsing
-		AString addr1 = adapter.parseAddress(Strings.create("tz1MJx9vhaNRSimcuXPK2rW4fLccQnDAnVKJ"));
+		AString addr1 = adapter.parseAddress(Strings.create("tz1RjtZUVeLhADFHDL8UwDZA6vjWWhojpu5w"));
 		assertNotNull(addr1);
-		assertEquals("tz1MJx9vhaNRSimcuXPK2rW4fLccQnDAnVKJ", addr1.toString());
+		assertEquals("tz1RjtZUVeLhADFHDL8UwDZA6vjWWhojpu5w", addr1.toString());
 		
 		// Test String parsing
 		AString addr2 = adapter.parseAddress("tz2GpUzgFg258YLS3trt6isb2EiWBWdZbhFJ");

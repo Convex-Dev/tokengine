@@ -34,7 +34,7 @@
 			"alias":"ghostnet",
 			"url":"https://api.ghostnet.tzkt.io/",
 			"chainID":"tezos:ghostnet",
-			"operatorAddress":"tz2GpUzgFg258YLS3trt6isb2EiWBWdZbhFJ",
+			"operatorAddress":"tz1RjtZUVeLhADFHDL8UwDZA6vjWWhojpu5w",
 			"test":true
 		}
 	],	

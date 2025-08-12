@@ -87,7 +87,7 @@ public class Base58Check
         {
             return new byte[0];
         }
-
+        
         BigInteger intData = BigInteger.ZERO;
         int leadingZeros = 0;
 
@@ -152,10 +152,10 @@ public class Base58Check
     {
         byte[] checksum = getChecksum(data);
 
-        byte[] result = new byte[data.length + checksum.length];
+        byte[] result = new byte[data.length + CHECKSUM_SIZE];
 
         System.arraycopy(data, 0, result, 0, data.length);
-        System.arraycopy(checksum, 0, result, data.length, checksum.length);
+        System.arraycopy(checksum, 0, result, data.length, CHECKSUM_SIZE);
 
         return result;
     }
@@ -173,8 +173,7 @@ public class Base58Check
 		try {
 			MessageDigest md;
 			md = MessageDigest.getInstance("SHA-256");
-			md.update(data);
-	        return md.digest();
+	        return md.digest(data);
 		} catch (NoSuchAlgorithmException e) {
 			throw new UnsupportedOperationException("SHA256 not available?",e);
 		}
