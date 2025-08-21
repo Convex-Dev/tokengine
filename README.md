@@ -1,6 +1,6 @@
 # TokEngine
 
-Cross-DLT Token exchange 
+TokEngine implenmets Cross-DLT Token exchange using Lattice Technology and [Convex](https://convex.world)
 
 ## Fundamentals:  Atomic Exchange
 

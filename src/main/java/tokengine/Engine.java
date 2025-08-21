@@ -444,7 +444,9 @@ public class Engine {
 	public ACell getStatus() {
 		AMap<AString,ACell> status=Maps.empty();
 		status=status.assoc(Fields.ADAPTERS, Vectors.of(getHandlers().toArray()));
-		status=status.assoc(Fields.LOCAL_CONVEX, Strings.create(server.getHostAddress().toString()));
+		if (server!=null) {
+			status=status.assoc(Fields.LOCAL_CONVEX, Strings.create(server.getHostAddress().toString()));
+		}
 		return status;
 	}
 
