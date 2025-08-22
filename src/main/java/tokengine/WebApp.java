@@ -6,6 +6,7 @@ import static j2html.TagCreator.aside;
 import static j2html.TagCreator.attrs;
 import static j2html.TagCreator.body;
 import static j2html.TagCreator.div;
+import static j2html.TagCreator.each;
 import static j2html.TagCreator.footer;
 import static j2html.TagCreator.h1;
 import static j2html.TagCreator.h4;
@@ -22,6 +23,11 @@ import static j2html.TagCreator.tr;
 
 import java.util.ArrayList;
 
+import convex.core.data.ACell;
+import convex.core.data.AMap;
+import convex.core.data.AString;
+import convex.core.data.AVector;
+import convex.core.lang.RT;
 import convex.core.util.Utils;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
@@ -44,20 +50,21 @@ public class WebApp  {
 	
 	private void indexPage(Context ctx) {
 		DomContent content= html(
-				makeHeader("Tokengine Server"),
-				body(
-					h1("TokEngine Server"),
-					p("Version: "+Utils.getVersion()),
-					aside(article(
-							h4("Useful links: "),
-							p(a("API Explorer").withHref("swagger")),
-							p(a("Tokengine Docs").withHref("https://docs.convex.world/docs/products/tokengine"))
-					)),
-					makeNetworkTable(),
+			makeHeader("Tokengine Server"),
+			body(
+				h1("TokEngine Server"),
+				p("Version: "+Utils.getVersion()),
+				aside(article(
+					h4("Useful links: "),
+					p(a("API Explorer").withHref("swagger")),
+					p(a("Tokengine Docs").withHref("https://docs.convex.world/docs/products/tokengine"))
+				)),
+				makeNetworkTable(),
+				makeTokensTable(),
 
-					footer(p("This is the default web page for a Tokengine running a REST API"))
-				)
-			);
+				footer(p("This is the default web page for a Tokengine running a REST API"))
+			)
+		);
 		ctx.result(content.render());
 		ctx.header("Content-Type", "text/html");
 		ctx.status(200);
@@ -75,7 +82,7 @@ public class WebApp  {
 			        td("Operator Address")
 			    )),
 				tbody(
-					handlers.stream().map(handler -> {
+					each(handlers,handler -> {
 						String alias=handler.getAlias();
 						return tr(
 							td(alias),
@@ -83,47 +90,46 @@ public class WebApp  {
 							td(Utils.toString(handler.getDescription())),
 							td(Utils.toString(handler.getOperatorAddress()))
 						);
-					}).toArray(DomContent[]::new)
+					})
 				)
 				),
 			h4("Audit Logging"),
 			engine.kafka==null?p("Not configured"):p(
-				engine.kafka.getURI().toString()
+				engine.kafka.toString()
 			)
 	    );
 		return div;
 	}
 	
-	// TODO: hook this up
 	protected DomContent makeTokensTable() {
-		ArrayList<AAdapter<?>> handlers = engine.getAdapters();
+		ArrayList<AAdapter<?>> adapters = engine.getAdapters();
+		AVector<AMap<AString,ACell>> tokens = RT.ensureVector(engine.getConfig().get(Fields.TOKENS));
+		
+		
 		ArrayList<String> heads=new ArrayList<>();
 		// ArrayList<String> tokens=RT.getIn(engine.getConfig(), null)
 		heads.add("Token");
-		for (AAdapter<?> a: handlers) {
+		for (AAdapter<?> a: adapters) {
 			heads.add(a.getAlias());
 		}
 		DomContent div= div(
 			h4("Token Mappings"),	
 			table(attrs("#token-adapters"),
 				thead(tr(
-						heads.stream().map(s -> td(s)).toArray(DomContent[]::new)
+					each(heads,s -> td(s))
 			    )),
 				tbody(
-					handlers.stream().map(handler -> {
-						String alias=handler.getAlias();
+					each(tokens,tokInfo->{
+						AString alias=(AString) tokInfo.get(Fields.ALIAS);
+						if (alias==null) return null;
 						return tr(
-							td(alias),
-		            		td(Utils.toString(handler.getChainID())),
-							td(Utils.toString(handler.getDescription())),
-							td(Utils.toString(handler.getOperatorAddress()))
+							td(alias.toString()),
+							each(adapters,handler -> {
+				            	return td(Utils.toString(handler.lookupCAIPAssetID(alias.toString())));
+							})
 						);
-					}).toArray(DomContent[]::new)
+					})
 				)
-				),
-			h4("Audit Logging"),
-			engine.kafka==null?p("Not configured"):p(
-				engine.kafka.getURI().toString()
 			)
 	    );
 		return div;

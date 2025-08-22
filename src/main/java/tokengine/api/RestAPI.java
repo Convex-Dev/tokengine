@@ -107,7 +107,7 @@ public class RestAPI extends ATokengineAPI {
 	protected void getAdapters(Context ctx) {
 		ctx.header("Content-type", ContentTypes.JSON);
 		
-		ArrayList<?> handlers=engine.getHandlers();
+		ArrayList<?> handlers=engine.getAdapterConfigs();
 		HashMap<String,Object> data=new HashMap<>();
 		data.put("items",handlers);
 		data.put("count",handlers.size());

@@ -349,6 +349,15 @@ public class Engine {
 		return new ArrayList<>(adapters.values());
 	}
 	
+	public ArrayList<Object> getAdapterConfigs() {
+		ArrayList<Object> handlers=new ArrayList<>();
+		for (Map.Entry<AString,AAdapter<?>> me: adapters.entrySet()) {
+			AAdapter<?> adapter=me.getValue();
+			handlers.add(adapter.getConfig());
+		}
+		return handlers;
+	}
+	
 	private void startAdapters() {
 		for (Map.Entry<AString,AAdapter<?>> me: adapters.entrySet()) {
 			AAdapter<?> adapter=me.getValue();
@@ -437,16 +446,9 @@ public class Engine {
 		}
 	}
 
-	public ArrayList<Object> getHandlers() {
-		ArrayList<Object> handlers=new ArrayList<>();
-		for (Map.Entry<AString,AAdapter<?>> me: adapters.entrySet()) {
-			AAdapter<?> adapter=me.getValue();
-			handlers.add(adapter.getConfig());
-		}
-		return handlers;
-	}
 
-	public ACell getConfig() {
+
+	public AMap<AString,ACell> getConfig() {
 		return config;
 	} 
 
@@ -458,7 +460,7 @@ public class Engine {
 
 	public ACell getStatus() {
 		AMap<AString,ACell> status=Maps.empty();
-		status=status.assoc(Fields.ADAPTERS, Vectors.of(getHandlers().toArray()));
+		status=status.assoc(Fields.ADAPTERS, Vectors.of(getAdapterConfigs().toArray()));
 		if (server!=null) {
 			status=status.assoc(Fields.LOCAL_CONVEX, Strings.create(server.getHostAddress().toString()));
 		}

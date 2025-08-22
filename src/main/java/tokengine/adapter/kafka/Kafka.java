@@ -121,4 +121,9 @@ public class Kafka {
 		executor.shutdown();
 		uri=null;
 	}
+	
+	public String toString() {
+		if (uri==null) return "Kafka instance not cofigured";
+		return getURI().toString();
+	}
 }

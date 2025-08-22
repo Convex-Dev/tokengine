@@ -246,7 +246,7 @@ public abstract class AAdapter<AddressType extends ACell> {
 	/**
 	 * Looks up a canonical CAIP-19 asset ID (e.g. "cad29:72") for the identified token on this adapter
 	 * 
-	 * @param token Token identifier, may be an alias or CAIP-19 asset ID
+	 * @param token Token identifier, may be an alias, symbol or CAIP-19 asset ID
 	 * @return CAIP-19 Asset ID or null if token is not defined in this adapter
 	 */
 	public AString lookupCAIPAssetID(String token) {
@@ -257,6 +257,9 @@ public abstract class AAdapter<AddressType extends ACell> {
 		for (int i=0; i<n; i++) {
 			MapEntry<AString, AMap<AString, ACell>> me = tokens.entryAt(i);
 			AMap<AString, ACell> mapping=me.getValue();
+			if (id.equals(RT.getIn(mapping, Fields.ALIAS))) {
+				return me.getKey();
+			}
 			if (id.equals(RT.getIn(mapping, Fields.SYMBOL))) {
 				return me.getKey();
 			}
