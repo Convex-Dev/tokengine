@@ -80,6 +80,8 @@ public class Engine {
 	
 	final AMap<AString,ACell> config;	
 	
+	private boolean running=false;
+	
 	/**
 	 * Root lattice cursor
 	 */
@@ -116,6 +118,8 @@ public class Engine {
 		
 		startAdapters();	
 		configureAuditService();
+		
+		running=true;
 	}
 
 	private void loadTokens() {
@@ -389,25 +393,36 @@ public class Engine {
 
 	
 	public synchronized void close() {
-		if (etch!=null) {
-			try {
-				persistState();
-			} catch (IOException e) {
-				log.warn("Failed to persist Etch state",e);
+		try {
+			if (etch!=null) {
+				try {
+					persistState();
+				} catch (IOException e) {
+					log.warn("Failed to persist Etch state",e);
+				}
+				etch.close();
 			}
-			etch.close();
+			etch=null;
+			if (server!=null) server.close();
+	
+			closeAdapters();
+	
+			if (convex!=null) convex.close();
+			
+			// shut down audit logging last, just in case
+			if (kafka!=null) kafka.close();
+		} finally {
+			running=false;
+			server=null;
+			convex=null;
+			kafka=null;
 		}
-		etch=null;
-		if (server!=null) server.close();
-		server=null;
-
-		closeAdapters();
-
-		if (convex!=null) convex.close();
-		convex=null;
-		// shut down audit logging last, just in case
-		if (kafka!=null) kafka.close();
-		kafka=null;
+	}
+	
+	public void awaitClose() throws InterruptedException {
+		while (running) {
+			Thread.sleep(100);
+		}
 	}
 	
 	private void persistState() throws IOException {

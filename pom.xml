@@ -17,7 +17,8 @@
 		<junit.version>5.13.0</junit.version>
 		<slf4j.version>2.0.17</slf4j.version>
 		<hc.version>5.4.1</hc.version>
-		<javalin.version>6.6.0</javalin.version>
+		<javalin.version>6.7.0</javalin.version>
+		<javalin.plugin.version>6.7.0-1</javalin.plugin.version>
 		<convex.version>0.8.2-SNAPSHOT</convex.version>
 		<web3j.version>5.0.0</web3j.version>
 	</properties>
@@ -157,22 +158,17 @@
 		<dependency>
 			<groupId>io.javalin.community.openapi</groupId>
 			<artifactId>javalin-openapi-plugin</artifactId>
-			<version>${javalin.version}</version>
+			<version>${javalin.plugin.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.javalin.community.openapi</groupId>
 			<artifactId>javalin-swagger-plugin</artifactId>
-			<version>${javalin.version}</version>
+			<version>${javalin.plugin.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.javalin.community.openapi</groupId>
 			<artifactId>javalin-redoc-plugin</artifactId>
-			<version>${javalin.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>io.javalin.community.ssl</groupId>
-			<artifactId>ssl-plugin</artifactId>
-			<version>${javalin.version}</version>
+			<version>${javalin.plugin.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>

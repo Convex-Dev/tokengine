@@ -48,6 +48,10 @@ public class TokengineMain {
 			
 			server=APIServer.create(engine);
 			server.start();
+			
+			engine.awaitClose();
+		} catch (InterruptedException e) {
+			log.info("Shutting down due to interrupt");
 		} catch (Exception e) {
 			log.error("Unexpected Failure during TokEngine startup",e);
 			throw e;
