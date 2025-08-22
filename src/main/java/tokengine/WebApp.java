@@ -125,7 +125,8 @@ public class WebApp  {
 						return tr(
 							td(alias.toString()),
 							each(adapters,handler -> {
-				            	return td(Utils.toString(handler.lookupCAIPAssetID(alias.toString())));
+								AString id=handler.lookupCAIPAssetID(alias.toString());
+				            	return (id==null)?td("-"):td(id.toString());
 							})
 						);
 					})

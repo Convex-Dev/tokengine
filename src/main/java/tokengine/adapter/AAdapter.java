@@ -226,7 +226,13 @@ public abstract class AAdapter<AddressType extends ACell> {
 		AMap<AString, ACell> trec=tnet;
 		
 		if (tokens.containsKey(assetID)) throw new IllegalStateException("Trying to add duplicate asset: "+assetID);
+		
+		// Ensure alias is present and correct
+		trec=trec.assoc(Fields.ALIAS, tokenAlias);
+		
+		// Add token mapping
 		tokens=tokens.assoc(assetID, trec);
+		
 		if (tokens==null) {
 			throw new Exception("Problem setting token mapping? "+assetID+" = "+trec);
 		}
