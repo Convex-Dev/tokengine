@@ -166,9 +166,9 @@ public class RestAPI extends ATokengineAPI {
 			methods = HttpMethod.POST, 
 			tags = {TOKENGINE_TAG}, 
 			summary = "Queries the virtual balance of a token. This will be the sum of deposits less payouts for a given account.", 
-			operationId = "balance",
+			operationId = "credit",
 			requestBody = @OpenApiRequestBody(
-					description = "TokEngine virtual Balance request, must provide a token (CAIP-19) and an address. TokEngine aliases and defined symbols may be used.", 
+					description = "TokEngine virtual credit request, must provide a token (CAIP-19) and an address. TokEngine aliases and defined symbols may be used.", 
 					content = {@OpenApiContent(
 							from = BalanceRequest.class,  
 							type = "application/json", 
@@ -198,7 +198,7 @@ public class RestAPI extends ATokengineAPI {
 			if (token==null) throw new BadRequestResponse("Expected 'token' property for source");
 			
 			AString tokenKey=engine.getTokenKey(network, src.get(Fields.TOKEN).toString());
-			if (tokenKey==null) throw new BadRequestResponse("Token not sound for source: "+src);
+			if (tokenKey==null) throw new BadRequestResponse("Token not found for source: "+src);
 			AString address=RT.getIn(src, Fields.ACCOUNT);
 			
 			AInteger bal=engine.getVirtualCredit(tokenKey,address);
