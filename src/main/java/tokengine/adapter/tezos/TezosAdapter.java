@@ -130,14 +130,16 @@ public class TezosAdapter extends AAdapter<AString> {
 			}
 		} else if (asset.startsWith("fa2:")) {
 			// FA2 token balance
-			// String contractAddress = asset.substring(4); // skip 'fa2:'
+			String contractAddress = asset.substring(4); // skip 'fa2:'
 			try {
-				CompletableFuture<ACell> future = tezosHTTP.getTokenBalances(address);
+				CompletableFuture<ACell> future = tezosHTTP.getTokenBalance(address,contractAddress);
 				ACell response = future.get(); // Blocking call for now
 				
-				// Parse response to find the specific token balance
-				// This is simplified - would need proper JSON parsing
-				return CVMLong.ZERO; // Placeholder
+				ACell bal=RT.getIn(response, TZKT_BALANCE);
+				if (bal!=null) {
+					return AInteger.parse(bal);
+				}
+				return CVMLong.ZERO;
 			} catch (Exception e) {
 				log.warn("Failed to get FA2 token balance for {}: {}", address, e.getMessage());
 				throw new IOException("Failed to get FA2 token balance for " + address, e);

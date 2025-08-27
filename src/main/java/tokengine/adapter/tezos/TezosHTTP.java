@@ -98,4 +98,8 @@ public class TezosHTTP {
         // HttpClient doesn't need explicit closing in modern Java
         // This method is provided for consistency with other resource management patterns
     }
+
+	public CompletableFuture<ACell> getTokenBalance(String address, String contractAddress) {
+        return makeApiCall("/v1/tokens/balances?account=" + address + "&token.contract="+contractAddress);
+    }
 } 
