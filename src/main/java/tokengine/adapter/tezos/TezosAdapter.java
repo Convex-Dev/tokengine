@@ -33,6 +33,9 @@ public class TezosAdapter extends AAdapter<AString> {
 	private static final AString TEZOS_MAIN=Strings.create("tezos:NetXdQprcVkpaWU");
 	private static final AString TEZOS_GHOST=Strings.create("tezos:NetXnHfVqm9iesp");
 	private static final AString TEZOS_ASSET_ID=Strings.create("slip44:1729");
+	
+	public static final AString TZKT_BALANCE = Strings.intern("balance");
+
 
 	protected TezosAdapter(Engine engine, AMap<AString,ACell> config) {
 		super(engine, config);
@@ -116,13 +119,9 @@ public class TezosAdapter extends AAdapter<AString> {
 				CompletableFuture<ACell> future = tezosHTTP.getAccountInfo(address);
 				ACell response = future.get(); // Blocking call for now
 				
-				// Parse JSON response to extract balance
-				// This is a simplified implementation - in a real scenario you'd use proper JSON parsing
-				String responseStr = response.toString();
-				if (responseStr.contains("\"balance\":")) {
-					String balanceStr = responseStr.split("\"balance\":")[1].split(",")[0].trim();
-					BigInteger balance = new BigInteger(balanceStr);
-					return AInteger.create(balance);
+				ACell bal=RT.getIn(response, TZKT_BALANCE);
+				if (bal!=null) {
+					return AInteger.parse(bal);
 				}
 				return CVMLong.ZERO;
 			} catch (Exception e) {
