@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import convex.core.data.ACell;
 import convex.core.util.JSONUtils;
+import tokengine.exception.ResponseException;
 
 /**
  * Utility class for making HTTP calls to Tezos APIs and returning parsed JSON as ACell objects.
@@ -46,7 +47,7 @@ public class TezosHTTP {
             return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString())
                 .thenApplyAsync(response -> {
                     if (response.statusCode() != 200) {
-                        throw new RuntimeException("API call failed with status: " + response.statusCode());
+                        throw new ResponseException("API call failed with status: " + response.statusCode(),response);
                     }
                     
                     try {

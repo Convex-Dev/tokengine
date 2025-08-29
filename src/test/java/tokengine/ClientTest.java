@@ -183,7 +183,7 @@ public class ClientTest {
 				AInteger credit=client.getCredit(user.toString(), "convex", "cad29:72").join();
 			},N);
 			long end2=System.currentTimeMillis();
-			System.out.println("Check Credit Time = "+(((double)N)*1000)/(end2-start2));
+			// System.out.println("Check Credit Time = "+(((double)N)*1000)/(end2-start2));
 		}
 	}
 	
