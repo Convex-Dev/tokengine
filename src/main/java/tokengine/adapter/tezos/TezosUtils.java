@@ -13,7 +13,7 @@ import convex.core.data.AccountKey;
 import convex.core.data.Blob;
 import convex.core.data.Maps;
 import convex.core.data.Strings;
-import tokengine.util.Base58Check;
+import convex.core.crypto.util.Base58Check;
 
 /**
  * Utility functions for Tezos-specific operations

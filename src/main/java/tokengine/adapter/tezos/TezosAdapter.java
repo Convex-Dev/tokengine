@@ -16,11 +16,11 @@ import convex.core.data.Strings;
 import convex.core.data.prim.AInteger;
 import convex.core.data.prim.CVMLong;
 import convex.core.lang.RT;
+import convex.core.crypto.util.Base58;
+import convex.core.crypto.util.Base58Check;
 import tokengine.Engine;
 import tokengine.Fields;
 import tokengine.adapter.AAdapter;
-import tokengine.util.Base58;
-import tokengine.util.Base58Check;
 
 public class TezosAdapter extends AAdapter<AString> {
 

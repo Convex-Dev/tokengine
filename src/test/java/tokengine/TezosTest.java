@@ -24,10 +24,10 @@ import convex.core.data.Blobs;
 import convex.core.data.Maps;
 import convex.core.data.Strings;
 import convex.core.data.Vectors;
+import convex.core.crypto.util.Base58;
+import convex.core.crypto.util.Base58Check;
 import tokengine.adapter.tezos.TezosAdapter;
 import tokengine.adapter.tezos.TezosUtils;
-import tokengine.util.Base58;
-import tokengine.util.Base58Check;
 
 public class TezosTest {
 
