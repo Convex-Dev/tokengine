@@ -6,7 +6,6 @@ import static j2html.TagCreator.title;
 
 import java.util.Collections;
 import java.util.Enumeration;
-import java.util.HashMap;
 
 import convex.api.ContentTypes;
 import convex.core.ErrorCodes;
@@ -17,9 +16,10 @@ import convex.core.data.AString;
 import convex.core.data.Blob;
 import convex.core.data.Format;
 import convex.core.data.Keyword;
+import convex.core.data.Maps;
 import convex.core.data.Strings;
 import convex.core.lang.RT;
-import convex.java.JSON;
+import convex.core.util.JSON;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 import j2html.tags.DomContent;
@@ -49,9 +49,8 @@ public abstract class ATokengineAPI  {
 		String type = calcResponseContentType(ctx);
 		
 		if (type.equals(ContentTypes.JSON)) {
-			ctx.contentType(ContentTypes.JSON);
-			HashMap<String, Object> resultJSON = r.toJSON();
-			ctx.result(JSON.toPrettyString(resultJSON));
+			ACell resultJSON = Maps.of("value",r.getValue());
+			setJSONResult(ctx,resultJSON);
 		} else if (type.equals(ContentTypes.CVX)) {
 			ctx.contentType(ContentTypes.CVX);
 			AString rs=RT.print(r);
@@ -71,6 +70,16 @@ public abstract class ATokengineAPI  {
 		}
 	}
 	
+	/**]
+	 * Set a JSON content type and result value
+	 * @param ctx Javalin context
+	 * @param resultJSON JSON content
+	 */
+	protected void setJSONResult(Context ctx, ACell resultJSON) {
+		ctx.contentType(ContentTypes.JSON);
+		ctx.result(JSON.printPretty(resultJSON).getBytes());		
+	}
+
 	protected String calcResponseContentType(Context ctx) {
 		Enumeration<String> accepts=ctx.req().getHeaders("Accept");
 		String type=ContentTypes.JSON;

@@ -31,7 +31,7 @@ import convex.core.data.prim.CVMLong;
 import convex.core.init.Init;
 import convex.core.lang.RT;
 import convex.core.util.FileUtils;
-import convex.core.util.JSONUtils;
+import convex.core.util.JSON;
 import convex.etch.EtchStore;
 import convex.lattice.ACursor;
 import convex.lattice.Cursors;
@@ -255,7 +255,7 @@ public class Engine {
 			peerConfig.put(Keywords.STATE,genesis);
 			peerConfig.put(Keywords.KEYPAIR,kp);
 		} else {
-			peerConfig=(Map<Keyword, Object>) JSONUtils.json(convexConfig);
+			peerConfig=(Map<Keyword, Object>) JSON.json(convexConfig);
 			if (!peerConfig.containsKey(Keywords.KEYPAIR)) {
 				if (isTest()) {
 					log.info("No keypair provided, using test peer key with seed: "+kp.getSeed());

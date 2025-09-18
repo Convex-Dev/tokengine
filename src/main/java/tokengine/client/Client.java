@@ -1,13 +1,12 @@
 package tokengine.client;
 
 import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
-
-import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
-import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
-import org.apache.hc.core5.http.ContentType;
-import org.apache.hc.core5.http.Method;
 
 import convex.core.data.ACell;
 import convex.core.data.AMap;
@@ -16,16 +15,20 @@ import convex.core.data.Maps;
 import convex.core.data.Strings;
 import convex.core.data.prim.AInteger;
 import convex.core.data.prim.CVMLong;
-import convex.core.util.JSONUtils;
+import convex.core.util.JSON;
 import convex.java.ARESTClient;
-import convex.java.HTTPClients;
 import tokengine.Fields;
 import tokengine.exception.ResponseException;
 
 public class Client extends ARESTClient {
 
+	private final HttpClient httpClient;
+
 	public Client(URI host) {
 		super(host,"/api/v1/");
+		this.httpClient = HttpClient.newBuilder()
+			.connectTimeout(Duration.ofSeconds(10))
+			.build();
 	}
 
 	/**
@@ -42,8 +45,11 @@ public class Client extends ARESTClient {
 	 * @return Future for the status result
 	 */
 	public Future<ACell> getStatus() {
-		SimpleHttpRequest req=SimpleHttpRequest.create(Method.GET, getBaseURI().resolve("status"));
-		Future<ACell> resultFuture=doJSONRequest(req);
+		HttpRequest req = HttpRequest.newBuilder()
+			.uri(getBaseURI().resolve("status"))
+			.GET()
+			.build();
+		Future<ACell> resultFuture = doJSONRequest(req);
 		return resultFuture;
 	}
 	
@@ -52,8 +58,11 @@ public class Client extends ARESTClient {
 	 * @return Future for the config data structure
 	 */
 	public Future<ACell> getConfig() {
-		SimpleHttpRequest req=SimpleHttpRequest.create(Method.GET, getBaseURI().resolve("config"));
-		Future<ACell> resultFuture=doJSONRequest(req);
+		HttpRequest req = HttpRequest.newBuilder()
+			.uri(getBaseURI().resolve("config"))
+			.GET()
+			.build();
+		Future<ACell> resultFuture = doJSONRequest(req);
 		return resultFuture;
 	}
 	
@@ -75,16 +84,19 @@ public class Client extends ARESTClient {
 			Strings.create("source"), source
 		);
 		
-		String jsonBody = JSONUtils.toString(requestBody);
+		String jsonBody = JSON.toString(requestBody);
 		
-		SimpleHttpRequest req = SimpleHttpRequest.create(Method.POST, getBaseURI().resolve("balance"));
-		req.setBody(jsonBody, ContentType.APPLICATION_JSON);
+		HttpRequest req = HttpRequest.newBuilder()
+			.uri(getBaseURI().resolve("balance"))
+			.header("Content-Type", "application/json")
+			.POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+			.build();
 		
-		CompletableFuture<SimpleHttpResponse> future = HTTPClients.execute(req);
+		CompletableFuture<HttpResponse<String>> future = httpClient.sendAsync(req, HttpResponse.BodyHandlers.ofString());
 		return future.thenApplyAsync(resp -> {
-			int code = resp.getCode();
+			int code = resp.statusCode();
 			if ((code / 100) == 2) {
-				ACell result = JSONUtils.parse(resp.getBodyText());
+				ACell result = JSON.parse(resp.body());
 				// The API returns a Result.value(balance), so we need to extract the AInteger
 				if (result instanceof AMap) {
 					@SuppressWarnings("unchecked")
@@ -94,9 +106,9 @@ public class Client extends ARESTClient {
 						return (AInteger)value;
 					}
 				}
-				throw new ResponseException("Unexpected response format", resp);
+				throw new ResponseException("Unexpected response format: "+result, resp);
 			}
-			throw new ResponseException("Failed request with status "+code+" and data "+resp.getBodyText(), resp);
+			throw new ResponseException("Failed request with status "+code+" and data "+resp.body(), resp);
 		});
 	}
 	
@@ -118,16 +130,19 @@ public class Client extends ARESTClient {
 			Strings.create("source"), source
 		);
 		
-		String jsonBody = JSONUtils.toString(requestBody);
+		String jsonBody = JSON.toString(requestBody);
 		
-		SimpleHttpRequest req = SimpleHttpRequest.create(Method.POST, getBaseURI().resolve("credit"));
-		req.setBody(jsonBody, ContentType.APPLICATION_JSON);
+		HttpRequest req = HttpRequest.newBuilder()
+			.uri(getBaseURI().resolve("credit"))
+			.header("Content-Type", "application/json")
+			.POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+			.build();
 		
-		CompletableFuture<SimpleHttpResponse> future = HTTPClients.execute(req);
+		CompletableFuture<HttpResponse<String>> future = httpClient.sendAsync(req, HttpResponse.BodyHandlers.ofString());
 		return future.thenApplyAsync(resp -> {
-			int code = resp.getCode();
+			int code = resp.statusCode();
 			if ((code / 100) == 2) {
-				ACell result = JSONUtils.parse(resp.getBodyText());
+				ACell result = JSON.parse(resp.body());
 				// The API returns a Result.value(balance), so we need to extract the AInteger
 				if (result instanceof AMap) {
 					@SuppressWarnings("unchecked")
@@ -141,7 +156,7 @@ public class Client extends ARESTClient {
 				}
 				throw new ResponseException("Unexpected response format: "+result, resp);
 			}
-			throw new ResponseException("Failed request with status "+code+" and data "+resp.getBodyText(), resp);
+			throw new ResponseException("Failed request with status "+code+" and data "+resp.body(), resp);
 		});
 	}
 	
@@ -156,16 +171,19 @@ public class Client extends ARESTClient {
 			Fields.DEPOSIT,Maps.of(Fields.TX,txID)
 		);
 
-		String jsonBody = JSONUtils.toString(requestBody);
+		String jsonBody = JSON.toString(requestBody);
 		
-		SimpleHttpRequest req = SimpleHttpRequest.create(Method.POST, getBaseURI().resolve("deposit"));
-		req.setBody(jsonBody, ContentType.APPLICATION_JSON);
+		HttpRequest req = HttpRequest.newBuilder()
+			.uri(getBaseURI().resolve("deposit"))
+			.header("Content-Type", "application/json")
+			.POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+			.build();
 		
-		CompletableFuture<SimpleHttpResponse> future = HTTPClients.execute(req);
+		CompletableFuture<HttpResponse<String>> future = httpClient.sendAsync(req, HttpResponse.BodyHandlers.ofString());
 		return future.thenApplyAsync(resp -> {
-			int code = resp.getCode();
+			int code = resp.statusCode();
 			if ((code / 100) == 2) {
-				ACell result = JSONUtils.parse(resp.getBodyText());
+				ACell result = JSON.parse(resp.body());
 				// The API returns a Result.value(balance), so we need to extract the AInteger
 				if (result instanceof AMap) {
 					@SuppressWarnings("unchecked")
@@ -180,7 +198,7 @@ public class Client extends ARESTClient {
 				throw new ResponseException("Unexpected response format: "+result, resp);
 			}
 			
-			throw new ResponseException("Failed request with status "+code+" and data "+resp.getBodyText(), resp);
+			throw new ResponseException("Failed request with status "+code+" and data "+resp.body(), resp);
 		});
 	}
 	
@@ -189,12 +207,12 @@ public class Client extends ARESTClient {
 	 * @param request Request object
 	 * @return Future to be filled with JSON response.
 	 */
-	protected CompletableFuture<ACell> doJSONRequest(SimpleHttpRequest request) {
-		CompletableFuture<SimpleHttpResponse> future=HTTPClients.execute(request);
+	protected CompletableFuture<ACell> doJSONRequest(HttpRequest request) {
+		CompletableFuture<HttpResponse<String>> future = httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString());
 		return future.thenApplyAsync(resp->{
-			int code=resp.getCode();
+			int code=resp.statusCode();
 			if ((code/100)==2) {
-				return JSONUtils.parse(resp.getBodyText());
+				return JSON.parse(resp.body());
 			}
 			throw new ResponseException("Failed request",resp); 
 		});
@@ -222,15 +240,18 @@ public class Client extends ARESTClient {
 			Fields.QUANTITY,quantity
 		);
 
-		SimpleHttpRequest req = SimpleHttpRequest.create(Method.POST, getBaseURI().resolve("payout"));
-		String jsonBody = JSONUtils.toString(requestBody);
-		req.setBody(jsonBody, ContentType.APPLICATION_JSON);
+		String jsonBody = JSON.toString(requestBody);
+		HttpRequest req = HttpRequest.newBuilder()
+			.uri(getBaseURI().resolve("payout"))
+			.header("Content-Type", "application/json")
+			.POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+			.build();
 		
-		CompletableFuture<SimpleHttpResponse> future = HTTPClients.execute(req);
+		CompletableFuture<HttpResponse<String>> future = httpClient.sendAsync(req, HttpResponse.BodyHandlers.ofString());
 		return future.thenApplyAsync(resp -> {
-			int code = resp.getCode();
+			int code = resp.statusCode();
 			if ((code / 100) == 2) {
-				ACell result = JSONUtils.parse(resp.getBodyText());
+				ACell result = JSON.parse(resp.body());
 				// The API returns a Result.value(balance), so we need to extract the AInteger
 				if (result instanceof AMap) {
 					@SuppressWarnings("unchecked")
@@ -247,7 +268,7 @@ public class Client extends ARESTClient {
 				throw new ResponseException("Unexpected response format: "+result, resp);
 			}
 			
-			throw new ResponseException("Failed request with status "+code+" and data "+resp.getBodyText(), resp);
+			throw new ResponseException("Failed request with status "+code+" and data "+resp.body(), resp);
 		});
 	}
 }

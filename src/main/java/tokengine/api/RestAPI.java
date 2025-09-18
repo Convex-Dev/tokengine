@@ -15,8 +15,7 @@ import convex.core.data.AString;
 import convex.core.data.prim.AInteger;
 import convex.core.json.JSON5Reader;
 import convex.core.lang.RT;
-import convex.core.util.JSONUtils;
-import convex.java.JSON;
+import convex.core.util.JSON;
 import io.javalin.Javalin;
 import io.javalin.http.BadRequestResponse;
 import io.javalin.http.Context;
@@ -80,7 +79,7 @@ public class RestAPI extends ATokengineAPI {
 							description = "Status returned"),})
 	protected void getStatus(Context ctx) {
 		ctx.header("Content-type", ContentTypes.JSON);
-		ctx.result(JSONUtils.toString(engine.getStatus()));
+		ctx.result(JSON.toString(engine.getStatus()));
 		ctx.status(200);
 	}
 	
@@ -92,8 +91,7 @@ public class RestAPI extends ATokengineAPI {
 									status = "200", 
 									description = "Config returned")})
 	protected void getConfig(Context ctx) {
-		ctx.header("Content-type", ContentTypes.JSON);
-		ctx.result(JSON.toString(engine.getConfig()));
+		setJSONResult(ctx,engine.getConfig());
 		ctx.status(200);
 	}
 	

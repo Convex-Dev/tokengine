@@ -1,12 +1,13 @@
 package tokengine.adapter.tezos;
 
 import java.io.IOException;
-import java.math.BigInteger;
 import java.util.concurrent.CompletableFuture;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import convex.core.crypto.util.Base58;
+import convex.core.crypto.util.Base58Check;
 import convex.core.data.ABlob;
 import convex.core.data.ACell;
 import convex.core.data.AMap;
@@ -16,8 +17,6 @@ import convex.core.data.Strings;
 import convex.core.data.prim.AInteger;
 import convex.core.data.prim.CVMLong;
 import convex.core.lang.RT;
-import convex.core.crypto.util.Base58;
-import convex.core.crypto.util.Base58Check;
 import tokengine.Engine;
 import tokengine.Fields;
 import tokengine.adapter.AAdapter;
@@ -94,7 +93,7 @@ public class TezosAdapter extends AAdapter<AString> {
 		if (url==null) throw new IllegalStateException("No Tezos RPC URL specified, should be in networks[..].url");
 		apiUrl = url.toString();
 		
-		// Initialize TezosHTTP client
+		// Initialise TezosHTTP client
 		tezosHTTP = new TezosHTTP(apiUrl);
 			
 		log.info("TezosAdapter started with API URL: {}", apiUrl);
@@ -125,7 +124,7 @@ public class TezosAdapter extends AAdapter<AString> {
 				}
 				return CVMLong.ZERO;
 			} catch (Exception e) {
-				log.warn("Failed to get Tezos balance for {}: {}", address, e.getMessage());
+				log.debug("Failed to get Tezos balance for {}: {}", address, e.getMessage());
 				throw new IOException("Failed to get Tezos balance for " + address, e);
 			}
 		} else if (asset.startsWith("fa2:")) {
@@ -141,7 +140,7 @@ public class TezosAdapter extends AAdapter<AString> {
 				}
 				return CVMLong.ZERO;
 			} catch (Exception e) {
-				log.warn("Failed to get FA2 token balance for {}: {}", address, e.getMessage());
+				log.debug("Failed to get FA2 token balance for {}: {}", address, e.getMessage());
 				throw new IOException("Failed to get FA2 token balance for " + address, e);
 			}
 		}

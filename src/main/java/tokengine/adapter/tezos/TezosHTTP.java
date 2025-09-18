@@ -10,7 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import convex.core.data.ACell;
-import convex.core.util.JSONUtils;
+import convex.core.util.JSON;
 import tokengine.exception.ResponseException;
 
 /**
@@ -51,7 +51,7 @@ public class TezosHTTP {
                     }
                     
                     try {
-                        return JSONUtils.parse(response.body());
+                        return JSON.parse(response.body());
                     } catch (Exception e) {
                         log.error("Failed to parse JSON response: {}", e.getMessage());
                         throw new RuntimeException("Failed to parse JSON response", e);

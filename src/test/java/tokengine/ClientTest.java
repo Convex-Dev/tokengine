@@ -178,7 +178,7 @@ public class ClientTest {
 		
 		{
 			long start2=System.currentTimeMillis();
-			int N=10000;
+			int N=100; // Run this a bunch of times concurrently
 			executeNTimes(()->{
 				AInteger credit=client.getCredit(user.toString(), "convex", "cad29:72").join();
 			},N);

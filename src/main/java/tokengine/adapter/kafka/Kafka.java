@@ -2,14 +2,13 @@ package tokengine.adapter.kafka;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
-import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
-import org.apache.hc.core5.http.ContentType;
-import org.apache.hc.core5.http.Method;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,8 +19,7 @@ import convex.core.data.Maps;
 import convex.core.data.Strings;
 import convex.core.data.Vectors;
 import convex.core.lang.RT;
-import convex.core.util.JSONUtils;
-import convex.java.HTTPClients;
+import convex.core.util.JSON;
 import tokengine.Engine;
 import tokengine.Fields;
 
@@ -29,12 +27,16 @@ public class Kafka {
 	protected static final Logger log=LoggerFactory.getLogger(Kafka.class);
 	
 	private URI uri=null; // URI can be null if audit logging disabled / unavailable
+	private final HttpClient httpClient;
 
 	/**
 	 * Create a kafka logging instance
 	 * @param kafkaLoc
 	 */
 	public Kafka(AString kafkaLoc) {
+		this.httpClient = HttpClient.newBuilder()
+			.connectTimeout(Duration.ofSeconds(10))
+			.build();
 		try {
 			this.uri=(kafkaLoc==null)?null:new URI(kafkaLoc.toString());
 		} catch (URISyntaxException e) {
@@ -43,7 +45,7 @@ public class Kafka {
 	}
 
 	/** Content type for Kafka logs */
-	ContentType CONTENT_TYPE=ContentType.create("application/vnd.kafka.json.v2+json");
+	private static final String CONTENT_TYPE = "application/vnd.kafka.json.v2+json";
 	
 	/**
 	 * We use a single thread executor to ensure log messages get sent in the order they are submitted
@@ -67,7 +69,7 @@ public class Kafka {
 		return true;
 	}
 	
-	public CompletableFuture<SimpleHttpResponse> doLog(AString key,AMap<AString,ACell> value) {
+	public CompletableFuture<HttpResponse<String>> doLog(AString key,AMap<AString,ACell> value) {
 		// Construct Kafka message with one record
 		AMap<AString,ACell> record=Maps.of("value",value);
 		
@@ -81,23 +83,26 @@ public class Kafka {
 		
 		AMap<AString,ACell> recs=Maps.of("records",Vectors.of(record));
 		
-		String data=JSONUtils.toString(recs);
+		String data=JSON.toString(recs);
 		// System.err.println(data);
 		
 		try {
-			SimpleHttpRequest request=SimpleHttpRequest.create(Method.POST, uri);
-			request.setHeader("Accept", "application/vnd.kafka.v2+json");
-			request.setBody(data, CONTENT_TYPE);
-			CompletableFuture<SimpleHttpResponse> future=HTTPClients.execute(request);
+			HttpRequest request = HttpRequest.newBuilder()
+				.uri(uri)
+				.header("Accept", "application/vnd.kafka.v2+json")
+				.header("Content-Type", CONTENT_TYPE)
+				.POST(HttpRequest.BodyPublishers.ofString(data))
+				.build();
+			CompletableFuture<HttpResponse<String>> future = httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString());
 			future.whenCompleteAsync((r,e)->{
 				if (e!=null) {
 					log.warn("Kafka send failed for "+data,e);
 					return;
 				}
-				int code=r.getCode();
+				int code=r.statusCode();
 				if (code>=300) {
 					log.warn("Kafka post failed with code "+code);
-					log.warn("Payload: "+r.getBodyText());
+					log.warn("Payload: "+r.body());
 				}
 				// System.err.println(data);
 			});

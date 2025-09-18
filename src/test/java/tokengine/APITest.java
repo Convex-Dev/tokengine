@@ -4,14 +4,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
-import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
-import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
-import org.apache.hc.core5.http.Method;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -22,7 +22,6 @@ import convex.core.data.ACell;
 import convex.core.data.AMap;
 import convex.core.data.AString;
 import convex.core.util.ConfigUtils;
-import convex.java.HTTPClients;
 
 /**
  * These are basically smoke tests for the API server
@@ -34,6 +33,13 @@ public class APITest {
 	
 	private APIServer venueServer;
 	private Engine engine;
+	private final HttpClient httpClient;
+
+	public APITest() {
+		this.httpClient = HttpClient.newBuilder()
+			.connectTimeout(Duration.ofSeconds(10))
+			.build();
+	}
 
 	@BeforeAll
 	public void setupServer() throws Exception {
@@ -47,24 +53,33 @@ public class APITest {
 	
 
 	@Test public void testAPIDoc() throws URISyntaxException, InterruptedException, ExecutionException, TimeoutException {
-		SimpleHttpRequest req=SimpleHttpRequest.create(Method.GET, new URI("http://localhost:"+PORT+"/openapi"));
-		CompletableFuture<SimpleHttpResponse> future=HTTPClients.execute(req);
-		SimpleHttpResponse resp=future.get(10000,TimeUnit.MILLISECONDS);
-		assertEquals(200,resp.getCode(),()->"Got error response: "+resp);
+		HttpRequest req = HttpRequest.newBuilder()
+			.uri(new URI("http://localhost:"+PORT+"/openapi"))
+			.GET()
+			.build();
+		CompletableFuture<HttpResponse<String>> future = httpClient.sendAsync(req, HttpResponse.BodyHandlers.ofString());
+		HttpResponse<String> resp = future.get(10000,TimeUnit.MILLISECONDS);
+		assertEquals(200,resp.statusCode(),()->"Got error response: "+resp);
 	}
 	
 	@Test public void testWebApp() throws URISyntaxException, InterruptedException, ExecutionException, TimeoutException {
-		SimpleHttpRequest req=SimpleHttpRequest.create(Method.GET, new URI("http://localhost:"+PORT));
-		CompletableFuture<SimpleHttpResponse> future=HTTPClients.execute(req);
-		SimpleHttpResponse resp=future.get(10000,TimeUnit.MILLISECONDS);
-		assertEquals(200,resp.getCode(),()->"Got error response: "+resp);
+		HttpRequest req = HttpRequest.newBuilder()
+			.uri(new URI("http://localhost:"+PORT))
+			.GET()
+			.build();
+		CompletableFuture<HttpResponse<String>> future = httpClient.sendAsync(req, HttpResponse.BodyHandlers.ofString());
+		HttpResponse<String> resp = future.get(10000,TimeUnit.MILLISECONDS);
+		assertEquals(200,resp.statusCode(),()->"Got error response: "+resp);
 	}
 	
 	@Test public void test404() throws URISyntaxException, InterruptedException, ExecutionException, TimeoutException {
-		SimpleHttpRequest req=SimpleHttpRequest.create(Method.GET, new URI("http://localhost:"+PORT+"/notanendpoint"));
-		CompletableFuture<SimpleHttpResponse> future=HTTPClients.execute(req);
-		SimpleHttpResponse resp=future.get(10000,TimeUnit.MILLISECONDS);
-		assertEquals(404,resp.getCode(),()->"Got error response: "+resp);
+		HttpRequest req = HttpRequest.newBuilder()
+			.uri(new URI("http://localhost:"+PORT+"/notanendpoint"))
+			.GET()
+			.build();
+		CompletableFuture<HttpResponse<String>> future = httpClient.sendAsync(req, HttpResponse.BodyHandlers.ofString());
+		HttpResponse<String> resp = future.get(10000,TimeUnit.MILLISECONDS);
+		assertEquals(404,resp.statusCode(),()->"Got error response: "+resp);
 	}
 
 	
