@@ -219,7 +219,7 @@ public abstract class AAdapter<AddressType extends ACell> {
 			asset=parseAssetID(assetID.toString().toLowerCase());
 			assetID=toCAIPAssetID(asset);
 			if (asset==null) {
-				throw new IllegalArgumentException("Unable to parse asset ID "+assetID+" for DLT "+getChainID());
+				throw new IllegalArgumentException("Unable to parse asset ID "+asset+" for DLT "+getChainID());
 			}
 		}
 		

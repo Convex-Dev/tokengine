@@ -65,13 +65,13 @@
 		"WereCoin": {
 			"convex" : {
 				"symbol":"CWRC",
-				"assetID":"convex:main:#1234",
+				"assetID":"cad29:1234", /* Placeholder for future CWRC */
 				"deposit":true,
 				"payout":true
 			},
 			"sepolia": {
-				"symbol":"LWRC",
-				"assetID":"eip155:11155111:0xc62eeb332708f9199d0c6e6f2e76286d79d9311e",
+				"symbol":"EWRC",
+				"assetID":"erc20:0x72b1b1DCFea31D7e4a41447eF13149E8259416F2", /* EWRC on Sepolia */
 				"treasuryID":"0x",
 				"deposit":true,
 				"payout":true
@@ -81,14 +81,14 @@
 		"CVM": {
 			"convex" : {
 				"symbol":"CVM",
-				"assetID":"slip44:864",
+				"assetID":"slip44:864", /* This is native CVM */
 				"deposit":true,
 				"payout":true,
-				"isNative":true   /* Optional, use this to sinal a native coin for the network if required */
+				"isNative":true   /* Optional, use this to signal a native coin for the network if required */
 			},
 			"sepolia": {
 				"symbol":"CVM",
-				"assetID":"erc20:0xc62eeb332708f9199d0c6e6f2e76286d79d9311e",
+				"assetID":"erc20:0xff2eeb332708f9199d0c6e6f2e76286d79d9311e", /* need to replace with correct wCVM token */
 				"treasuryID":"0x",
 				"deposit":true,
 				"payout":true
