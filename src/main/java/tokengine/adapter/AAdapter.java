@@ -209,13 +209,20 @@ public abstract class AAdapter<AddressType extends ACell> {
 	 * @throws Exception 
 	 */
 	public void addTokenMapping(AString tokenAlias, AString assetID, AMap<AString, ACell> tnet) throws Exception {
+		// Strip leading chainID as per CAIP-19 if needed
+		AString chainID=getChainID();
+		if (assetID.startsWith(chainID)&&assetID.charAt(chainID.count())=='/') {
+			assetID=assetID.slice(chainID.count()+1);	
+		}
+		
 		ACell asset;
 		if (assetID.startsWith("cad29:test")) {
 			// TODO: other adapter test tokens?
 			asset=deployTestAsset(tnet);
 			assetID=toCAIPAssetID(asset);
-			if (assetID==null) throw new IllegalArgumentException("Unable to parse asset ID: "+asset+" for DLT "+getChainID());
+			if (assetID==null) throw new IllegalArgumentException("Unable to recognise test asset ID: "+asset);
 		} else {
+			// we should be able to parse as an adapter-specific asset ID
 			asset=parseAssetID(assetID.toString().toLowerCase());
 			assetID=toCAIPAssetID(asset);
 			if (asset==null) {

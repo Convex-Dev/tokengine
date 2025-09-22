@@ -19,6 +19,14 @@ Key features:
 
 TokEngine is designed to never create and store an inconsistent state, regardless of external failures.
 
+### Basic Operator usage
+
+1. Download or build `tokengine.jar` ([snapshots available here](https://drive.google.com/drive/folders/1AZdyuZOmC70i_TtuEW3uEKvjYLOqIMiv))
+2. Place a config file in your home directory at `~/.tokengine/config.json`
+3. Run using Java 21+ with `java -jar tokengine.jar`
+
+This should launch the TokEngine server. By default, a simple web interface and API definitions are available on [localhost:8080](http://localhost:8080)
+
 ### CAIP Definitions
 
 #### Chain ID
