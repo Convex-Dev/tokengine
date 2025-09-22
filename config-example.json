@@ -1,5 +1,5 @@
 /* 
-  Loaded by default from ~/.tokengine/config/config.json 
+  Loaded by default from ~/.tokengine/config.json 
   
   If you want to change this path it can be provided as a single command line argument to tokengine.jar
   e.g. java -jar tokengine.jar my-config-file.json
@@ -106,7 +106,7 @@
 		/* use this to configure log destination location */
 		"logDir": "~/.tokengine/logs",
 		
-		/* Etch store, defaults to ~/.tokengine/etch.db , can use "temp" for temp file */
+		/* Etch store, defaults to ~/.tokengine/etch.db , can use "temp" for temp file while testing */
 		"etchFile": "~/.tokengine/etch-example.db",
 		
 		/* Directory for tokengine operator keys */
