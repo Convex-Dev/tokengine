@@ -7,7 +7,7 @@
   Tokengine permits JSON5 config files so you can use comments etc.
 */
 {
-	/* Server URL */
+	/* Public Server URL */
 	"url":"https://my-server.org",
 	
 	/* List networks */ 
@@ -66,8 +66,8 @@
 			"convex" : {
 				"symbol":"CWRC",
 				"assetID":"cad29:1234", /* Placeholder for future CWRC */
-				"deposit":true,
-				"payout":true
+				"deposit":true,   /* Enables deposits, i.e. operator can receive this token and give credit */
+				"payout":true     /* Enables payouts, i.e. user can request payout if they have credit for this  token */
 			},
 			"sepolia": {
 				"symbol":"EWRC",
@@ -112,7 +112,7 @@
 		/* Directory for tokengine operator keys */
 		"keyDir": "~/.tokengine/keys",
 
-		/* REST API port */
+		/* REST API port, defaults to localhost:8080 */
 		"apiPort": 8080,
 		
 		/** Test flag. Set to true for testing, false for production mode */
