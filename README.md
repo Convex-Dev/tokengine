@@ -19,15 +19,9 @@ Key features:
 
 TokEngine is designed to never create and store an inconsistent state, regardless of external failures. This is enforced by state transitions on a merkle tree lattice data structure.
 
-### Basic Operator usage
 
-1. Download or build `tokengine.jar` ([snapshots available here](https://drive.google.com/drive/folders/1AZdyuZOmC70i_TtuEW3uEKvjYLOqIMiv))
-2. Place a config file in your home directory at `~/.tokengine/config.json`
-3. Run using Java 21+ with `java -jar tokengine.jar`
 
-This should launch the TokEngine server. By default, a simple web interface and API definitions are available on [localhost:8080](http://localhost:8080)
-
-### CAIP Definitions
+## CAIP Definitions
 
 #### Chain ID
 
@@ -61,7 +55,122 @@ Note use of SLIP-44 to define native tokens
 
 Typical usage of TokEngine is to make a deposit on one network (e.g. EVM), then pay out equivalent funds on a different network (e.g. CVM)
 
-### Make a transfer to the tokengine receiver address 
+### Basic Operator setup
+
+1. Download or build `tokengine.jar` ([snapshots available here](https://drive.google.com/drive/folders/1AZdyuZOmC70i_TtuEW3uEKvjYLOqIMiv))
+2. Place a config file in your home directory at `~/.tokengine/config.json`
+3. Run using Java 21+ with `java -jar tokengine.jar`
+
+This should launch the TokEngine server. By default, a simple web interface and API definitions are available on [localhost:8080](http://localhost:8080)
+
+### Configure TokEngine
+
+You will need to configure what networks tokens you want to support in `config.json`. This is a JSON5 formatted configuration file (this format allows comments, unlike regular JSON).
+
+#### Network
+
+Specify a set of network adapters as follows:
+
+```json
+	"networks" : [
+		{
+			"description": "Convex main network (Protonet)",
+			"alias":"convex",                 // Short alias for network (Operator defined, must be unique in this config)
+		 	"chainID":"convex:main",          // CAIP19 Chain ID
+			"url":"https://peer.convex.live", // RPC / API endpoint
+			"receiverContract":"#14564",
+			"operatorAddress":"#11",
+			"timeout": "10000" /* Millisecond timeout period */
+		},{
+			"description": "Ethereum Sepolia test network",
+			"alias":"sepolia",
+		 	"chainID":"eip155:11155111",
+			"url":"https://sepolia.drpc.org",
+			"timeout":"300000",
+			"receiverContract":"0xa752b195b4e7b1af82ca472756edfdb13bc9c79d",
+			"operatorAddress":"0xa752b195b4e7b1af82ca472756edfdb13bc9c79d"
+		}
+	}
+```
+
+Remember to set the following addresses (which you should control, i.e. securely hold the private keys):
+- `receiverAddress` to be the account address that TokEngine will use for received tokens
+- `operatorAddress` to be the account that will be user for TokEngine (unless an alternative treasury account is specified)
+
+#### Tokens
+
+Specify the tokens you wish TokEngine to support as follows:
+
+```json
+	"tokens" : [
+		{
+			"alias": "CVM", /* must match transfers category exactly */
+			"symbol" : "CVM",
+			"name" : "Werecoin"
+		}	
+		{
+			"alias": "USDC", /* must match transfers category exactly */
+			"symbol" : "USDC",
+			"name" : "USDC Stablecoin"
+		}
+	]
+```
+
+You can give any name or symbol (these are primarily for display purposes). The alias is important as it uniquely identifies the token to TokEngine. It is recommended to use the most commonly recognised symbol as the alias (e.g. `BTC`, `CVM`, `USDT`)
+
+#### Transfers
+
+The transfers section of the config defines which tokens are considered transferrable on which networks.
+
+```json
+  "transfers" : {
+	 "CVM": {
+			"convex" : {
+				"symbol":"CVM",
+				"assetID":"slip44:864", /* This is native CVM */
+				"deposit":true,
+				"payout":true,
+				"isNative":true   /* Optional, use this to signal a native coin for the network if required */
+			},
+			"sepolia": {
+				"symbol":"WCVM",
+				"assetID":"erc20:0xff2eeb332708f9199d0c6e6f2e76286d79d9311e", /* need to replace with correct WCVM token */
+				"treasuryID":"0xa752b195b4e7b1af82ca472756edfdb13bc9c79d",
+				"deposit":true,
+				"payout":false
+			}
+	 }
+	 ...	
+  }
+```
+
+Rules:
+
+- The aliases of the token and relevant network(s) must be used
+- Tokens MAY be assigned a different symbol on different networks. This is useful for wrapped versions of tokens, e.g. WCVM vs native CVM
+- The `assetID` must specify a valid CAIP-19 asset ID for the type of network. Typically `slip44` for native coins, `erc20` for EVM tokens and `cad29` for CVM tokens
+- Specify `deposit` and `payout` flags to enable/disable payouts for this particular token/network combination. The default is `true`
+- You may optionally specify a `treasuryID` which will be used for payouts on this network, which overrides the standard `operatorAddress`
+
+### Optional: Obtain tokens or deploy Contracts
+
+You can deploy smart contracts to represent the tokens you wish to exchange. The method of doing so varies depending on specific network and token requirements and is outside the scope of TokEngine, however some examples are given for reference:
+
+- **ERC20 tokens on EVM networks** - A good example tutorial and code is available here: https://docs.openzeppelin.com/contracts/4.x/erc20
+- **CAD29 tokens on CVM networks** - Can be deployed in one line of code with a command like `(deploy (@convex.fungible/build-token {:supply 1000000}))` See also documentation at [docs.convex.world](https://docs.convex.world)
+
+
+For an already existing token, refer to resources specific to that token. Test tokens are frequently available for free. Some examples are given below
+- **USDC** Available for free on testnets via https://faucet.circle.com/
+- **CVM** If you run your own CVM testnet you will be able to transfer test CVM from the genesis account
+- **ETH** Sepolia testnet faucet e.g. https://cloud.google.com/application/web3/faucet/ethereum/sepolia
+
+
+### API Example Flow
+
+Below is an example of an end-to-end transfer use case using the API and a TokEngine instance set up as per the example above.
+
+#### Make a transfer to the TokeEngine receiver address 
 
 This can be done with any wallet.
 
@@ -71,7 +180,7 @@ e.g. transaction `0x9d3a3663d32b9ff5cf2d393e433b7b31489d13b398133a35c4bb6e2085bd
 
 The destination address must be the receverAddress configured for that tokenm on TokEngine
 
-### Register deposit
+#### Register deposit
 
 Call the `deposit` endpoint to inform TokEngine of the deposit. The JSON payload should look like:
 
@@ -94,7 +203,7 @@ TokEngine will check that:
 
 If successful, virtual credit will be given to the sender address
 
-### Make a payout
+#### Make a payout
 
 Once virtual credit is available, a payout can be made to a target network, given proof of possession of the required private key
 

@@ -62,6 +62,11 @@
 			"symbol" : "CVM",
 			"name" : "Werecoin"
 		}	
+		{
+			"alias": "USDC", /* must match transfers category exactly */
+			"symbol" : "USDC",
+			"name" : "USDC Stablecoin"
+		}
 	],
 	
 	/* State equivalent tokens on multiple networks which can be transferred 1:1 */ 
@@ -76,7 +81,6 @@
 			"sepolia": {
 				"symbol":"EWRC",
 				"assetID":"erc20:0x72b1b1DCFea31D7e4a41447eF13149E8259416F2", /* EWRC on Sepolia */
-				"treasuryID":"0x",
 				"deposit":true,
 				"payout":true
 			}
@@ -91,11 +95,10 @@
 				"isNative":true   /* Optional, use this to signal a native coin for the network if required */
 			},
 			"sepolia": {
-				"symbol":"CVM",
+				"symbol":"WCVM",
 				"assetID":"erc20:0xff2eeb332708f9199d0c6e6f2e76286d79d9311e", /* need to replace with correct wCVM token */
-				"treasuryID":"0x",
 				"deposit":true,
-				"payout":true
+				"payout":false
 			}
 		}
 	},

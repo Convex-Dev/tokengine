@@ -47,7 +47,7 @@
 		{
 			"alias": "CVM", /* must match transfers category exactly */
 			"symbol" : "CVM",
-			"name" : "Werecoin"
+			"name" : "Convex Coin"
 		},
 		{
 			"alias": "USDC", /* must match transfers category exactly */
@@ -99,7 +99,7 @@
 				"isNative":true
 			},
 			"sepolia": {
-				"symbol":"CVM",
+				"symbol":"WCVM",
 				"assetID":"erc20:0xffffff332708f9199d0c6e6f2e76286d79d9311e",
 				"treasuryID":"0x06eEB4bb0BC58671d097824611F76fe50C5dB075",
 				"recieve":true,
