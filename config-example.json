@@ -1,6 +1,10 @@
 /* 
   Loaded by default from ~/.tokengine/config.json 
   
+  This is an example file. You will need to change various addresses and parameters to match your desired configuration.
+  
+  For a working example (useful for testing) see src/main/resources/tokengine/config-test.json
+  
   If you want to change this path it can be provided as a single command line argument to tokengine.jar
   e.g. java -jar tokengine.jar my-config-file.json
   
