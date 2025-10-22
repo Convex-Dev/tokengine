@@ -361,7 +361,7 @@ public class RestAPI extends ATokengineAPI {
 			summary = "Deposit tokens into the system", 
 			operationId = "deposit",
 			requestBody = @OpenApiRequestBody(
-					description = "Deposit request, must provide a source and despsit proof", 
+					description = "Deposit request, must provide a source and despsit proof. Token may be a CAIP-19 token ID, a symbol or alias. Deposit transaction must be paid to the operator's receiver address on the target network.", 
 					content = {@OpenApiContent(
 									type = "application/json", 
 									from = DepositRequest.class,  

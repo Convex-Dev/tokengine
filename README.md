@@ -189,7 +189,7 @@ Call the `deposit` endpoint to inform TokEngine of the deposit. The JSON payload
   "source": {
     "account": "0xa72018ba06475aCa284ED98AB0cE0E07878521a3",
     "network": "eip155:11155111",
-    "token": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238"
+    "token": "erc20:0x1C7d4b196cb0c7b01d743fbc6116a902379c7238"
   },
   "deposit": {
     "tx": "0x9d3a3663d32b9ff5cf2d393e433b7b31489d13b398133a35c4bb6e2085bd8e83"

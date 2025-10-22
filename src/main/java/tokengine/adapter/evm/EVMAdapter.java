@@ -48,7 +48,7 @@ import tokengine.adapter.AAdapter;
 /**
  * TokeEngine EVM adapter
  * 
- * EVM Addresses are AStrings of the form "0xab16a96D359eC26a11e2C2b3d8f8B8942d5Bfcdb"
+ * Canonical EVM Addresses are AStrings of the form "0xab16a96d359ec26a11e2c2b3d8f8B8942d5bfcdb" (lowercase, leading 0x)
  */
 public class EVMAdapter extends AAdapter<AString> {
 	
@@ -432,15 +432,19 @@ public class EVMAdapter extends AAdapter<AString> {
                 String value = nonIndexedValues.get(0).getValue().toString();
 
                 // Validate the Transfer event
-                if (addr.equals(parseAddress(transferFrom)) && parseAddress(transferTo).equals(getReceiverAddress())) {
-                    AInteger rec=AInteger.parse(value);
-                    if (!rec.isNatural()) throw new IllegalStateException("Negative transfer found in transaction");
-                    received=received.add(rec);
-//                    System.out.println("Valid ERC20 Transfer found:");
-//                    System.out.println("  From: " + from);
-//                    System.out.println("  To: " + transferTo);
-//                    System.out.println("  Token Amount: " + value + " (in wei)");
+                if (!parseAddress(transferTo).equals(getReceiverAddress())) {
+                	throw new IllegalArgumentException("TX Transfer to "+transferTo+" did not equal expected receiver address "+getReceiverAddress());
                 }
+                
+                if (!addr.equals(parseAddress(transferFrom))) {
+                	throw new IllegalArgumentException("TX Transfer from "+transferFrom+" did not match user address "+addr);
+                }
+                
+                AInteger rec=AInteger.parse(value);
+                if (!rec.isNatural()) throw new IllegalStateException("Negative transfer found in transaction");
+                
+                // All OK so credit receipt value    
+                received=received.add(rec);
             }
         }
 		

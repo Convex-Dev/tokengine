@@ -263,17 +263,23 @@ public abstract class AAdapter<AddressType extends ACell> {
 	 * @return CAIP-19 Asset ID or null if token is not defined in this adapter
 	 */
 	public AString lookupCAIPAssetID(String token) {
-		AString id=Strings.create(token.toLowerCase());
-		if (tokens.containsKey(id)) return id; // valid CAIP-19 ID, exact match
+		try {
+			AString id=toCAIPAssetID(parseAssetID(token)); // parse and canonicalise
+			if (tokens.containsKey(id)) return id; // valid CAIP-19 ID, exact match
+		} catch (IllegalArgumentException e) {
+			// fall through to check alias / symbol
+		}
+		
+		AString exactToken=Strings.create(token);
 		
 		long n=tokens.count();
 		for (int i=0; i<n; i++) {
 			MapEntry<AString, AMap<AString, ACell>> me = tokens.entryAt(i);
 			AMap<AString, ACell> mapping=me.getValue();
-			if (id.equals(RT.getIn(mapping, Fields.ALIAS))) {
+			if (exactToken.equals(RT.getIn(mapping, Fields.ALIAS))) {
 				return me.getKey();
 			}
-			if (id.equals(RT.getIn(mapping, Fields.SYMBOL))) {
+			if (exactToken.equals(RT.getIn(mapping, Fields.SYMBOL))) {
 				return me.getKey();
 			}
 		}
