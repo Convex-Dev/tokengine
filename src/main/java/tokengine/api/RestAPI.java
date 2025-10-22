@@ -367,9 +367,9 @@ public class RestAPI extends ATokengineAPI {
 									from = DepositRequest.class,  
 									exampleObjects = {
 											@OpenApiExampleProperty(name = "source", objects= {
-													@OpenApiExampleProperty(name = "account", value="0xab16a96D359eC26a11e2C2b3d8f8B8942d5Bfcdb"),
+													@OpenApiExampleProperty(name = "account", value="0xa72018ba06475aCa284ED98AB0cE0E07878521a3"),
 													@OpenApiExampleProperty(name = "network", value="eip155:11155111"),
-													@OpenApiExampleProperty(name = "token", value="0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238")
+													@OpenApiExampleProperty(name = "token", value="erc20:0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238")
 											}),
 											@OpenApiExampleProperty(name = "deposit", objects= {
 													@OpenApiExampleProperty(name = "tx", value="0x9d3a3663d32b9ff5cf2d393e433b7b31489d13b398133a35c4bb6e2085bd8e83")											}) 
@@ -395,7 +395,7 @@ public class RestAPI extends ATokengineAPI {
 			Result r = Result.value(deposited);
 			prepareResult(ctx, r);
 		} catch (Exception e) {
-			log.warn("Could not confirm deposit: "+e.getMessage());
+			log.warn("Could not confirm deposit: ",e);
 			throw new PaymentRequiredResponse("Could not confirm deposit: "+e.getMessage());
 		} finally {
 			Engine.endRequest();

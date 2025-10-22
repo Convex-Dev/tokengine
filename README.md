@@ -174,7 +174,7 @@ Below is an example of an end-to-end transfer use case using the API and a TokEn
 
 This can be done with any wallet.
 
-e.g. transaction `0x9d3a3663d32b9ff5cf2d393e433b7b31489d13b398133a35c4bb6e2085bd8e83` on Ethereum Sepolia transfers some USDC to `0x5FbE74A283f7954f10AA04C2eDf55578811aeb03`
+e.g. transaction `0x9d3a3663d32b9ff5cf2d393e433b7b31489d13b398133a35c4bb6e2085bd8e83` on Ethereum Sepolia transfers some USDC from `0xa72018ba06475aCa284ED98AB0cE0E07878521a3` to `0x5FbE74A283f7954f10AA04C2eDf55578811aeb03`
 
 (Here USDC is the contract address `0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238`
 
@@ -187,7 +187,7 @@ Call the `deposit` endpoint to inform TokEngine of the deposit. The JSON payload
 ```
 {
   "source": {
-    "account": "0xab16a96D359eC26a11e2C2b3d8f8B8942d5Bfcdb",
+    "account": "0xa72018ba06475aCa284ED98AB0cE0E07878521a3",
     "network": "eip155:11155111",
     "token": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238"
   },

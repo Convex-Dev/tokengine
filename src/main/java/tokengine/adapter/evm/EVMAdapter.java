@@ -454,7 +454,10 @@ public class EVMAdapter extends AAdapter<AString> {
 
 	@Override
 	public AString parseUserKey(String address) throws IllegalArgumentException {
-		throw new UnsupportedOperationException();
+		AString parsed=parseAddress(address);
+		if (parsed!=null) return parsed; // acceptable address
+		
+		throw new UnsupportedOperationException("Can't parse user key like: "+address);
 	}
 
 	/**

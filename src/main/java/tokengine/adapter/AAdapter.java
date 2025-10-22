@@ -253,7 +253,7 @@ public abstract class AAdapter<AddressType extends ACell> {
 	 * @return Asset ID
 	 */
 	protected ACell deployTestAsset(AMap<AString, ACell> tnet) {
-		throw new UnsupportedOperationException("Cannot deplot test assets for "+this.getClass());
+		throw new UnsupportedOperationException("Cannot deploy test assets for "+this.getClass());
 	}
 
 	/**
@@ -263,7 +263,7 @@ public abstract class AAdapter<AddressType extends ACell> {
 	 * @return CAIP-19 Asset ID or null if token is not defined in this adapter
 	 */
 	public AString lookupCAIPAssetID(String token) {
-		AString id=Strings.create(token);
+		AString id=Strings.create(token.toLowerCase());
 		if (tokens.containsKey(id)) return id; // valid CAIP-19 ID, exact match
 		
 		long n=tokens.count();

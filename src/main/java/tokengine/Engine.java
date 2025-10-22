@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -478,7 +479,10 @@ public class Engine {
 	 */
 	public AInteger makeDeposit(AAdapter<?> adapter, String token, String address, AMap<AString,ACell> depositProof) throws IOException {
 		AString tokenKey=getTokenKey(adapter,token);
-		if (tokenKey==null) throw new IllegalArgumentException("Token not supported on this DLT: "+token);
+		if (tokenKey==null) {
+			Set<AString> tokens=adapter.getTokens().keySet();
+			throw new IllegalArgumentException("Token not supported on this DLT: "+token+" expected one of "+tokens);
+		}
 		
 		// Check transaction is Valid: TODO: confirm fields
 		AString tx=RT.ensureString(RT.getIn(depositProof, Fields.TX));
