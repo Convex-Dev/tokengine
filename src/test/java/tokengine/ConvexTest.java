@@ -37,6 +37,7 @@ import convex.core.init.Init;
 import convex.core.lang.RT;
 import convex.core.util.ConfigUtils;
 import tokengine.adapter.convex.CVMAdapter;
+import tokengine.exception.PaymentException;
 
 @TestInstance(Lifecycle.PER_CLASS)
 public class ConvexTest {
@@ -76,7 +77,7 @@ public class ConvexTest {
 
 	}
 	
-	@Test public void testWCVMDeposit() throws InterruptedException, IOException, TimeoutException {
+	@Test public void testWCVMDeposit() throws InterruptedException, IOException, TimeoutException, PaymentException {
 		CVMAdapter ca=(CVMAdapter) engine.getAdapter(Strings.create("convex:test"));
 		assertNotNull(ca);
 		Address receiverAddress=ca.getReceiverAddress();
@@ -100,10 +101,11 @@ public class ConvexTest {
 		assertEquals(DEPOSIT,deposited);
 		
 		// duplicate transaction
-		assertThrows(IllegalStateException.class,()->engine.makeDeposit(ca, "WCVM", addr.toString(), Maps.of(Fields.TX,txID.toString())));
+		assertThrows(PaymentException.class,()->engine.makeDeposit(ca, "WCVM", addr.toString(), Maps.of(Fields.TX,txID.toString())));
 
-		// fictitious token
+		// fictitious tokens
 		assertThrows(IllegalArgumentException.class,()->engine.makeDeposit(ca, "BOB", addr.toString(), Maps.of(Fields.TX,txID.toString())));
+		assertThrows(IllegalArgumentException.class,()->engine.makeDeposit(ca, "cvm", addr.toString(), Maps.of(Fields.TX,txID.toString())));
 
 		// fictitious tx ID
 		assertNull(engine.makeDeposit(ca, "WCVM", addr.toString(), Maps.of(Fields.TX,txID.getHash().toString())));

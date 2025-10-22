@@ -33,6 +33,7 @@ import tokengine.api.model.BalanceRequest;
 import tokengine.api.model.DepositRequest;
 import tokengine.api.model.PayoutRequest;
 import tokengine.api.model.TransferRequest;
+import tokengine.exception.PaymentException;
 
 public class RestAPI extends ATokengineAPI {
 	
@@ -394,9 +395,11 @@ public class RestAPI extends ATokengineAPI {
 			// log.warn("Deposit made: "+deposited+" "+token+" with proof: "+dep);
 			Result r = Result.value(deposited);
 			prepareResult(ctx, r);
-		} catch (Exception e) {
-			log.warn("Could not confirm deposit: ",e);
+		} catch (PaymentException e) {
 			throw new PaymentRequiredResponse("Could not confirm deposit: "+e.getMessage());
+		} catch (Exception e) {
+			log.info("Could not confirm deposit: ",e);
+			throw new BadRequestResponse("Could not make deposit: "+e.getMessage());
 		} finally {
 			Engine.endRequest();
 		}
@@ -409,7 +412,7 @@ public class RestAPI extends ATokengineAPI {
 	 * @return
 	 * @throws IOException
 	 */
-	private AInteger doDeposit(AMap<AString,ACell> req) throws IOException {
+	private AInteger doDeposit(AMap<AString,ACell> req) throws IOException, PaymentException {
 		AMap<AString,ACell> src = RT.ensureMap(req.get(Fields.SOURCE));
 		if (src == null) throw new BadRequestResponse("Expected 'source' object specifying incoming token");
 		//AInteger q = AInteger.parse(req.get(Strings.create("quantity")));

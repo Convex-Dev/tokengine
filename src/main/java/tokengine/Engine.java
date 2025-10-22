@@ -33,6 +33,7 @@ import convex.core.init.Init;
 import convex.core.lang.RT;
 import convex.core.util.FileUtils;
 import convex.core.util.JSON;
+import convex.core.util.Utils;
 import convex.etch.EtchStore;
 import convex.lattice.ACursor;
 import convex.lattice.Cursors;
@@ -45,6 +46,7 @@ import tokengine.adapter.convex.CVMAdapter;
 import tokengine.adapter.evm.EVMAdapter;
 import tokengine.adapter.kafka.Kafka;
 import tokengine.adapter.tezos.TezosAdapter;
+import tokengine.exception.PaymentException;
 
 /**
  * Engine is the core application class for TokEngine
@@ -477,7 +479,7 @@ public class Engine {
 	 * @return Integer amount deposited, or null if transaction could not be verified
 	 * @throws IOException
 	 */
-	public AInteger makeDeposit(AAdapter<?> adapter, String token, String address, AMap<AString,ACell> depositProof) throws IOException {
+	public AInteger makeDeposit(AAdapter<?> adapter, String token, String address, AMap<AString,ACell> depositProof) throws IOException, PaymentException {
 		AString tokenKey=getTokenKey(adapter,token);
 		if (tokenKey==null) {
 			Set<AString> tokens=adapter.getTokens().keySet();
@@ -501,14 +503,14 @@ public class Engine {
 		} else if (received.isNegative()) {
 			String msg="Negative seposit quantity? From "+address+ " in "+depositProof;
 			log.warn(msg);
-			throw new IllegalArgumentException("Negative seposit quantity");
+			throw new PaymentException("Negative deposit quantity");
 		}
 		
 		// We do this atomically, since it needs to update balances and log deposit
 		stateCursor.updateAndGet(state->{
 			AString chainID=adapter.getChainID();
 			ACell existingTx=RT.getIn(state, Fields.RECEIPTS,chainID,txID);
-			if (existingTx!=null) throw new IllegalStateException("Deposit already made for transaction "+txID);
+			if (existingTx!=null) Utils.sneakyThrow(new PaymentException("Deposit already made for transaction "+txID));
 			
 			AInteger existingBalance=RT.getIn(state, Fields.CREDITS, userKey, tokenKey);
 			if (existingBalance==null) {

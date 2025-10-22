@@ -41,6 +41,7 @@ import convex.core.util.ConfigUtils;
 import convex.core.util.TXUtils;
 import tokengine.adapter.AAdapter;
 import tokengine.client.Client;
+import tokengine.exception.PaymentException;
 
 @TestInstance(Lifecycle.PER_CLASS)
 public class ClientTest {
@@ -187,7 +188,7 @@ public class ClientTest {
 		}
 	}
 	
-	@Test public void testTransfer() throws IOException, TimeoutException, InterruptedException {
+	@Test public void testTransfer() throws IOException, TimeoutException, InterruptedException, PaymentException {
 		AInteger HOLDING=CVMLong.create(1000000000);
 		Convex convex=engine.getConvex();
 		Address user=ConvexTest.distributeWCVM(HOLDING, convex);
