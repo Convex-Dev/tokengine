@@ -66,6 +66,7 @@ public class EVMAdapter extends AAdapter<AString> {
     public static final AString ETH_ASSET_ID=Strings.intern("slip44:60");
 
 	private AString operatorAddress;
+	private AString receiverAddress;
 
 	protected EVMAdapter(Engine engine, AMap<AString, ACell> nc) {
 		super(engine,nc);
@@ -432,8 +433,10 @@ public class EVMAdapter extends AAdapter<AString> {
                 String value = nonIndexedValues.get(0).getValue().toString();
 
                 // Validate the Transfer event
-                if (!parseAddress(transferTo).equals(getReceiverAddress())) {
-                	throw new IllegalArgumentException("TX Transfer to "+transferTo+" did not equal expected receiver address "+getReceiverAddress());
+                AString recAddress=parseAddress(transferTo);
+                AString expectedReceiver=getReceiverAddress();
+                if (!recAddress.equals(expectedReceiver)) {
+                	throw new IllegalArgumentException("TX Transfer to "+recAddress+" did not equal expected receiver address "+expectedReceiver);
                 }
                 
                 if (!addr.equals(parseAddress(transferFrom))) {
@@ -453,7 +456,10 @@ public class EVMAdapter extends AAdapter<AString> {
 
 	@Override
 	public AString getReceiverAddress() {
-		return RT.getIn(config,Fields.RECEIVER_ADDRESS);
+		if (receiverAddress==null) {
+			receiverAddress =parseAddress(RT.getIn(config,Fields.RECEIVER_ADDRESS));
+		}
+		return receiverAddress;
 	}
 
 	@Override

@@ -203,6 +203,29 @@ TokEngine will check that:
 
 If successful, virtual credit will be given to the sender address
 
+#### Check balance
+
+Virtual credit with TokEngine can be checked with the `/api/v1/credit` endpoint. You can query the balance for an account on any registered network with a POST request like this:
+
+```
+{
+  "source": {
+    "account": "0xa72018ba06475aCa284ED98AB0cE0E07878521a3",
+    "network": "sepolia",
+    "token": "erc20:0x1C7d4b196cb0c7b01d743fbc6116a902379c7238"
+  }
+}
+```
+
+If successful, using the configuration provided above, you should see a balance value returned in a response like:
+
+```
+{
+  "value": 6510
+}
+```
+
+
 #### Make a payout
 
 Once virtual credit is available, a payout can be made to a target network, given proof of possession of the required private key

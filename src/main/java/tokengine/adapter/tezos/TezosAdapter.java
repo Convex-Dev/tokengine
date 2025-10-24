@@ -225,8 +225,8 @@ public class TezosAdapter extends AAdapter<AString> {
 		String lowerTokenID = tokenID.toLowerCase();
 		if (lowerTokenID.startsWith("fa2:")) {
 			// rest of ID should be a contract address
-			String contractAddress = tokenID.substring(4);
-			if (contractAddress.startsWith("KT") && contractAddress.length() == 36) {
+			String contractAddress = lowerTokenID.substring(4);
+			if (contractAddress.startsWith("kt") && contractAddress.length() == 36) {
 				return Strings.create(contractAddress);
 			}
 			throw new IllegalArgumentException("Invalid FA2 contract address: " + contractAddress);

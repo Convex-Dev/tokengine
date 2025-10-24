@@ -219,7 +219,7 @@ public class CVMAdapter extends AAdapter<Address> {
 	
 	@Override
 	public AString parseUserKey(String address) throws IllegalArgumentException {
-		Address a=Address.parse(address);
+		Address a=parseAddress(address);
 		return a.toCVMString(10);
 	}
 

@@ -607,6 +607,7 @@ public class Engine {
 	/**
 	 * Get the virtual credit for a given asset / user pair
 	 * @param assetKey asset key in canonical form
+	 * @param userKey user key in canonical form (i.e. parsed by adapter)
 	 * @return Virtual balance, or null if the asset / user pair has no virtual balance
 	 */
 	public synchronized AInteger getVirtualCredit(AString assetKey, AString userKey) {

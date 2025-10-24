@@ -189,19 +189,23 @@ public class RestAPI extends ATokengineAPI {
 			AMap<AString,ACell> src = RT.ensureMap(req.get(Fields.SOURCE));
 			if (src==null) throw new BadRequestResponse("Expected 'source' object specifying token");
 			
+			// Ensure we have a valid network adapter
 			AString network=RT.ensureString(src.get(Fields.NETWORK));
 			if (network==null) throw new BadRequestResponse("Expected 'network' property for source");
-			// AAdapter<?> adapter=engine.getAdapter(network);
-			// if (adapter==null) throw new BadRequestResponse("Can't find network: "+network);
+			AAdapter<?> adapter=engine.getAdapter(network);
+			if (adapter==null) throw new BadRequestResponse("Can't find network: "+network);
+			
 			AString token = RT.ensureString(src.get(Fields.TOKEN));
 			if (token==null) throw new BadRequestResponse("Expected 'token' property for source");
 			
 			AString tokenKey=engine.getTokenKey(network, src.get(Fields.TOKEN).toString());
 			if (tokenKey==null) throw new BadRequestResponse("Token not found for source: "+src);
-			AString address=RT.getIn(src, Fields.ACCOUNT);
 			
-			AInteger bal=engine.getVirtualCredit(tokenKey,address);
-			log.debug("Querying balance on network: "+network +" token: "+tokenKey+" account: "+address + " bal="+bal);
+			AString address=RT.getIn(src, Fields.ACCOUNT);
+			AString canonicalAddress=adapter.parseUserKey(address.toString());
+			
+			AInteger bal=engine.getVirtualCredit(tokenKey,canonicalAddress);
+			log.debug("Querying balance on network: "+network +" token: "+tokenKey+" account: "+canonicalAddress + " bal="+bal);
 			prepareResult(ctx,Result.value(bal));
 		} catch (Exception e) {
 			throw new BadRequestResponse(e.getMessage());
