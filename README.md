@@ -226,7 +226,7 @@ If successful, using the configuration provided above, you should see a balance 
 ```
 
 
-#### Make a payout
+### Payouts 
 
 Once virtual credit is available, a payout can be made to a target network, given proof of possession of the required private key
 
