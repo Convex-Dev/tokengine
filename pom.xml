@@ -14,7 +14,7 @@
 		<maven.compiler.target>21</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<logback.version>1.5.18</logback.version>
-		<junit.version>5.13.0</junit.version>
+		<junit.version>6.0.1</junit.version>
 		<slf4j.version>2.0.17</slf4j.version>
 		<javalin.version>6.7.0</javalin.version>
 		<javalin.plugin.version>6.7.0-1</javalin.plugin.version>

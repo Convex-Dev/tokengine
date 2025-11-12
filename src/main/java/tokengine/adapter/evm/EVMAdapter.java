@@ -158,7 +158,7 @@ public class EVMAdapter extends AAdapter<AString> {
 
 	@Override
 	public AString parseAddress(String caip10) throws IllegalArgumentException {
-		if (caip10 == null) throw new IllegalArgumentException("Null address");
+		if (caip10 == null) return null;
 		String s = caip10.trim();
 		if (s.isEmpty()) throw new IllegalArgumentException("Empty address");
 		
@@ -210,7 +210,7 @@ public class EVMAdapter extends AAdapter<AString> {
 	
 	@Override
 	public AString parseAddress(Object obj) throws IllegalArgumentException {
-		if (obj == null) throw new IllegalArgumentException("Null address");
+		if (obj == null) return null;
 		if (obj instanceof AString) {
 			// Normalise the AString by parsing it as a string
 			return parseAddress(obj.toString());
@@ -222,7 +222,7 @@ public class EVMAdapter extends AAdapter<AString> {
 		if (obj instanceof String) {
 			return parseAddress((String)obj);
 		}
-		throw new IllegalArgumentException("Cannot parse address from object: " + obj.getClass());
+		return null;
 	}
 
 	@Override

@@ -99,7 +99,7 @@ public abstract class AAdapter<AddressType extends ACell> {
 	/**
 	 * Parses a CAIP-10 address for this adapter.
 	 * @param caip10 CAIP-10 account_address (Assumes chain ID removed)
-	 * @return AddressType representing an Address for this adapter
+	 * @return AddressType representing an Address for this adapter, or null if argument is null
 	 * @throws IllegalArgumentException If account address format is invalid
 	 */
 	public abstract AddressType parseAddress(String caip10) throws IllegalArgumentException;
@@ -263,6 +263,7 @@ public abstract class AAdapter<AddressType extends ACell> {
 	 * @return CAIP-19 Asset ID or null if token is not defined in this adapter
 	 */
 	public AString lookupCAIPAssetID(String token) {
+		if (tokens==null) return null;
 		try {
 			AString id=toCAIPAssetID(parseAssetID(token)); // parse and canonicalise
 			if (tokens.containsKey(id)) return id; // valid CAIP-19 ID, exact match

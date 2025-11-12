@@ -2,6 +2,7 @@ package tokengine;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
@@ -418,19 +419,9 @@ public class EVMTest {
 		}
 		
 		// Test with null
-		try {
-			adapter.parseAddress(null);
-			assertTrue(false, "Should throw IllegalArgumentException for null");
-		} catch (IllegalArgumentException e) {
-			// Expected
-		}
+		assertNull(adapter.parseAddress(null));
 		
 		// Test with invalid object type
-		try {
-			adapter.parseAddress(123);
-			assertTrue(false, "Should throw IllegalArgumentException for invalid object type");
-		} catch (IllegalArgumentException e) {
-			// Expected
-		}
+		assertNull(adapter.parseAddress(123));
 	}
 }
