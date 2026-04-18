@@ -106,7 +106,7 @@ public class Engine {
 	public Engine(AMap<AString,ACell> config)  {
 		this.config=config;
 		this.testMode=RT.bool(RT.getIn(config,Fields.OPERATIONS, Fields.TEST));
-		this.latticeCursor=Cursors.of(null);
+		this.latticeCursor=Cursors.of(Maps.of(Keywords.APP, Maps.empty()));
 		this.stateCursor=latticeCursor.path(Keywords.APP, Fields.TOKENGINE);
 		
 	}
@@ -317,9 +317,9 @@ public class Engine {
 		} else {
 			etch=EtchStore.create(FileUtils.getFile(etchFile.toString()));
 		}
-		AMap<AString,ACell> loadedState=etch.getRootData();
-		
-		
+		AMap<AString,ACell> rootData=etch.getRootData();
+		AMap<AString,ACell> loadedState=(rootData!=null)?RT.getIn(rootData, Keywords.APP, Fields.TOKENGINE):null;
+
 		if (loadedState==null) {
 			loadedState=Maps.of(Fields.CREDITS,Maps.empty(),Fields.CONFIG,config);
 			log.info("Initialising new TokEngine state database with hash "+loadedState.getHash());
@@ -331,7 +331,7 @@ public class Engine {
 			if (RT.getIn(loadedState, Fields.CREDITS)==null) throw new Error("Etch state appears to be incorrect for TokEngine in "+etch);
 			log.info("Loaded TokEngine state database with hash "+loadedState.getHash());
 		}
-		this.latticeCursor.set(loadedState);
+		this.stateCursor.set(loadedState);
 		persistState();
 	}
 	
