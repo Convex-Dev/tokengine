@@ -5,21 +5,27 @@
 # at {{ template_run_date }} on {{ template_host }}
 # -----------------------------------------------------------------------------
 #
-# DOMAIN BASEURLS (sorted alphabetically)
+# Auto-generated documentation file for Caddy server
+# showing active domains and sub-domains (if any)
 #
 {% if domain_urls is defined %}
+# ===========================================
+# DOMAIN URLS (sorted alphabetically)
+#
 {% for key, value in domain_urls.items() | sort %}
 {{ key }}: {% if value.nohttps is defined %} http://{{ value.url }}{% else %}{{ value.url }}{% endif %} {% if value.offline is defined %} *** OFFLINE *** {% else %} {% if value.caddy_dest is defined %} caddy_dest->{{ value.caddy_dest }} {% endif %} {% if value.proxy_backend is defined %} proxy_backend->{{ value.proxy_backend }} {% endif %} {% endif %}
 {% endfor %}
 {% endif +%}
 #
+{% if site_urls is defined %}
 # ===========================================
 # SUB-DOMAIN URLS (sorted alphabetically)
 #
-{% if site_urls is defined %}
 {% for key, value in site_urls.items() | sort %}
 {{ key }}: {% if value.nohttps is defined %} http://{{ value.url }}{% else %}{{ value.url }}{% endif %} {% if value.offline is defined %} *** OFFLINE *** {% else %} {% if value.caddy_dest is defined %} caddy_dest->{{ value.caddy_dest }} {% endif %} {% if value.proxy_backend is defined %} proxy_backend->{{ value.proxy_backend }} {% endif %} {% endif %}
 {% endfor %}
+{% else %}
+# (No sub-domains specified)
 {% endif %}
 #
 # ===========================================

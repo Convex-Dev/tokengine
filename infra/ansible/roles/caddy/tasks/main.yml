@@ -1,6 +1,13 @@
 ---
 # tokengine/infra/roles/caddy/tasks/main.yml
 #
+# NOTE: will install caddy only if not aldready installed.
+#       To upgrade to a later version of caddy, delete the
+#       Caddyfile & re-run the Ansible playbook, defining
+#       the caddy tag with --tags caddy on the command line
+#       This play can be run any number of times against 
+#       an installed version of Caddy, e.g. to update the
+#       Caddyfile from definitions in host_vars/caddy.yml
 
 - name: check if caddy installed
   ansible.builtin.stat:

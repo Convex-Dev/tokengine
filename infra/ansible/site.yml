@@ -5,24 +5,29 @@
 # [privilege_escalation]
 # become=True
 
-- hosts: tokengine
+- hosts: tok1
   roles:
     - { role: hostname, tags: ["hostname"] }
-      # - { role: docker_install, tags: ["docker"] }
-    - { role: caddy, tags: ["caddy"] }
     - { role: set_uuid, tags: [ "uuid"] }
     - { role: java, tags: ["java"] }
     - { role: tokengine, tags: ["tokengine"] }
-    - { role: filebeat, tags: ["filebeat"] }
+    - { role: caddy, tags: ["caddy"] }
 
-- hosts: observer
+- hosts: tke-1
   roles:
     - { role: hostname, tags: ["hostname"] }
     - { role: set_uuid, tags: [ "uuid"] }
     - { role: java, tags: ["java"] }
-    - { role: kafka_kraft, tags: ["kafka_kraft", "kafka"] }
-    - { role: kafka_bridge, tags: ["kafka_bridge", "kafka"] }
-    - { role: kafdrop_jar, tags: ["kafdrop_jar", "kafdrop", "kafka"] }
-    - { role: vector, tags: ["vector"] }
+    - { role: tokengine, tags: ["tokengine"] }
+    - { role: caddy, tags: ["caddy"] }
+
+- hosts: tke-2
+  roles:
+    - { role: hostname, tags: ["hostname"] }
+    - { role: set_uuid, tags: [ "uuid"] }
+    - { role: java, tags: ["java"] }
+    - { role: tokengine, tags: ["tokengine"] }
+    - { role: caddy, tags: ["caddy"] }
+
 ##
 

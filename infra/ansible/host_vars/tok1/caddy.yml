@@ -1,0 +1,17 @@
+---
+# tokengine/host_vars/tokengine/caddy.yml
+#
+# site_urls:
+# NOTE: any site_urls (sub-domains) must be 
+#       specified before the base domain url
+#
+domain_urls:
+  tok1:
+    # NOTE: if this url is not reachable from the Internet,
+    #       the process to obtain HTTPS certificate will fail
+    url: tok1.walledchannel.net
+    caddy_dest: localhost:8080
+    # uncomment this to return 'offline' message page instead
+    # offline: true
+##
+

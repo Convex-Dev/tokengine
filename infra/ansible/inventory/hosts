@@ -1,6 +1,13 @@
 # tokengine/infra/ansible/inventory/hosts
 #
+# tok1	ansible_host=tok1 ansible_user=ansible
+##
+[vms]
+tke-1	ansible_host=192.168.81.27	ansible_user=ansible
+tke-2	ansible_host=192.168.81.28	ansible_user=ansible
+kafka-4	ansible_host=192.168.81.24	ansible_user=ansible
+
 # NOTE: add the IP address of the target linux (Ubuntu) machine here
-tokengine	ansible_host=<xxx.xxx.xxx.xxx>       ansible_user=ansible
+# tokengine	ansible_host=<xxx.xxx.xxx.xxx>       ansible_user=ansible
 ##
 

@@ -3,7 +3,7 @@
 #
 caddy_baseurl: https://github.com/caddyserver/caddy/releases/download
 #
-caddy_version: 2.9.1  # (latest version as of 2025-02-14)
+caddy_version: 2.11.2  # (latest version as of 2026-03-06)
 #
 caddy_target: /usr/local/bin
 caddy_logdir: /var/log/caddy

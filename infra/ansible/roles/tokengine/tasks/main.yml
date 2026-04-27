@@ -12,42 +12,45 @@
     group: "{{ tokengine_group }}"
     shell: "/bin/bash"
 
-- name: ensure download directory exists
-  ansible.builtin.file:
-    path: Downloads
-    state: directory
+      # - name: ensure download directory exists
+      #   ansible.builtin.file:
+      #     path: Downloads
+      #     state: directory
 
 - name: ensure tokengine homedir {{ tokengine_homedir }} exists
   ansible.builtin.file:
     path: "{{ tokengine_homedir }}"
     state: directory
+    owner: root
+    group: root
 
-      # - name: download tokengine {{ tokengine_baseurl }}/{{ tokengine_package }}
-      #   ansible.builtin.get_url:
-      #     url: "{{ tokengine_baseurl }}/{{ tokengine_package }}"
-      #     dest: "{{ tokengine_homedir }}/{{ tokengine_package }}"
+- name: remove any previous {{ tokengine_package }} file from {{ tokengine_homedir }}
+  ansible.builtin.file:
+    path: "{{ tokengine_homedir }}/{{ tokengine_package }}"
+    state: absent
 
-      #   # NOTE: this egregious hack required because of github redirection
-      # - name: generate download shell script for tokengine
-      #   ansible.builtin.template:
-      #     src: tokengine-dl.sh.j2
-      #     dest: tokengine-dl.sh
-      #     mode: 0755
-      #   become: false
-#
-# - name: run download shell script for tokengine
-#   # (which is just a wget call...)
-#   ansible.builtin.shell: ./tokengine-dl.sh
-#     # become: false
-#   args:
-#     executable: /bin/bash
+- name: upload files/{{ tokengine_package }} to {{ tokengine_homedir }}
+  ansible.builtin.copy:
+    src: files/{{ tokengine_package }}
+    dest: "{{ tokengine_homedir }}"
+      # owner: "{{ tokengine_user }}"
+      # group: "{{ tokengine_group }}"
+    owner: root
+    group: root
 
-#
-# https://drive.google.com/drive/folders/1AZdyuZOmC70i_TtuEW3uEKvjYLOqIMiv?usp=drive_link
-- name: Download tokengine jar
-  ansible.builtin.get_url:
-    url: "{{ tokengine_baseurl }}/uc?export=download&id={{ tokengine_path }}"
-    dest: "{{ tokengine_homedir }}/tokengine.jar"
+- name: ensure directory /home/{{ tokengine_user }}/.tokengine exists
+  ansible.builtin.file:
+    path: "/home/{{ tokengine_user }}/.tokengine"
+    state: directory
+    owner: "{{ tokengine_user }}"
+    group: "{{ tokengine_group }}"
+
+- name: upload files/config.json to /home/{{ tokengine_user }}/.tokengine
+  ansible.builtin.copy:
+    src: files/config.json
+    dest: "/home/{{ tokengine_user }}/.tokengine/config.json"
+    owner: root
+    group: root
 
 - name: fix owner/group on {{ tokengine_homedir }}/{{ tokengine_path }}/ dir
   ansible.builtin.command: "chown -R {{ tokengine_user }}:{{ tokengine_group }} {{ tokengine_homedir }}"
@@ -66,7 +69,7 @@
     group: root
     mode: 0644
 
-- name: daemon-reload
+- name: run systemctl daemon-reload
   shell: systemctl daemon-reload
 
 - name: ensure tokengine service started on boot and enabled

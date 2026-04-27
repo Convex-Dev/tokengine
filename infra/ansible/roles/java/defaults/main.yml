@@ -9,7 +9,5 @@ debian_default_java_package: default-jdk
 #
 debian_java_package: openjdk-{{ java_version }}-jdk-headless
 #
-centos_java_package: java-1.{{ java_version }}.0-openjdk-headless
-#
 ##
 
