@@ -52,13 +52,12 @@ tokengine/                       # world.convex:tokengine — single Maven modul
   repo does **not** need a local Convex build; a clean clone builds standalone.
   Only build `../convex` first if you deliberately move `convex.version` to a
   `-SNAPSHOT`.
-- **Javalin is held at 6.x on purpose.** 7.x moves route registration onto a
-  router mounted via `config.router.mount(...)`, renames
-  `config.useVirtualThreads` → `config.concurrency.useVirtualThreads`, drops
-  `staticFiles.precompress`, and moves `exception`/`options`/`afterMatched` off
-  the `Javalin` instance. Migrating means changing the `addRoutes` signature in
-  `ATokengineAPI`, `RestAPI`, `WebApp` and `APIServer` together. See
-  `../covia/venue/.../VenueServer.java` for a working 7.x reference.
+- **Javalin 7.2.2** — matching `convex-restapi` and Covia. Routes are registered
+  on the `RoutesConfig` passed to `addRoutes`, obtained from `config.routes`
+  inside `Javalin.create(...)`; they are not added to the `Javalin` instance
+  afterwards. The port is bound via `config.jetty.addConnector`, virtual threads
+  via `config.concurrency.useVirtualThreads`. `convex-restapi`'s `RESTServer` is
+  the closest reference if you need to extend this.
 
 ## Build and run
 
@@ -197,7 +196,8 @@ warns if `temp` is used outside test mode. EVM wallets are loaded from
   and coerce with `RT.ensureX`, which return `null` rather than throwing on a
   type mismatch — null-check the result.
 - **Money is `AInteger`** in the token's base units. Never `double`.
-- **Concurrency:** Javalin runs on virtual threads (`config.useVirtualThreads`).
+- **Concurrency:** Javalin runs on virtual threads
+  (`config.concurrency.useVirtualThreads`).
   All external calls belong on virtual threads; synchronised atomic sections
   stay in-memory and sub-millisecond.
 - **Audit logging** via `engine.postAuditMessage` is best-effort — a Kafka

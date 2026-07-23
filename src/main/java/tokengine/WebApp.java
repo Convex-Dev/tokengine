@@ -29,7 +29,7 @@ import convex.core.data.AString;
 import convex.core.data.AVector;
 import convex.core.lang.RT;
 import convex.core.util.Utils;
-import io.javalin.Javalin;
+import io.javalin.config.RoutesConfig;
 import io.javalin.http.Context;
 import j2html.tags.DomContent;
 import tokengine.adapter.AAdapter;
@@ -42,10 +42,10 @@ public class WebApp  {
 		this.engine=engine;
 	}
 
-	public void addRoutes(Javalin javalin) {
-		javalin.get("/index.html", this::indexPage);
-		javalin.get("/", this::indexPage);
-		javalin.get("/404.html", this::missingPage);
+	public void addRoutes(RoutesConfig routes) {
+		routes.get("/index.html", this::indexPage);
+		routes.get("/", this::indexPage);
+		routes.get("/404.html", this::missingPage);
 	}
 	
 	private void indexPage(Context ctx) {

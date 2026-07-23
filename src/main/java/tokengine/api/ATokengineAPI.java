@@ -20,7 +20,7 @@ import convex.core.data.Maps;
 import convex.core.data.Strings;
 import convex.core.lang.RT;
 import convex.core.util.JSON;
-import io.javalin.Javalin;
+import io.javalin.config.RoutesConfig;
 import io.javalin.http.Context;
 import j2html.tags.DomContent;
 
@@ -118,5 +118,5 @@ public abstract class ATokengineAPI  {
 		return status;
 	}
 
-	public abstract void addRoutes(Javalin javalin);
+	public abstract void addRoutes(RoutesConfig routes);
 }

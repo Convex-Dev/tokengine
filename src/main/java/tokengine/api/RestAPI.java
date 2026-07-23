@@ -18,7 +18,7 @@ import convex.core.data.prim.AInteger;
 import convex.core.json.JSON5Reader;
 import convex.core.lang.RT;
 import convex.core.util.JSON;
-import io.javalin.Javalin;
+import io.javalin.config.RoutesConfig;
 import io.javalin.http.BadRequestResponse;
 import io.javalin.http.Context;
 import io.javalin.http.PaymentRequiredResponse;
@@ -54,21 +54,21 @@ public class RestAPI extends ATokengineAPI {
 	private static final String ROUTE = "/api/v1/";
 
 	@Override
-	public void addRoutes(Javalin javalin) {
-		javalin.get(ROUTE + "status", this::getStatus);
-		javalin.get(ROUTE + "adapters", this::getAdapters);
+	public void addRoutes(RoutesConfig routes) {
+		routes.get(ROUTE + "status", this::getStatus);
+		routes.get(ROUTE + "adapters", this::getAdapters);
 
-		javalin.post(ROUTE + "balance", this::getBalance);
-		
-		javalin.post(ROUTE + "credit", this::getCredit);
+		routes.post(ROUTE + "balance", this::getBalance);
 
-		
-		javalin.post(ROUTE + "transfer", this::postTransfer);
-		javalin.post(ROUTE + "payout", this::postPayout);
-		javalin.post(ROUTE + "wrap", this::postWrap);
-		javalin.post(ROUTE + "deposit", this::postDeposit);
-		
-		javalin.get(ROUTE + "config", this::getConfig);
+		routes.post(ROUTE + "credit", this::getCredit);
+
+
+		routes.post(ROUTE + "transfer", this::postTransfer);
+		routes.post(ROUTE + "payout", this::postPayout);
+		routes.post(ROUTE + "wrap", this::postWrap);
+		routes.post(ROUTE + "deposit", this::postDeposit);
+
+		routes.get(ROUTE + "config", this::getConfig);
 
 	}
 
