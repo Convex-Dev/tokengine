@@ -9,9 +9,11 @@ import org.slf4j.LoggerFactory;
 
 import convex.api.ContentTypes;
 import convex.core.Result;
+import convex.core.data.ABlob;
 import convex.core.data.ACell;
 import convex.core.data.AMap;
 import convex.core.data.AString;
+import convex.core.data.Blob;
 import convex.core.data.prim.AInteger;
 import convex.core.json.JSON5Reader;
 import convex.core.lang.RT;
@@ -20,6 +22,7 @@ import io.javalin.Javalin;
 import io.javalin.http.BadRequestResponse;
 import io.javalin.http.Context;
 import io.javalin.http.PaymentRequiredResponse;
+import io.javalin.http.UnauthorizedResponse;
 import io.javalin.openapi.HttpMethod;
 import io.javalin.openapi.OpenApi;
 import io.javalin.openapi.OpenApiContent;
@@ -359,12 +362,49 @@ public class RestAPI extends ATokengineAPI {
 		// Subtract virtual credit
 		AString srcTokenKey=engine.getTokenKey(adapter, srcToken);
 		AString canonicalAddress=adapter.parseUserKey(srcUserKey.toString());
+
+		// Check the payor actually holds the source account's key. Must happen before
+		// any state change, so a failed payout cannot move funds.
+		verifyPayoutAuthorisation(adapter,canonicalAddress,dep);
+
 		engine.subtractVirtualCredit(srcTokenKey, canonicalAddress, q);
 		
 		// Payout on destination network
 		AString result = engine.makePayout(destUserKey.toString(), destToken, destAdapter, q,dep);
 		// log.warn("Payout made: "+r);
 		return result;
+	}
+
+	/**
+	 * Verifies the signed instruction accompanying a payout request, proving that the caller
+	 * holds the private key for the source account. Without this any caller could spend
+	 * another user's virtual credit.
+	 *
+	 * @param adapter Adapter for the source network
+	 * @param userKey Canonical user key for the source account, as per parseUserKey
+	 * @param dep Deposit object from the request, providing 'msg' and 'sig'
+	 * @throws UnauthorizedResponse if the signature does not verify for the source account
+	 */
+	private void verifyPayoutAuthorisation(AAdapter<?> adapter, AString userKey, AMap<AString,ACell> dep) {
+		AString msg=RT.ensureString(dep.get(Fields.MSG));
+		if (msg==null) throw new BadRequestResponse("Expected 'deposit.msg' with the instruction that was signed");
+
+		AString sig=RT.ensureString(dep.get(Fields.SIG));
+		if (sig==null) throw new BadRequestResponse("Expected 'deposit.sig' with the hex signature of 'deposit.msg'");
+
+		ABlob sigData=Blob.parse(sig.toString());
+		if (sigData==null) throw new BadRequestResponse("Value of 'deposit.sig' is not valid hex signature data");
+
+		boolean valid;
+		try {
+			valid=adapter.validateSignature(userKey.toString(), sigData, msg.toBlob());
+		} catch (Exception e) {
+			// A verification failure must never be treated as authorisation
+			log.warn("Signature check failed for payout by "+userKey,e);
+			valid=false;
+		}
+
+		if (!valid) throw new UnauthorizedResponse("Signature in 'deposit.sig' did not verify for account "+userKey);
 	}
 	
 	

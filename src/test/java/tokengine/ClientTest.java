@@ -3,10 +3,12 @@ package tokengine;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -25,6 +27,7 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 import convex.api.Convex;
 import convex.core.Result;
+import convex.core.crypto.AKeyPair;
 import convex.core.crypto.ASignature;
 import convex.core.cvm.Address;
 import convex.core.cvm.transactions.ATransaction;
@@ -42,6 +45,7 @@ import convex.core.util.TXUtils;
 import tokengine.adapter.AAdapter;
 import tokengine.client.Client;
 import tokengine.exception.PaymentException;
+import tokengine.exception.ResponseException;
 
 @TestInstance(Lifecycle.PER_CLASS)
 public class ClientTest {
@@ -161,7 +165,11 @@ public class ClientTest {
 			assertEquals(1090,credit.longValue());
 		}
 
-		AInteger payout=client.payout(user.toString(),"convex", "cad29:72", user2.toString(),"convex", "cad29:72","500").join();
+		// Payout must carry an instruction signed by the source account's key
+		String msg="Transfer 500 to "+user2+" on convex";
+		ASignature sig=ConvexTest.TEST_KP.sign(Strings.create(msg).toFlatBlob());
+
+		AInteger payout=client.payout(user.toString(),"convex", "cad29:72", user2.toString(),"convex", "cad29:72","500",msg,sig.toHexString()).join();
 		assertEquals(500,payout.longValue());
 		long end=System.currentTimeMillis();
 		// System.out.println("E2E Time = "+(end-start));
@@ -188,6 +196,40 @@ public class ClientTest {
 		}
 	}
 	
+	/**
+	 * A payout must be refused unless the instruction is signed by the source account's key,
+	 * otherwise anyone could spend another user's virtual credit.
+	 */
+	@Test public void testPayoutRejectsBadSignature() throws IOException, TimeoutException, InterruptedException {
+		AInteger HOLDING=CVMLong.create(1000000000);
+		Convex convex=engine.getConvex();
+		Address user=ConvexTest.distributeWCVM(HOLDING, convex);
+		Address user2=ConvexTest.distributeWCVM(HOLDING, convex);
+
+		Address receiver=(Address) engine.getAdapter(Strings.create("convex")).getReceiverAddress();
+
+		// Give the user some virtual credit to attempt to spend
+		Convex cc=Convex.connect(convex.getHostAddress(),user,ConvexTest.TEST_KP);
+		Result r=cc.transactSync("(@convex.asset/transfer "+receiver+" [@asset.wrap.convex 800])");
+		Hash h=TXUtils.getTransactionID(r);
+		assertNotNull(h);
+		assertEquals(800,client.deposit(h, user.toString(), "convex", "cad29:72").join().longValue());
+
+		String msg="Transfer 500 to "+user2+" on convex";
+
+		// Sign with a key that is not the source account's key
+		AKeyPair wrongKP=AKeyPair.createSeeded(987654321);
+		ASignature badSig=wrongKP.sign(Strings.create(msg).toFlatBlob());
+
+		CompletableFuture<AInteger> attempt=client.payout(user.toString(),"convex", "cad29:72", user2.toString(),"convex", "cad29:72","500",msg,badSig.toHexString());
+		ExecutionException ex=assertThrows(ExecutionException.class,()->attempt.get());
+		ResponseException re=(ResponseException) ex.getCause();
+		assertEquals(401,((HttpResponse<?>)re.getResponse()).statusCode());
+
+		// Credit must be untouched by the refused payout
+		assertEquals(800,client.getCredit(user.toString(), "convex", "cad29:72").join().longValue());
+	}
+
 	@Test public void testTransfer() throws IOException, TimeoutException, InterruptedException, PaymentException {
 		AInteger HOLDING=CVMLong.create(1000000000);
 		Convex convex=engine.getConvex();

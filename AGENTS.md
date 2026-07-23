@@ -48,10 +48,17 @@ tokengine/                       # world.convex:tokengine — single Maven modul
 
 - **Java 21+** (`maven.compiler.release` is 21; Docker image builds on Temurin 23)
 - **Maven 3.6.3+** (enforced by maven-enforcer-plugin; BUILD.md suggests 3.9.x)
-- **Convex 0.8.4** — pinned to the Maven Central release. Unlike Covia, this
+- **Convex 0.8.9** — pinned to the Maven Central release. Unlike Covia, this
   repo does **not** need a local Convex build; a clean clone builds standalone.
   Only build `../convex` first if you deliberately move `convex.version` to a
   `-SNAPSHOT`.
+- **Javalin is held at 6.x on purpose.** 7.x moves route registration onto a
+  router mounted via `config.router.mount(...)`, renames
+  `config.useVirtualThreads` → `config.concurrency.useVirtualThreads`, drops
+  `staticFiles.precompress`, and moves `exception`/`options`/`afterMatched` off
+  the `Javalin` instance. Migrating means changing the `addRoutes` signature in
+  `ATokengineAPI`, `RestAPI`, `WebApp` and `APIServer` together. See
+  `../covia/venue/.../VenueServer.java` for a working 7.x reference.
 
 ## Build and run
 
@@ -231,6 +238,31 @@ Genuine issues in the current tree — worth knowing before you debug around the
   `src/test/resources/keys/` hold throwaway test material whose seeds and
   mnemonics are published in `src/test/resources/keys/KEYS.md` — they are public
   knowledge and must never hold real assets.
+
+### Payout authorisation — current state
+
+`POST /api/v1/payout` spends a user's virtual credit, so it verifies that the
+caller holds the source account's key: `RestAPI.verifyPayoutAuthorisation`
+checks `deposit.sig` against `deposit.msg` via the source adapter's
+`validateSignature`, before any state change. `ClientTest` covers both the
+accepted and the refused (401) case.
+
+Three known gaps remain — do not assume this path is fully hardened:
+
+1. **No replay protection.** `deposit.msg` is free-form text and nothing binds
+   it to the quantity, destination or a nonce. A signature captured from one
+   payout still authorises another payout from the same source account. Fixing
+   this means defining a canonical instruction format and rejecting reuse — an
+   API change that needs a README update.
+2. **`Engine.makePayout` ignores its `depositProof` argument.** Verification
+   happens in the API layer only; calling `makePayout` directly bypasses it.
+3. **EVM signatures are not EIP-191.** `EVMAdapter.recoverAddress` keccak256s
+   the raw message with no `\x19Ethereum Signed Message:\n` prefix, so
+   signatures from standard wallets (`personal_sign`) will not verify.
+
+This control was ineffective before Convex 0.8.9: `RT.ensureMap(null)` returned
+an empty map rather than null in 0.8.4, so the `deposit` presence check silently
+passed and payouts needed no proof at all. Keep `convex.version` at 0.8.9+.
 - Addresses in `config-example.json`, `config-test.json` and `WALKTHROUGH.md`
   are testnet-only examples.
 - The operator's receiver and treasury accounts hold real custody in
@@ -238,6 +270,9 @@ Genuine issues in the current tree — worth knowing before you debug around the
   (`verifyPersonalSignature` / `validateSignature`), balance arithmetic or the
   atomic state sections are security-sensitive — flag them explicitly for review
   rather than treating them as routine edits.
+- `RT.ensureX` returning null on a type mismatch is load-bearing for these
+  guards. Be wary of `if (RT.ensureMap(x)==null)` style checks silently
+  inverting when the Convex version moves.
 
 ## Resources
 

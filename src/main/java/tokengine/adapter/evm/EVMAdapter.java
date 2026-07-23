@@ -17,7 +17,7 @@ import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Event;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.contracts.eip20.generated.ERC20;
-import org.web3j.crypto.CipherException;
+import org.web3j.crypto.exception.CipherException;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.Keys;
 import org.web3j.crypto.Sign;

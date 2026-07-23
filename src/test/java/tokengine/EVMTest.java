@@ -23,7 +23,7 @@ import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Event;
 import org.web3j.abi.datatypes.Int;
 import org.web3j.crypto.Bip32ECKeyPair;
-import org.web3j.crypto.CipherException;
+import org.web3j.crypto.exception.CipherException;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.crypto.Keys;

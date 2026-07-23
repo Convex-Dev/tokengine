@@ -220,9 +220,12 @@ public class Client extends ARESTClient {
 
 	/**
 	 * Makes a HTTP payout request as a CompletableFuture
+	 *
+	 * @param msg Instruction authorising this payout, as signed by the source account
+	 * @param sig Hex signature of msg, made with the source account's key
 	 * @return Future with a string containing the payout transaction hash
 	 */
-	public CompletableFuture<AInteger> payout(String fromUser, String fromNetwork, String fromToken, String toUser, String toNetwork, String toToken,String quantity) {
+	public CompletableFuture<AInteger> payout(String fromUser, String fromNetwork, String fromToken, String toUser, String toNetwork, String toToken,String quantity, String msg, String sig) {
 		AMap<AString, ACell> source = Maps.of(
 			Fields.NETWORK, Strings.create(fromNetwork), // Default network, could be parameterised
 			Fields.TOKEN, Strings.create(fromToken),
@@ -233,9 +236,15 @@ public class Client extends ARESTClient {
 			Fields.TOKEN, Strings.create(toToken),
 			Fields.ACCOUNT, Strings.create(toUser)
 		);
+		// Signed instruction proving possession of the source account key
+		AMap<AString, ACell> deposit = Maps.of(
+			Fields.MSG, Strings.create(msg),
+			Fields.SIG, Strings.create(sig)
+		);
 		AMap<AString, ACell> requestBody = Maps.of(
 			Fields.SOURCE, source,
 			Fields.DESTINATION,dest,
+			Fields.DEPOSIT,deposit,
 			Fields.QUANTITY,quantity
 		);
 
